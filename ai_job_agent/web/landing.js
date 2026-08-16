@@ -167,81 +167,18 @@ window.closeAuthModal = function() {
   if (modal) modal.classList.remove('active');
 };
 
-window.handleSocialAuth = async function(provider = 'google') {
-  const banner = document.getElementById('auth-status-banner');
-  const providerLabel = provider === 'google' ? 'Google' : 'LinkedIn';
+window.handleSocialAuth = function(provider = 'google') {
+  const currentOrigin = window.location.origin;
+  const redirectTarget = encodeURIComponent(currentOrigin + '/app');
   
-  if (banner) {
-    banner.style.display = 'block';
-    banner.style.background = 'rgba(0, 240, 255, 0.15)';
-    banner.style.color = '#00F0FF';
-    banner.style.border = '1px solid rgba(0, 240, 255, 0.3)';
-    banner.innerText = `Connecting to ${providerLabel} Identity Account Services...`;
+  if (provider === 'google') {
+    // Direct Google Cloud OAuth via Supabase Auth with prompt=select_account
+    const googleAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTarget}&prompt=select_account&access_type=offline`;
+    window.location.href = googleAuthUrl;
+  } else {
+    const linkedinAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=linkedin_oidc&redirect_to=${redirectTarget}`;
+    window.location.href = linkedinAuthUrl;
   }
-
-  // Attempt Supabase Social OAuth with Account Picker (select_account)
-  try {
-    if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
-      const client = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
-      const providerKey = provider === 'google' ? 'google' : 'linkedin_oidc';
-      const { data, error } = await client.auth.signInWithOAuth({
-        provider: providerKey,
-        options: {
-          redirectTo: window.location.origin + '/app',
-          queryParams: {
-            prompt: 'select_account',
-            access_type: 'offline'
-          }
-        }
-      });
-      if (!error && data?.url) {
-        window.location.href = data.url;
-        return;
-      }
-    }
-  } catch (err) {
-    console.warn(`Supabase ${providerLabel} OAuth notice:`, err);
-  }
-
-  // Instant Verification & Session Activation
-  setTimeout(() => {
-    if (banner) {
-      banner.style.background = 'rgba(16, 185, 129, 0.15)';
-      banner.style.color = '#10B981';
-      banner.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-      banner.innerText = `✓ Authenticated with ${providerLabel}! Launching workspace...`;
-    }
-
-    if (provider === 'google') {
-      const ownerEmail = 'mudatherkbyer@gmail.com';
-      localStorage.setItem('jobflow_auth_user', JSON.stringify({
-        email: ownerEmail,
-        full_name: 'Mudather Mohammed',
-        role: 'owner',
-        is_admin: true,
-        subscription_tier: 'executive',
-        plan: 'Executive Owner ($49/mo - Lifetime Unlimited)',
-        provider: 'google',
-        authenticated_at: new Date().toISOString()
-      }));
-      localStorage.setItem('user_subscription_tier', 'owner');
-    } else {
-      localStorage.setItem('jobflow_auth_user', JSON.stringify({
-        email: 'candidate@linkedin.com',
-        full_name: 'Verified Candidate',
-        role: 'user',
-        is_admin: false,
-        subscription_tier: 'starter',
-        provider: 'linkedin',
-        authenticated_at: new Date().toISOString()
-      }));
-      localStorage.setItem('user_subscription_tier', 'starter');
-    }
-
-    setTimeout(() => {
-      window.location.href = '/app';
-    }, 700);
-  }, 500);
 };
 
 window.handleGoogleSignIn = function() {
