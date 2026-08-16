@@ -25,7 +25,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     certifications JSONB DEFAULT '[]'::jsonb,
     additional_background TEXT,
     target_role TEXT,
-    subscription_tier TEXT DEFAULT 'starter',
+    subscription_tier TEXT DEFAULT 'starter', -- starter, pro, executive
+    role TEXT DEFAULT 'user', -- user, admin, owner
+    is_admin BOOLEAN DEFAULT false,
     gumroad_license_key TEXT,
     email_alerts_enabled BOOLEAN DEFAULT true,
     whatsapp_alerts_enabled BOOLEAN DEFAULT true,
@@ -142,3 +144,28 @@ CREATE POLICY "Service full access on analytics" ON public.reslink_analytics FOR
 CREATE POLICY "Service full access on saved_jobs" ON public.saved_jobs FOR ALL USING (true);
 CREATE POLICY "Service full access on applications" ON public.applications FOR ALL USING (true);
 CREATE POLICY "Service full access on questionnaire" ON public.questionnaire_memory FOR ALL USING (true);
+
+-- 10. Seed Master Owner & Executive Admin Account
+INSERT INTO public.profiles (
+    email,
+    full_name,
+    headline,
+    location,
+    target_role,
+    subscription_tier,
+    role,
+    is_admin
+) VALUES (
+    'mudatherkbyer@gmail.com',
+    'Mudather Mohammed',
+    'Junior AI Engineer | Machine Learning Engineer',
+    'Worldwide Remote',
+    'Junior AI Engineer / Machine Learning Engineer',
+    'executive',
+    'owner',
+    true
+) ON CONFLICT (email) DO UPDATE SET
+    subscription_tier = 'executive',
+    role = 'owner',
+    is_admin = true;
+

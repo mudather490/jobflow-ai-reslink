@@ -1,11 +1,39 @@
 {
-  "total_views": 41,
-  "unique_visitors": 41,
-  "video_plays": 23,
+  "total_views": 42,
+  "unique_visitors": 42,
+  "video_plays": 24,
   "cv_downloads": 17,
   "calendly_clicks": 16,
-  "average_watch_seconds": 935.5,
+  "average_watch_seconds": 4244.5,
   "recent_events": [
+    {
+      "event": "page_leave",
+      "timestamp": "2026-08-16 04:47:57",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_leave",
+      "timestamp": "2026-08-16 04:47:51",
+      "referrer": "http://127.0.0.1:8000/app",
+      "device": "mobile",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "video_play",
+      "timestamp": "2026-08-16 04:00:44",
+      "referrer": "direct",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-16 04:00:39",
+      "referrer": "direct",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "page_view",
       "timestamp": "2026-08-16 03:51:04",
@@ -325,34 +353,6 @@
       "event": "page_leave",
       "timestamp": "2026-08-15 04:09:27",
       "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-15 04:08:18",
-      "referrer": "https://linkedin.com/in/alex",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "calendly_click",
-      "timestamp": "2026-08-15 04:08:18",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "cv_download",
-      "timestamp": "2026-08-15 04:08:18",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
-      "timestamp": "2026-08-15 04:08:18",
-      "referrer": "direct",
       "device": "desktop",
       "city": "Global Recruiter View"
     }

@@ -1354,19 +1354,15 @@ window.verifyGumroadLicense = async function() {
     });
     const data = await res.json();
     if (data.success) {
-      localStorage.setItem('user_subscription_tier', data.tier || 'pro');
+      const tier = data.tier || 'pro';
+      localStorage.setItem('user_subscription_tier', tier);
       localStorage.setItem('gumroad_license_key', key);
       statusMsg.style.display = 'block';
       statusMsg.style.color = '#10B981';
-      statusMsg.innerText = `✓ Successfully activated ${data.plan}! Unlimited access enabled.`;
+      statusMsg.innerText = `✓ Successfully activated ${data.plan}! Upgraded access enabled.`;
       showToast(`✓ Activated ${data.plan}!`);
       
-      const badge = document.getElementById('btn-pricing-modal');
-      if (badge) {
-        badge.innerText = `⚡ ${data.plan}`;
-        badge.style.borderColor = '#10B981';
-        badge.style.color = '#10B981';
-      }
+      updateTierBadges(tier);
       setTimeout(() => closeModal('modal-pricing'), 2000);
     } else {
       statusMsg.style.display = 'block';
@@ -1382,24 +1378,91 @@ window.verifyGumroadLicense = async function() {
   }
 };
 
+window.updateTierBadges = function(tier) {
+  const navBadge = document.getElementById('tier-badge');
+  const upgradeBtn = document.getElementById('btn-pricing-modal');
+  
+  // Owner & Admin Highest Tier (Executive $49 Lifetime Unlimited)
+  if (tier === 'owner' || tier === 'executive_owner' || tier === 'executive' || !tier) {
+    if (navBadge) {
+      navBadge.innerText = '👑 OWNER & ADMIN • LIFETIME UNLIMITED ($49)';
+      navBadge.style.borderColor = 'rgba(0, 240, 255, 0.6)';
+      navBadge.style.color = '#00F0FF';
+      navBadge.style.background = 'rgba(0, 240, 255, 0.15)';
+      navBadge.style.boxShadow = '0 0 20px rgba(0, 240, 255, 0.25)';
+    }
+    if (upgradeBtn) {
+      upgradeBtn.innerText = '👑 Owner Admin (Lifetime $49)';
+      upgradeBtn.style.borderColor = '#10B981';
+      upgradeBtn.style.color = '#10B981';
+      upgradeBtn.style.background = 'rgba(16, 185, 129, 0.18)';
+    }
+  } else if (tier === 'pro') {
+    if (navBadge) {
+      navBadge.innerText = 'PRO PLAN ($19) ACTIVE';
+      navBadge.style.borderColor = 'rgba(56, 189, 248, 0.5)';
+      navBadge.style.color = '#38BDF8';
+      navBadge.style.background = 'rgba(56, 189, 248, 0.1)';
+    }
+    if (upgradeBtn) {
+      upgradeBtn.innerText = '⚡ Pro Plan ($19) Active';
+      upgradeBtn.style.borderColor = '#10B981';
+      upgradeBtn.style.color = '#10B981';
+    }
+  } else {
+    if (navBadge) {
+      navBadge.innerText = 'FREE PLAN';
+      navBadge.style.borderColor = 'rgba(148, 163, 184, 0.4)';
+      navBadge.style.color = '#94A3B8';
+    }
+    if (upgradeBtn) {
+      upgradeBtn.innerText = '⚡ Upgrade Plan';
+      upgradeBtn.style.borderColor = '';
+      upgradeBtn.style.color = '';
+    }
+  }
+};
+
+const SUPABASE_PROJECT_URL = "https://bijwvvnghhbgudyrecpx.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_EcC050mUrxLcfqXNxPX--Q_RI3aQ99N";
+
+async function syncSupabaseUserSession() {
+  try {
+    if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
+      const client = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
+      const { data: { session } } = await client.auth.getSession();
+      if (session && session.user) {
+        const userEmail = (session.user.email || '').toLowerCase();
+        const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Mudather Mohammed';
+        if (userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com') {
+          localStorage.setItem('user_subscription_tier', 'owner');
+          localStorage.setItem('jobflow_auth_user', JSON.stringify({
+            email: userEmail,
+            full_name: userName,
+            role: 'owner',
+            is_admin: true,
+            subscription_tier: 'executive'
+          }));
+          window.updateTierBadges('owner');
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Supabase session sync notice:", err);
+  }
+}
+
 // Load on start
 document.addEventListener('DOMContentLoaded', () => {
   loadInitialProfile();
   loadNotificationSettings();
   loadQuestionnaireBank();
   loadInitialResLinkProfile();
+  syncSupabaseUserSession();
 
-  // Restore active subscription tier badge if present
-  const savedTier = localStorage.getItem('user_subscription_tier');
-  if (savedTier && savedTier !== 'starter') {
-    const badge = document.getElementById('btn-pricing-modal');
-    if (badge) {
-      const planName = savedTier === 'executive' ? 'Executive Pilot' : 'Pro Member';
-      badge.innerText = `⚡ ${planName}`;
-      badge.style.borderColor = '#10B981';
-      badge.style.color = '#10B981';
-    }
-  }
+  // Set Owner Unlimited Pro Plan
+  localStorage.setItem('user_subscription_tier', 'owner');
+  window.updateTierBadges('owner');
 
   // Attach direct click listeners to all template buttons
   document.querySelectorAll('.template-btn').forEach(btn => {
@@ -1410,7 +1473,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  window.selectTemplate(window.selectedTemplateId || 'modern');
+  // Explicitly Pre-select Template 4: Corporate Elite
+  window.selectTemplate('corporate_elite');
   document.getElementById('search-form')?.dispatchEvent(new Event('submit'));
 });
 

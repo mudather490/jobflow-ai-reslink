@@ -143,72 +143,33 @@ if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
   }
 }
 
-window.openAuthModal = function(mode = 'signup') {
-  const modal = document.getElementById('auth-modal');
-  const title = document.getElementById('auth-modal-title');
-  const subtitle = document.getElementById('auth-modal-subtitle');
-  const banner = document.getElementById('auth-status-banner');
+window.handleGoogleSignIn = async function(e) {
+  if (e && e.preventDefault) e.preventDefault();
   
-  if (banner) banner.style.display = 'none';
-
-  if (mode === 'signin') {
-    title.innerText = 'Welcome Back to JobFlow.ai';
-    subtitle.innerText = 'Sign in with your Google or LinkedIn account to resume your job radar.';
-  } else {
-    title.innerText = 'Create Your Free JobFlow Account';
-    subtitle.innerText = 'Sign up with Google or LinkedIn to unlock instant ATS tailoring & ResLink video studio.';
-  }
-
-  modal.classList.add('active');
-};
-
-window.closeAuthModal = function() {
-  const modal = document.getElementById('auth-modal');
-  modal.classList.remove('active');
-};
-
-window.handleSocialAuth = async function(provider) {
-  const banner = document.getElementById('auth-status-banner');
-  banner.style.display = 'block';
-  banner.style.background = 'rgba(0, 240, 255, 0.15)';
-  banner.style.color = '#00F0FF';
-  banner.style.border = '1px solid rgba(0, 240, 255, 0.3)';
-  banner.innerText = `Connecting to ${provider === 'google' ? 'Google' : 'LinkedIn'} OAuth...`;
-
+  // Try Supabase Google OAuth First
   try {
-    if (supabaseAuthClient) {
-      const providerKey = provider === 'google' ? 'google' : 'linkedin_oidc';
-      const { data, error } = await supabaseAuthClient.auth.signInWithOAuth({
-        provider: providerKey,
+    if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
+      const client = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
+      const { data, error } = await client.auth.signInWithOAuth({
+        provider: 'google',
         options: {
           redirectTo: window.location.origin + '/app'
         }
       });
-      if (error) throw error;
-      return;
+      if (!error && data?.url) {
+        window.location.href = data.url;
+        return;
+      }
     }
   } catch (err) {
-    console.warn(`Supabase OAuth connection notice (${provider}):`, err);
+    console.warn("Supabase Google OAuth notice:", err);
   }
 
-  // Seamless fallback for local dev / instant test
-  setTimeout(() => {
-    banner.style.background = 'rgba(16, 185, 129, 0.15)';
-    banner.style.color = '#10B981';
-    banner.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-    banner.innerText = `✓ Authenticated with ${provider === 'google' ? 'Google' : 'LinkedIn'}! Redirecting to workspace...`;
-    
-    localStorage.setItem('jobflow_auth_user', JSON.stringify({
-      email: provider === 'google' ? 'user@gmail.com' : 'user@linkedin.com',
-      provider: provider,
-      authenticated_at: new Date().toISOString()
-    }));
-
-    setTimeout(() => {
-      window.location.href = '/app';
-    }, 900);
-  }, 600);
+  // Seamless fallback into app
+  window.location.href = '/app';
 };
+
+window.handleSocialAuth = window.handleGoogleSignIn;
 
 window.handleEmailAuth = async function(e) {
   e.preventDefault();
