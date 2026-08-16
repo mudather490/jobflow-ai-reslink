@@ -1030,18 +1030,19 @@ window.toggleTeleprompterScroll = function() {
     btn.innerHTML = '⏸ Pause Prompter';
     btn.classList.add('btn-emerald');
 
-    const wpm = parseInt(document.getElementById('teleprompter-wpm').value) || 135;
-    const pixelsPerStep = (wpm / 135) * 1.5;
+    const wpm = parseInt(document.getElementById('teleprompter-wpm')?.value) || 50;
+    // Calibrated slow micro-step: 50 WPM moves ~0.35px per 40ms (~8.75px per second)
+    const pixelsPerStep = (wpm / 50) * 0.35;
 
     prompterScrollInterval = setInterval(() => {
       container.scrollTop += pixelsPerStep;
-      if (container.scrollTop >= container.scrollHeight - container.clientHeight) {
+      if (container.scrollTop >= (container.scrollHeight - container.clientHeight - 2)) {
         clearInterval(prompterScrollInterval);
         isPrompterScrolling = false;
         btn.innerHTML = '▶ Restart Prompter';
         btn.classList.remove('btn-emerald');
       }
-    }, 50);
+    }, 40);
   }
 };
 
@@ -1051,6 +1052,23 @@ window.updateTeleprompterSpeed = function() {
     window.toggleTeleprompterScroll(); // restart with new speed
   }
 };
+
+function getSupportedVideoMimeType() {
+  const candidates = [
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm;codecs=h264,opus',
+    'video/webm',
+    'video/mp4;codecs=avc1,mp4a.40.2',
+    'video/mp4'
+  ];
+  for (const mime of candidates) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(mime)) {
+      return mime;
+    }
+  }
+  return '';
+}
 
 window.toggleWebcam = async function() {
   const videoElem = document.getElementById('studio-webcam-preview');
@@ -1062,46 +1080,58 @@ window.toggleWebcam = async function() {
     // Stop camera
     studioMediaStream.getTracks().forEach(track => track.stop());
     studioMediaStream = null;
-    videoElem.srcObject = null;
-    placeholder.style.display = 'block';
-    btnCam.innerHTML = '📹 Start Camera';
-    btnRec.disabled = true;
+    if (videoElem) videoElem.srcObject = null;
+    if (placeholder) placeholder.style.display = 'block';
+    if (btnCam) btnCam.innerHTML = '📹 Start Camera';
   } else {
     try {
       studioMediaStream = await navigator.mediaDevices.getUserMedia({
         video: { width: 1280, height: 720, facingMode: 'user' },
         audio: true
       });
-      videoElem.srcObject = studioMediaStream;
-      placeholder.style.display = 'none';
-      btnCam.innerHTML = '⏹ Turn Off Camera';
-      btnRec.disabled = false;
+      if (videoElem) {
+        videoElem.srcObject = studioMediaStream;
+        videoElem.play().catch(() => {});
+      }
+      if (placeholder) placeholder.style.display = 'none';
+      if (btnCam) btnCam.innerHTML = '⏹ Turn Off Camera';
+      if (btnRec) {
+        btnRec.disabled = false;
+        btnRec.style.background = '#EF4444';
+      }
       showToast("✓ Studio Camera & Microphone Active");
     } catch (err) {
       console.warn("Camera video stream unavailable, attempting audio fallback:", err);
       try {
         studioMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        placeholder.innerHTML = `
-          <div style="font-size: 32px; margin-bottom: 8px;">🎙️</div>
-          <div style="font-weight: 700; color: #34D399; font-size: 14px;">Microphone Connected (Voice Mode)</div>
-          <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">Camera was blocked; recording voice pitch</div>
-        `;
-        btnCam.innerHTML = '⏹ Disconnect Mic';
-        btnRec.disabled = false;
+        if (placeholder) {
+          placeholder.innerHTML = `
+            <div style="font-size: 32px; margin-bottom: 8px;">🎙️</div>
+            <div style="font-weight: 700; color: #34D399; font-size: 14px;">Microphone Connected (Voice Mode)</div>
+            <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">Camera was blocked; recording voice pitch</div>
+          `;
+        }
+        if (btnCam) btnCam.innerHTML = '⏹ Disconnect Mic';
+        if (btnRec) {
+          btnRec.disabled = false;
+          btnRec.style.background = '#EF4444';
+        }
         showToast("🎙️ Microphone Connected for Voice Pitch!");
       } catch (audioErr) {
-        placeholder.innerHTML = `
-          <div style="font-size: 28px; margin-bottom: 8px;">📁</div>
-          <div style="font-weight: 700; color: #F59E0B; font-size: 14px;">Camera / Mic Permission Denied</div>
-          <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">You can upload an MP4 video or use AI Voice Pitch</div>
-        `;
+        if (placeholder) {
+          placeholder.innerHTML = `
+            <div style="font-size: 28px; margin-bottom: 8px;">📁</div>
+            <div style="font-weight: 700; color: #F59E0B; font-size: 14px;">Camera / Mic Permission Denied</div>
+            <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">You can upload an MP4 video directly</div>
+          `;
+        }
         showToast("Camera permission not granted. You can upload an MP4 video directly.");
       }
     }
   }
 };
 
-window.toggleRecording = function() {
+window.toggleRecording = async function() {
   const btnRec = document.getElementById('btn-record-pitch');
   const indicator = document.getElementById('recording-indicator');
 
@@ -1109,63 +1139,92 @@ window.toggleRecording = function() {
     // Stop recording
     studioMediaRecorder.stop();
     clearInterval(recordingTimerInterval);
-    indicator.style.display = 'none';
-    btnRec.innerHTML = '🔴 Start Recording';
-    btnRec.style.background = '#EF4444';
+    if (indicator) indicator.style.display = 'none';
+    if (btnRec) {
+      btnRec.innerHTML = '🔴 Start Recording';
+      btnRec.style.background = '#EF4444';
+    }
     if (isPrompterScrolling) window.toggleTeleprompterScroll(); // pause prompter
-  } else {
+    return;
+  }
+
+  if (!studioMediaStream) {
+    showToast("Starting camera & microphone...");
+    await window.toggleWebcam();
     if (!studioMediaStream) {
-      showToast("Please start camera before recording.");
+      showToast("Please allow camera access before recording.");
       return;
     }
+  }
 
-    recordedVideoChunks = [];
-    studioMediaRecorder = new MediaRecorder(studioMediaStream, { mimeType: 'video/webm' });
+  recordedVideoChunks = [];
+  try {
+    const mime = getSupportedVideoMimeType();
+    const options = mime ? { mimeType: mime } : {};
+    studioMediaRecorder = new MediaRecorder(studioMediaStream, options);
+  } catch (err) {
+    console.warn("Primary MediaRecorder init failed, trying fallback:", err);
+    try {
+      studioMediaRecorder = new MediaRecorder(studioMediaStream);
+    } catch (err2) {
+      showToast(`Recorder error: ${err2.message}`);
+      return;
+    }
+  }
 
-    studioMediaRecorder.ondataavailable = (e) => {
-      if (e.data && e.data.size > 0) recordedVideoChunks.push(e.data);
-    };
+  studioMediaRecorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) recordedVideoChunks.push(e.data);
+  };
 
-    studioMediaRecorder.onstop = async () => {
-      const blob = new Blob(recordedVideoChunks, { type: 'video/webm' });
-      showToast("⏳ Uploading video pitch to ResLink...");
-      
-      const formData = new FormData();
-      formData.append('file', blob, 'pitch_recording.webm');
+  studioMediaRecorder.onstop = async () => {
+    const mime = studioMediaRecorder.mimeType || 'video/webm';
+    const blob = new Blob(recordedVideoChunks, { type: mime });
+    const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+    showToast("⏳ Uploading video pitch to ResLink...");
+    
+    const formData = new FormData();
+    formData.append('file', blob, `pitch_recording.${ext}`);
 
-      try {
-        const res = await fetch('/api/v1/reslink/upload-video', {
-          method: 'POST',
-          body: formData
-        });
-        if (res.ok) {
-          const d = await res.json();
-          showToast(`✓ Video Pitch Saved to ResLink (${d.filesize})!`);
-          window.refreshResLinkAnalytics();
-        } else {
-          showToast("Failed to upload pitch recording.");
-        }
-      } catch (err) {
-        showToast(`Upload error: ${err.message}`);
+    try {
+      const res = await fetch('/api/v1/reslink/upload-video', {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        const d = await res.json();
+        showToast(`✓ Video Pitch Saved to ResLink (${d.filesize})!`);
+        window.refreshResLinkAnalytics();
+      } else {
+        showToast("Failed to upload pitch recording.");
       }
-    };
+    } catch (err) {
+      showToast(`Upload error: ${err.message}`);
+    }
+  };
 
-    studioMediaRecorder.start();
+  try {
+    studioMediaRecorder.start(250);
     recordingSeconds = 0;
-    indicator.style.display = 'inline';
-    indicator.innerText = '● REC 00:00';
-    btnRec.innerHTML = '⏹ Stop & Save Video';
-    btnRec.style.background = '#10B981';
+    if (indicator) {
+      indicator.style.display = 'inline-flex';
+      indicator.innerText = '● REC 00:00';
+    }
+    if (btnRec) {
+      btnRec.innerHTML = '⏹ Stop & Save Video';
+      btnRec.style.background = '#10B981';
+    }
 
     // Start prompter automatically on record
     if (!isPrompterScrolling) window.toggleTeleprompterScroll();
 
     recordingTimerInterval = setInterval(() => {
       recordingSeconds++;
-      const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
-      const secs = String(recordingSeconds % 60).padStart(2, '0');
-      indicator.innerText = `● REC ${mins}:${secs}`;
+      const m = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+      const s = String(recordingSeconds % 60).padStart(2, '0');
+      if (indicator) indicator.innerText = `● REC ${m}:${s}`;
     }, 1000);
+  } catch (startErr) {
+    showToast(`Could not start recording: ${startErr.message}`);
   }
 };
 

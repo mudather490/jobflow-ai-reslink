@@ -503,14 +503,15 @@
               </div>
               <div style="display: flex; gap: 8px; align-items: center;">
                 <!-- Camera Device Switcher -->
-                <select id="studio-camera-select" class="select-field" style="padding: 3px 8px; font-size: 11px; max-width: 150px;" onchange="switchCameraDevice(this.value)">
+                <select id="studio-camera-select" class="select-field" style="padding: 3px 8px; font-size: 11px; max-width: 140px;" onchange="switchCameraDevice(this.value)">
                   <option value="">Default Camera</option>
                 </select>
-                <!-- Prompter Speed -->
-                <select id="studio-prompter-speed" class="select-field" style="padding: 3px 8px; font-size: 11px; width: 85px;" onchange="updatePrompterSpeed()">
-                  <option value="110">110 WPM</option>
-                  <option value="135" selected>135 WPM</option>
-                  <option value="160">160 WPM</option>
+                <!-- Slow Prompter Speed Options -->
+                <select id="studio-prompter-speed" class="select-field" style="padding: 3px 8px; font-size: 11px; width: 130px; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; font-weight: 700;" onchange="updatePrompterSpeed()">
+                  <option value="50" selected>🐢 Ultra Slow (50 WPM)</option>
+                  <option value="75">🚶 Slow & Clear (75 WPM)</option>
+                  <option value="100">💬 Relaxed (100 WPM)</option>
+                  <option value="130">⚡ Standard (130 WPM)</option>
                 </select>
               </div>
             </div>
@@ -519,10 +520,10 @@
             <div class="camera-wrapper">
               <video id="studio-camera-feed" class="camera-video-elem" autoplay playsinline muted></video>
               
-              <!-- Floating Moving Teleprompter (Moves inside the video preview to guide your speech) -->
-              <div class="teleprompter-overlay-box" id="studio-prompter-box">
-                <div id="studio-prompter-text" style="color: #FFF;">
-                  ✨ Teleprompter ready. Match your CV below to load your customized spoken transcript...
+              <!-- Floating Moving Teleprompter (Moves slowly inside the video preview) -->
+              <div class="teleprompter-overlay-box" id="studio-prompter-box" style="font-size: 14.5px; line-height: 1.65; max-height: 130px; overflow-y: auto;">
+                <div id="studio-prompter-text" style="color: #FFF; font-weight: 600;">
+                  ✨ Teleprompter ready. Click 'Turn On Camera' and 'Start Recording' to begin speaking at your own relaxed pace...
                 </div>
               </div>
 
@@ -535,12 +536,23 @@
               <div id="studio-camera-offline" style="position: absolute; text-align: center; color: var(--text-dim); font-size: 13px; padding: 20px;">
                 <span style="font-size: 32px;">📷</span><br>
                 <span style="font-weight: 700; color: #CBD5E1;">Camera Offline</span><br>
-                <span style="font-size: 11.5px;">Click 'Turn On Camera' below to start</span>
+                <span style="font-size: 11.5px;">Click 'Turn On Camera' below to start recording</span>
               </div>
             </div>
 
-            <div style="font-size: 11px; color: var(--text-dim); margin-top: 8px; text-align: center;">
-              💡 <em>The teleprompter moves smoothly inside the video preview to guide your speech, but the final recorded video captures your clean camera and real voice!</em>
+            <!-- Prompter Manual Scroll Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+              <span style="font-size: 11px; color: var(--text-dim);">
+                💡 <em>The teleprompter moves slowly inside the video to guide your speech.</em>
+              </span>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" class="btn btn-secondary" id="btn-studio-scroll-prompter" onclick="toggleStudioPrompterScroll()" style="font-size: 11px; padding: 4px 10px;">
+                  ▶ Scroll Prompter
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="resetStudioPrompter()" style="font-size: 11px; padding: 4px 8px;" title="Reset prompter to start">
+                  🔄 Top
+                </button>
+              </div>
             </div>
           </div>
 
@@ -549,7 +561,7 @@
             <button type="button" class="btn btn-secondary" style="flex: 1; font-size: 13px; font-weight: 700;" id="btn-studio-camera-toggle" onclick="toggleStudioCamera()">
               📹 Turn On Camera
             </button>
-            <button type="button" class="btn btn-primary" style="flex: 1; font-size: 13px; font-weight: 800; background: #EF4444;" id="btn-studio-record-toggle" onclick="toggleStudioRecord()" disabled>
+            <button type="button" class="btn btn-primary" style="flex: 1; font-size: 13px; font-weight: 800; background: #EF4444; cursor: pointer;" id="btn-studio-record-toggle" onclick="toggleStudioRecord()">
               🔴 Start Recording
             </button>
           </div>
@@ -1153,38 +1165,63 @@
       showToast("🔊 Playing Spoken Audio Pitch Practice...");
     }
 
+    function resetStudioPrompter() {
+      const box = document.getElementById('studio-prompter-box');
+      if (box) box.scrollTop = 0;
+      showToast("Prompter reset to beginning");
+    }
+
     function toggleStudioPrompterScroll() {
       const box = document.getElementById('studio-prompter-box');
       const btn = document.getElementById('btn-studio-scroll-prompter');
-      if (!box || !btn) return;
+      if (!box) return;
 
       if (isPrompterPlaying) {
         clearInterval(prompterInterval);
         isPrompterPlaying = false;
-        btn.innerHTML = '▶ Scroll Inside Video';
+        if (btn) btn.innerHTML = '▶ Scroll Prompter';
       } else {
         isPrompterPlaying = true;
-        btn.innerHTML = '⏸ Pause';
+        if (btn) btn.innerHTML = '⏸ Pause';
 
-        const wpm = parseInt(document.getElementById('studio-prompter-speed').value) || 135;
-        const step = (wpm / 135) * 1.5;
+        const wpm = parseInt(document.getElementById('studio-prompter-speed')?.value) || 50;
+        // Calibrated slow micro-step: 50 WPM moves ~0.35px per 40ms (~8.75px per second)
+        const step = (wpm / 50) * 0.35;
 
         prompterInterval = setInterval(() => {
           box.scrollTop += step;
-          if (box.scrollTop >= box.scrollHeight - box.clientHeight) {
+          if (box.scrollTop >= (box.scrollHeight - box.clientHeight - 2)) {
             clearInterval(prompterInterval);
             isPrompterPlaying = false;
-            btn.innerHTML = '▶ Restart';
+            if (btn) btn.innerHTML = '▶ Restart';
           }
-        }, 50);
+        }, 40);
       }
     }
 
     function updatePrompterSpeed() {
       if (isPrompterPlaying) {
-        toggleStudioPrompterScroll();
+        clearInterval(prompterInterval);
+        isPrompterPlaying = false;
         toggleStudioPrompterScroll();
       }
+    }
+
+    function getSupportedMimeType() {
+      const candidates = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm;codecs=h264,opus',
+        'video/webm',
+        'video/mp4;codecs=avc1,mp4a.40.2',
+        'video/mp4'
+      ];
+      for (const mime of candidates) {
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported(mime)) {
+          return mime;
+        }
+      }
+      return '';
     }
 
     async function toggleStudioCamera() {
@@ -1196,49 +1233,61 @@
       if (studioStream) {
         studioStream.getTracks().forEach(t => t.stop());
         studioStream = null;
-        video.srcObject = null;
-        off.style.display = 'block';
-        btnCam.innerHTML = '📹 Turn On Camera';
-        btnRec.disabled = true;
+        if (video) video.srcObject = null;
+        if (off) off.style.display = 'block';
+        if (btnCam) btnCam.innerHTML = '📹 Turn On Camera';
       } else {
         try {
-          const deviceId = document.getElementById('studio-camera-select').value;
+          const deviceId = document.getElementById('studio-camera-select')?.value;
           const constraints = {
             video: deviceId ? { deviceId: { exact: deviceId }, width: 1280, height: 720 } : { facingMode: 'user', width: 1280, height: 720 },
             audio: true
           };
           studioStream = await navigator.mediaDevices.getUserMedia(constraints);
-          video.srcObject = studioStream;
-          off.style.display = 'none';
-          btnCam.innerHTML = '⏹ Turn Off Camera';
-          btnRec.disabled = false;
-          showToast("✓ Camera and Audio Connected");
+          if (video) {
+            video.srcObject = studioStream;
+            video.play().catch(() => {});
+          }
+          if (off) off.style.display = 'none';
+          if (btnCam) btnCam.innerHTML = '⏹ Turn Off Camera';
+          if (btnRec) {
+            btnRec.disabled = false;
+            btnRec.style.background = '#EF4444';
+          }
+          showToast("✓ Camera & Microphone Connected");
           enumerateVideoDevices();
         } catch (err) {
           console.warn("Camera video stream unavailable, attempting audio fallback:", err);
           try {
             studioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            off.innerHTML = `
-              <span style="font-size: 32px;">🎙️</span><br>
-              <span style="font-weight: 700; color: #34D399;">Microphone Connected (Voice Mode)</span><br>
-              <span style="font-size: 11.5px; color: var(--text-dim);">Camera was blocked; recording voice pitch</span>
-            `;
-            btnCam.innerHTML = '⏹ Disconnect Mic';
-            btnRec.disabled = false;
+            if (off) {
+              off.innerHTML = `
+                <span style="font-size: 32px;">🎙️</span><br>
+                <span style="font-weight: 700; color: #34D399;">Microphone Connected (Voice Mode)</span><br>
+                <span style="font-size: 11.5px; color: var(--text-dim);">Camera was blocked; recording voice pitch</span>
+              `;
+            }
+            if (btnCam) btnCam.innerHTML = '⏹ Disconnect Mic';
+            if (btnRec) {
+              btnRec.disabled = false;
+              btnRec.style.background = '#EF4444';
+            }
             showToast("🎙️ Microphone Connected for Voice Pitch!");
           } catch (audioErr) {
-            off.innerHTML = `
-              <span style="font-size: 28px;">📁</span><br>
-              <span style="font-weight: 700; color: #F59E0B;">Camera / Mic Permission Denied</span><br>
-              <span style="font-size: 11.5px; color: var(--text-dim);">You can upload an MP4 video directly</span>
-            `;
+            if (off) {
+              off.innerHTML = `
+                <span style="font-size: 28px;">📁</span><br>
+                <span style="font-weight: 700; color: #F59E0B;">Camera / Mic Permission Denied</span><br>
+                <span style="font-size: 11.5px; color: var(--text-dim);">You can upload an MP4 video directly</span>
+              `;
+            }
             showToast("Camera permission not granted. You can upload an MP4 video directly.");
           }
         }
       }
     }
 
-    function toggleStudioRecord() {
+    async function toggleStudioRecord() {
       const btnRec = document.getElementById('btn-studio-record-toggle');
       const badge = document.getElementById('studio-rec-badge');
       const timer = document.getElementById('studio-rec-timer');
@@ -1246,50 +1295,76 @@
       if (studioRecorder && studioRecorder.state === 'recording') {
         studioRecorder.stop();
         clearInterval(recTimer);
-        badge.style.display = 'none';
-        btnRec.innerHTML = '🔴 Start Recording';
-        btnRec.style.background = '#EF4444';
+        if (badge) badge.style.display = 'none';
+        if (btnRec) {
+          btnRec.innerHTML = '🔴 Start Recording';
+          btnRec.style.background = '#EF4444';
+        }
         if (isPrompterPlaying) toggleStudioPrompterScroll();
-      } else {
+        return;
+      }
+
+      // If camera is not on yet, connect automatically
+      if (!studioStream) {
+        showToast("Connecting camera & microphone...");
+        await toggleStudioCamera();
         if (!studioStream) {
-          showToast("Please turn on your camera first.");
+          showToast("Please allow camera access to start recording.");
           return;
         }
+      }
 
-        studioChunks = [];
-        studioRecorder = new MediaRecorder(studioStream, { mimeType: 'video/webm' });
+      studioChunks = [];
+      try {
+        const mime = getSupportedMimeType();
+        const options = mime ? { mimeType: mime } : {};
+        studioRecorder = new MediaRecorder(studioStream, options);
+      } catch (err) {
+        console.warn("Primary MediaRecorder init failed, trying fallback options:", err);
+        try {
+          studioRecorder = new MediaRecorder(studioStream);
+        } catch (err2) {
+          showToast(`Recorder error: ${err2.message}`);
+          return;
+        }
+      }
 
-        studioRecorder.ondataavailable = e => {
-          if (e.data && e.data.size > 0) studioChunks.push(e.data);
-        };
+      studioRecorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) studioChunks.push(e.data);
+      };
 
-        studioRecorder.onstop = async () => {
-          const blob = new Blob(studioChunks, { type: 'video/webm' });
-          showToast("⏳ Uploading video pitch to ResLink...");
-          
-          const fd = new FormData();
-          fd.append('file', blob, 'video_pitch.webm');
+      studioRecorder.onstop = async () => {
+        const mime = studioRecorder.mimeType || 'video/webm';
+        const blob = new Blob(studioChunks, { type: mime });
+        const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+        showToast("⏳ Saving & uploading video pitch...");
+        
+        const fd = new FormData();
+        fd.append('file', blob, `video_pitch.${ext}`);
 
-          try {
-            const r = await fetch('/api/v1/reslink/upload-video', { method: 'POST', body: fd });
-            if (r.ok) {
-              const d = await r.json();
-              showToast(`✓ Clean video pitch saved to ResLink (${d.filesize})!`);
-              loadStudioAnalytics();
-            } else {
-              showToast("Failed to save video pitch.");
-            }
-          } catch (e) {
-            showToast(`Upload error: ${e.message}`);
+        try {
+          const r = await fetch('/api/v1/reslink/upload-video', { method: 'POST', body: fd });
+          if (r.ok) {
+            const d = await r.json();
+            showToast(`✓ Video pitch saved successfully (${d.filesize})!`);
+            loadStudioAnalytics();
+          } else {
+            showToast("Failed to save video pitch.");
           }
-        };
+        } catch (e) {
+          showToast(`Upload error: ${e.message}`);
+        }
+      };
 
-        studioRecorder.start();
+      try {
+        studioRecorder.start(250); // Timeslice 250ms for reliable chunks
         recSecs = 0;
-        badge.style.display = 'flex';
-        timer.innerText = '00:00';
-        btnRec.innerHTML = '⏹ Stop & Save Video';
-        btnRec.style.background = '#10B981';
+        if (badge) badge.style.display = 'flex';
+        if (timer) timer.innerText = '00:00';
+        if (btnRec) {
+          btnRec.innerHTML = '⏹ Stop & Save Video';
+          btnRec.style.background = '#10B981';
+        }
 
         if (!isPrompterPlaying) toggleStudioPrompterScroll();
 
@@ -1297,8 +1372,10 @@
           recSecs++;
           const m = String(Math.floor(recSecs / 60)).padStart(2, '0');
           const s = String(recSecs % 60).padStart(2, '0');
-          timer.innerText = `${m}:${s}`;
+          if (timer) timer.innerText = `${m}:${s}`;
         }, 1000);
+      } catch (startErr) {
+        showToast(`Could not start recording: ${startErr.message}`);
       }
     }
 

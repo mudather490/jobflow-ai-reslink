@@ -1,11 +1,25 @@
 {
-  "total_views": 38,
-  "unique_visitors": 38,
-  "video_plays": 21,
+  "total_views": 39,
+  "unique_visitors": 39,
+  "video_plays": 22,
   "cv_downloads": 17,
   "calendly_clicks": 16,
   "average_watch_seconds": 935.5,
   "recent_events": [
+    {
+      "event": "video_play",
+      "timestamp": "2026-08-16 03:40:55",
+      "referrer": "direct",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-16 03:40:48",
+      "referrer": "direct",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "page_view",
       "timestamp": "2026-08-16 03:30:48",
@@ -337,20 +351,6 @@
     },
     {
       "event": "calendly_click",
-      "timestamp": "2026-08-15 04:07:43",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "cv_download",
-      "timestamp": "2026-08-15 04:07:43",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
       "timestamp": "2026-08-15 04:07:43",
       "referrer": "direct",
       "device": "desktop",
