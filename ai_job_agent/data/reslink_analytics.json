@@ -1,11 +1,25 @@
 {
-  "total_views": 33,
-  "unique_visitors": 33,
+  "total_views": 35,
+  "unique_visitors": 35,
   "video_plays": 19,
   "cv_downloads": 17,
   "calendly_clicks": 16,
   "average_watch_seconds": 1846.5,
   "recent_events": [
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-16 03:09:01",
+      "referrer": "http://127.0.0.1:8000/app",
+      "device": "mobile",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-16 03:08:25",
+      "referrer": "http://127.0.0.1:8000/app",
+      "device": "mobile",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "page_leave",
       "timestamp": "2026-08-16 00:37:15",
@@ -339,20 +353,6 @@
       "event": "page_view",
       "timestamp": "2026-08-15 04:07:22",
       "referrer": "linkedin.com",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
-      "timestamp": "2026-08-15 04:03:00",
-      "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-15 04:02:46",
-      "referrer": "http://127.0.0.1:8000/reslink",
       "device": "desktop",
       "city": "Global Recruiter View"
     }

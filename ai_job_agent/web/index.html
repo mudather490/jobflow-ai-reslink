@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobFlow.ai & ResLink Studio — Autonomous AI Career Hub</title>
-  <meta name="description" content="All-in-one Autonomous Career Intelligence: ATS Job Radar, 4-Template Resume Generator, and ResLink Video Pitch Studio.">
+  <title>JobFlow.ai — Autonomous AI Job Intelligence & ATS Resume Studio</title>
+  <meta name="description" content="Autonomous AI Job Search, ATS Resume Tailoring, Pixel-Perfect PDF Export, and Triple-Channel Application Alerts.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/styles.css?v=6.0">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css?v=5.0">
 </head>
 <body>
 
   <div class="container">
     <!-- Navbar -->
     <header class="navbar">
-      <a href="/" class="logo-container">
+      <a href="#" class="logo-container">
         <div class="logo-icon">⚡</div>
         <div class="logo-text">JobFlow<span>.ai</span></div>
         <div class="nav-badge" id="tier-badge">PRO ACTIVE</div>
@@ -24,560 +24,396 @@
         <button class="btn btn-secondary" id="btn-open-memory-bank" onclick="window.openQuestionnaireModal()" style="display: inline-flex; align-items: center; gap: 6px;">
           <span>🧠</span> <span>Memory Bank</span> <span class="badge-count" id="badge-question-count">13</span>
         </button>
-        <button class="btn btn-secondary" id="btn-settings-modal" onclick="openModal('modal-settings')">⚙️ Channels</button>
-        <button class="btn btn-gumroad" id="btn-pricing-modal" onclick="openModal('modal-pricing')">⚡ Upgrade Plan</button>
+        <a href="/reslink" class="btn btn-primary" id="btn-nav-reslink" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #38BDF8, #818CF8); color: #000; font-weight: 800; text-decoration: none;">
+          <span>🔗</span> <span>ResLink Studio</span>
+        </a>
+        <button class="btn btn-secondary" id="btn-settings-modal">⚙️ Channels</button>
+        <button class="btn btn-gumroad" id="btn-pricing-modal">⚡ Upgrade Plan</button>
       </div>
     </header>
 
-    <!-- Master Unified Navigation Bar -->
-    <div class="master-tab-bar" style="display: flex; gap: 10px; margin: 20px 0 24px 0; background: rgba(14, 19, 38, 0.95); padding: 8px 12px; border-radius: var(--radius-lg); border: 1px solid var(--border-glass-bright); flex-wrap: wrap; align-items: center;">
-      <button class="app-tab-btn active" id="tab-btn-radar" onclick="window.switchAppTab('radar')" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 13.5px; border: 1px solid rgba(0, 240, 255, 0.4); background: rgba(0, 240, 255, 0.15); color: #00F0FF; cursor: pointer; transition: all 0.2s ease;">
-        <span>⚡</span> <span>1. Auto-Apply & Job Radar</span>
-      </button>
-      <button class="app-tab-btn" id="tab-btn-studio" onclick="window.switchAppTab('studio')" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 13.5px; border: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease;">
-        <span>🎥</span> <span>2. ResLink Video Studio</span>
-      </button>
-      <button class="app-tab-btn" id="tab-btn-showcase" onclick="window.switchAppTab('showcase')" style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 13.5px; border: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease;">
-        <span>🌐</span> <span>3. Live Recruiter Showcase</span>
-      </button>
-      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-        <span style="font-size: 12px; color: var(--text-dim);">Candidate:</span>
-        <span id="nav-candidate-name" style="font-size: 12.5px; font-weight: 700; color: #FFF;">Mudather Mohammed</span>
+    <!-- Hero Section & High Visibility Search Radar -->
+    <section class="hero">
+      <div class="hero-tag">✨ Autonomous Multi-Agent AI Job Intelligence & Resume Engine</div>
+      <h1 class="hero-title">Land Your Next Dream Role with <br><span class="gradient-text">Autonomous AI Intelligence</span></h1>
+      <p class="hero-subtitle">Search live jobs for any profession, perform instant ATS gap analysis, dynamically tailor pixel-perfect PDF resumes using the XYZ formula, and trigger notifications to your Email, WhatsApp, and Telegram.</p>
+
+      <!-- Prominent Search Radar Box -->
+      <div class="search-radar-box">
+        <form id="search-form" class="search-grid">
+          <div class="input-group">
+            <label class="input-label" style="color: var(--accent-cyan);">🔎 Job Title / Keyword</label>
+            <input type="text" id="input-keywords" class="input-field" placeholder="e.g. AI Engineer, Product Manager" value="AI Engineer" required>
+          </div>
+          <div class="input-group">
+            <label class="input-label" style="color: #38BDF8;">💼 Workplace</label>
+            <select id="select-workplace-type" class="select-field">
+              <option value="worldwide_remote" selected>🌍 Worldwide Remote (Hire Anywhere)</option>
+              <option value="contract_remote">📄 Contract Remote (Global B2B / Freelance)</option>
+              <option value="internship">🎓 Global AI Internship (Remote / Fellowship)</option>
+              <option value="hybrid">⚡ Hybrid Remote (In-Office & Remote)</option>
+              <option value="remote">🏡 Remote Only (Standard Remote)</option>
+              <option value="on_site">🏢 On-Site (Inside Company / Office)</option>
+              <option value="all">✨ All Opportunities</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label class="input-label" style="color: #F59E0B;">⚡ Application Type</label>
+            <select id="select-app-type" class="select-field">
+              <option value="all" selected>✨ All Opportunities (Easy + Direct)</option>
+              <option value="easy_apply">⚡ Easy Apply Only (1-Click Auto)</option>
+              <option value="standard">🏢 Direct Company Site Apply</option>
+            </select>
+          </div>
+          <div class="input-group" id="country-input-group">
+            <label class="input-label" style="color: var(--accent-emerald);">🌍 Target Country</label>
+            <input type="text" id="input-country" class="input-field" placeholder="e.g. United States, Australia, Worldwide" value="United States">
+          </div>
+          <div class="input-group">
+            <label class="input-label">⏱ Time Window</label>
+            <select id="select-time" class="select-field">
+              <option value="24h" selected>Past 24 Hours</option>
+              <option value="7d">Past 7 Days</option>
+              <option value="30d">Past 30 Days</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label class="input-label" style="color: #FBBF24;">📊 Batch Size</label>
+            <select id="select-limit" class="select-field">
+              <option value="3">3 Jobs</option>
+              <option value="6" selected>6 Jobs</option>
+              <option value="12">12 Jobs</option>
+              <option value="25">25 Jobs</option>
+              <option value="50">50 Jobs</option>
+              <option value="100">100 Jobs</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-search" style="padding: 13px 20px; font-size: 14px;">
+            <span>⚡ Search Radar</span>
+          </button>
+        </form>
       </div>
-    </div>
 
-    <!-- ═════════════════════════════════════════════════════════════
-         VIEW 1: AUTO-APPLY & JOB RADAR
-         ═════════════════════════════════════════════════════════════ -->
-    <div id="view-radar" class="app-view-pane" style="display: block;">
-      <!-- Hero Section & High Visibility Search Radar -->
-      <section class="hero">
-        <div class="hero-tag">✨ Autonomous Multi-Agent AI Job Intelligence & Resume Engine</div>
-        <h1 class="hero-title">Land Your Next Dream Role with <br><span class="gradient-text">Autonomous AI Intelligence</span></h1>
-        <p class="hero-subtitle">Search live jobs for any profession, perform instant ATS gap audits, dynamically tailor pixel-perfect PDF resumes using the XYZ formula, and trigger notifications to your Email, WhatsApp, and Telegram.</p>
+      <!-- Visible Connected Integrations Bar -->
+      <div class="integrations-panel">
+        <div class="integration-items">
+          <div class="integration-pill">
+            <div class="pill-dot"></div>
+            <span>📧 Email: <b id="bar-email" style="color: #FFF;">alex.rivera@email.com</b></span>
+          </div>
+          <div class="integration-pill">
+            <div class="pill-dot"></div>
+            <span>📱 WhatsApp: <b id="bar-whatsapp" style="color: #FFF;">+1 (555) 345-6789</b></span>
+          </div>
+          <div class="integration-pill">
+            <div class="pill-dot"></div>
+            <span>✈️ Telegram: <b id="bar-telegram" style="color: #FFF;">@alex_telegram</b></span>
+          </div>
+          <div class="integration-pill" style="border-color: rgba(255, 201, 0, 0.4); cursor: pointer;" onclick="openModal('modal-pricing')">
+            <div class="pill-dot" style="background: #FFC900; box-shadow: 0 0 10px #FFC900;"></div>
+            <span>👑 Plan: <b id="bar-plan" style="color: #FFC900;">Pro Member ($19/mo)</b></span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 6px 14px;" onclick="openModal('modal-settings')">
+          ⚙️ Edit Channels
+        </button>
+      </div>
+    </section>
 
-        <!-- Prominent Search Radar Box -->
-        <div class="search-radar-box">
-          <form id="search-form" class="search-grid">
-            <div class="input-group">
-              <label class="input-label" style="color: var(--accent-cyan);">🔎 Job Title / Keyword</label>
-              <input type="text" id="input-keywords" class="input-field" placeholder="e.g. AI Engineer, Product Manager" value="AI Engineer" required>
+    <!-- Main Dashboard Grid -->
+    <main class="dashboard-layout">
+      
+      <!-- Left Column: Ingestion & Live Job Feed -->
+      <section class="dashboard-col">
+        
+        <!-- 1. Resume Ingestion Studio -->
+        <div class="glass-card" style="margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <h2 style="font-size: 18px; font-weight: 700;">📁 Candidate Resume Vault</h2>
+            <span id="resume-status-badge" class="nav-badge" style="border-color: rgba(16, 185, 129, 0.4); color: #34D399; background: rgba(16, 185, 129, 0.1);">
+              ✓ UPLOADED & READY
+            </span>
+          </div>
+
+          <!-- Active File Card Indicator -->
+          <div id="active-file-card" style="background: rgba(7, 9, 19, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="font-size: 24px;">📄</div>
+              <div>
+                <div style="font-weight: 700; font-size: 14px;" id="file-display-name">sample_resume.docx</div>
+                <div style="font-size: 12px; color: var(--text-muted);">
+                  <span id="candidate-name-display">Alex Rivera</span> • <span id="file-size-display">38 KB</span>
+                </div>
+              </div>
             </div>
-            <div class="input-group">
-              <label class="input-label" style="color: #38BDF8;">💼 Workplace</label>
-              <select id="select-workplace-type" class="select-field">
-                <option value="worldwide_remote" selected>🌍 Worldwide Remote (Hire Anywhere)</option>
-                <option value="contract_remote">📄 Contract Remote (Global B2B / Freelance)</option>
-                <option value="internship">🎓 Global AI Internship (Remote / Fellowship)</option>
-                <option value="hybrid">⚡ Hybrid Remote (In-Office & Remote)</option>
-                <option value="remote">🏡 Remote Only (Standard Remote)</option>
-                <option value="on_site">🏢 On-Site (Inside Company / Office)</option>
-                <option value="all">✨ All Opportunities</option>
-              </select>
-            </div>
-            <div class="input-group">
-              <label class="input-label" style="color: #F59E0B;">⚡ Application Type</label>
-              <select id="select-app-type" class="select-field">
-                <option value="all" selected>✨ All Opportunities (Easy + Direct)</option>
-                <option value="easy_apply">⚡ Easy Apply Only (1-Click Auto)</option>
-                <option value="standard">🏢 Direct Company Site Apply</option>
-              </select>
-            </div>
-            <div class="input-group" id="country-input-group">
-              <label class="input-label" style="color: var(--accent-emerald);">🌍 Target Country</label>
-              <input type="text" id="input-country" class="input-field" placeholder="e.g. United States, Australia, Worldwide" value="United States">
-            </div>
-            <div class="input-group">
-              <label class="input-label">⏱ Time Window</label>
-              <select id="select-time" class="select-field">
-                <option value="24h" selected>Past 24 Hours</option>
-                <option value="7d">Past 7 Days</option>
-                <option value="30d">Past 30 Days</option>
-                <option value="all">All Time</option>
-              </select>
-            </div>
-            <div class="input-group">
-              <label class="input-label" style="color: #FBBF24;">📊 Batch Size</label>
-              <select id="select-limit" class="select-field">
-                <option value="3">3 Jobs</option>
-                <option value="6" selected>6 Jobs</option>
-                <option value="12">12 Jobs</option>
-                <option value="25">25 Jobs</option>
-                <option value="50">50 Jobs</option>
-                <option value="100">100 Jobs</option>
-              </select>
-            </div>
-            <button type="submit" class="btn btn-primary" id="btn-search" style="padding: 13px 20px; font-size: 14px;">
-              <span>⚡ Search Radar</span>
+            <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('file-input').click()">
+              🔄 Upload New
             </button>
-          </form>
+          </div>
+
+          <!-- Dropzone -->
+          <div class="upload-zone" id="upload-dropzone">
+            <div class="upload-icon">☁️</div>
+            <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Drag & Drop New Resume Here</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Supports .docx, .pdf, or .txt</div>
+            <input type="file" id="file-input" accept=".docx,.pdf,.txt" style="display: none;">
+            <button type="button" class="btn btn-primary" style="font-size: 12px; padding: 6px 16px;" onclick="document.getElementById('file-input').click()">
+              Choose File from Device
+            </button>
+          </div>
+
+          <!-- Parsed Skills Cloud -->
+          <div style="margin-top: 18px;">
+            <div class="input-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span>📄 Skills Extracted from Your Resume (<span id="skills-count">27</span>)</span>
+              <span class="nav-badge" style="font-size: 10px; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; background: rgba(56, 189, 248, 0.1);">Candidate Profile</span>
+            </div>
+            <div class="skills-cloud" id="profile-skills-cloud">
+              <span class="skill-chip chip-match">Python</span>
+              <span class="skill-chip chip-match">FastAPI</span>
+              <span class="skill-chip chip-match">Docker</span>
+              <span class="skill-chip chip-match">LangGraph</span>
+              <span class="skill-chip chip-match">Qdrant</span>
+              <span class="skill-chip chip-match">PyTorch</span>
+              <span class="skill-chip chip-match">PostgreSQL</span>
+              <span class="skill-chip chip-match">Redis</span>
+            </div>
+
+            <!-- Add Custom Skill Bar -->
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+              <input type="text" id="input-new-skill" class="input-field" placeholder="➕ Add custom skill (e.g. PyTorch, MLOps, AWS)..." style="font-size: 12px; padding: 7px 12px;">
+              <button type="button" id="btn-add-skill" class="btn btn-secondary" style="font-size: 12px; padding: 7px 14px; white-space: nowrap; font-weight: 600;">
+                + Add Skill
+              </button>
+            </div>
+          </div>
         </div>
 
-        <!-- Visible Connected Integrations Bar -->
-        <div class="integrations-panel">
-          <div class="integration-items">
-            <div class="integration-pill">
-              <div class="pill-dot"></div>
-              <span>📧 Email: <b id="bar-email" style="color: #FFF;">alex.rivera@email.com</b></span>
+        <!-- 2. Live Job Postings Feed with Refresh & Pagination -->
+        <div class="glass-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <h2 style="font-size: 18px; font-weight: 700;">🔍 Live LinkedIn Opportunities</h2>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span id="jobs-count-badge" class="nav-badge">6 Postings</span>
+              <button type="button" class="btn btn-secondary" id="btn-refresh-jobs" style="font-size: 12px; padding: 4px 10px;" title="Fetch fresh batch of jobs">
+                🔄 Fetch Next Batch
+              </button>
             </div>
-            <div class="integration-pill">
-              <div class="pill-dot"></div>
-              <span>📱 WhatsApp: <b id="bar-whatsapp" style="color: #FFF;">+1 (555) 345-6789</b></span>
-            </div>
-            <div class="integration-pill">
-              <div class="pill-dot"></div>
-              <span>✈️ Telegram: <b id="bar-telegram" style="color: #FFF;">@alex_telegram</b></span>
-            </div>
-            <div class="integration-pill" style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.1);">
-              <div class="pill-dot" style="background: var(--accent-cyan);"></div>
-              <span>🎨 Active Template: <b id="active-template-badge" style="color: var(--accent-cyan);">Corporate Elite</b></span>
-            </div>
+          </div>
+
+          <div class="jobs-list" id="jobs-container">
+            <!-- Dynamic Job Cards Rendered Here -->
           </div>
         </div>
       </section>
 
-      <!-- Main Application Grid -->
-      <main class="dashboard-layout">
-        <!-- Left Column: Ingestion & Live Job Feed -->
-        <section class="dashboard-col">
+      <!-- Right Column: ATS Radar, Tailoring & Notifications -->
+      <section class="dashboard-col">
+        
+        <!-- 1. ATS Match Analysis Studio -->
+        <div class="glass-card" style="margin-bottom: 24px;">
+          <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">📊 Real-Time ATS Gap Analysis</h2>
           
-          <!-- 1. Resume Ingestion Studio -->
-          <div class="glass-card" style="margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <h2 style="font-size: 18px; font-weight: 700;">📁 Candidate Resume Vault</h2>
-              <span id="resume-status-badge" class="nav-badge" style="border-color: rgba(16, 185, 129, 0.4); color: #34D399; background: rgba(16, 185, 129, 0.1);">
-                ✓ UPLOADED & READY
-              </span>
+          <div class="gauge-container">
+            <div class="score-circle" id="score-gauge" style="--score: 85;">
+              <span class="score-text" id="score-number">85%</span>
+              <span class="score-label">ATS MATCH</span>
             </div>
-
-            <!-- Active File Card Indicator -->
-            <div id="active-file-card" style="background: rgba(7, 9, 19, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-md); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="font-size: 24px;">📄</div>
-                <div>
-                  <div style="font-weight: 700; font-size: 14px;" id="file-display-name">Mudather_Mohammed_Resume.pdf</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">
-                    <span id="candidate-name-display">Mudather Mohammed</span> • <span id="file-size-display">252 KB</span>
-                  </div>
-                </div>
-              </div>
-              <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('file-input').click()">
-                🔄 Upload New
-              </button>
-            </div>
-
-            <!-- Dropzone -->
-            <div class="upload-zone" id="upload-dropzone">
-              <div class="upload-icon">☁️</div>
-              <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Drag & Drop New Resume Here</div>
-              <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Supports .docx, .pdf, or .txt</div>
-              <input type="file" id="file-input" accept=".docx,.pdf,.txt" style="display: none;">
-              <button type="button" class="btn btn-primary" style="font-size: 12px; padding: 6px 16px;" onclick="document.getElementById('file-input').click()">
-                Choose File from Device
-              </button>
-            </div>
-
-            <!-- 4 Templates Selector Grid -->
-            <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-              <label class="input-label" style="margin-bottom: 8px; color: #FFF; font-weight: 700;">Select ATS Resume Template:</label>
-              <div class="template-selector-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                <button type="button" class="template-btn" id="btn-tmpl-modern" data-template-id="modern" onclick="window.selectTemplate('modern')">
-                  <div class="template-icon">📄</div>
-                  <div class="template-name">Modern Executive</div>
-                  <div class="template-desc">2-Column, Blue Accents</div>
-                </button>
-                <button type="button" class="template-btn" id="btn-tmpl-harvard" data-template-id="harvard_consulting" onclick="window.selectTemplate('harvard_consulting')">
-                  <div class="template-icon">🏛️</div>
-                  <div class="template-name">Harvard Consulting</div>
-                  <div class="template-desc">Serif, MBB Standard</div>
-                </button>
-                <button type="button" class="template-btn active" id="btn-tmpl-corporate" data-template-id="corporate_elite" onclick="window.selectTemplate('corporate_elite')">
-                  <div class="template-icon">👔</div>
-                  <div class="template-name">Corporate Elite</div>
-                  <div class="template-desc">Deep Navy & Gold Accent</div>
-                </button>
-                <button type="button" class="template-btn" id="btn-tmpl-tech" data-template-id="tech_specialist" onclick="window.selectTemplate('tech_specialist')">
-                  <div class="template-icon">💻</div>
-                  <div class="template-name">Tech Specialist</div>
-                  <div class="template-desc">Violet & Cyan, GitHub Tags</div>
-                </button>
-              </div>
-            </div>
-
-            <!-- Parsed Skills Cloud -->
-            <div style="margin-top: 18px;">
-              <div class="input-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                <span>📄 Skills Extracted from Your Resume (<span id="skills-count">27</span>)</span>
-                <span class="nav-badge" style="font-size: 10px; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; background: rgba(56, 189, 248, 0.1);">Candidate Profile</span>
-              </div>
-              <div class="skills-cloud" id="profile-skills-cloud">
-                <span class="skill-chip chip-match">Python</span>
-                <span class="skill-chip chip-match">FastAPI</span>
-                <span class="skill-chip chip-match">Docker</span>
-                <span class="skill-chip chip-match">LangGraph</span>
-                <span class="skill-chip chip-match">Qdrant</span>
-                <span class="skill-chip chip-match">PyTorch</span>
-                <span class="skill-chip chip-match">PostgreSQL</span>
-                <span class="skill-chip chip-match">Redis</span>
-              </div>
-
-              <!-- Add Custom Skill Bar -->
-              <div style="margin-top: 12px; display: flex; gap: 8px;">
-                <input type="text" id="input-new-skill" class="input-field" placeholder="➕ Add custom skill (e.g. PyTorch, MLOps, AWS)..." style="font-size: 12px; padding: 7px 12px;">
-                <button type="button" id="btn-add-skill" class="btn btn-secondary" style="font-size: 12px; padding: 7px 14px; white-space: nowrap; font-weight: 600;">
-                  + Add Skill
-                </button>
-              </div>
+            <div>
+              <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px;" id="match-headline">Senior AI Backend Engineer</div>
+              <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;" id="match-desc">Candidate demonstrates background in core foundations with minor gaps in specialized requirements.</div>
             </div>
           </div>
 
-          <!-- 2. Live Job Postings Feed with Refresh & Pagination -->
-          <div class="glass-card">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <h2 style="font-size: 18px; font-weight: 700;">🔍 Live Opportunities</h2>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <span id="jobs-count-badge" class="nav-badge">6 Postings</span>
-                <button type="button" class="btn btn-secondary" id="btn-refresh-jobs" style="font-size: 12px; padding: 4px 10px;" title="Fetch fresh batch of jobs">
-                  🔄 Fetch Next Batch
-                </button>
-              </div>
+          <div style="margin-top: 20px;">
+            <div class="input-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; color: #34D399;">
+              <span>✅ Matched Skills (In Resume & Selected Job)</span>
+              <span id="matched-count-badge" class="nav-badge" style="font-size: 10px; border-color: rgba(16, 185, 129, 0.4); color: #34D399;">4 Matched</span>
             </div>
-
-            <div class="jobs-list" id="jobs-container">
-              <!-- Dynamic Job Cards Rendered Here -->
+            <div class="skills-cloud" id="matched-skills-cloud">
+              <span class="skill-chip chip-match">✓ Python</span>
+              <span class="skill-chip chip-match">✓ FastAPI</span>
+              <span class="skill-chip chip-match">✓ Docker</span>
+              <span class="skill-chip chip-match">✓ PyTorch</span>
             </div>
           </div>
-        </section>
 
-        <!-- Right Column: ATS Match Breakdown & Action Studio -->
-        <section class="dashboard-col">
-          <div class="glass-card sticky-card">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <h2 style="font-size: 18px; font-weight: 700;">🎯 ATS Match & Application Engine</h2>
-              <div id="match-score-badge" class="score-badge">Select a Job</div>
+          <div style="margin-top: 16px;">
+            <div class="input-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; color: #FB7185;">
+              <span>⚠️ Missing Job Requirements (Needed by Company)</span>
+              <span id="missing-count-badge" class="nav-badge" style="font-size: 10px; border-color: rgba(244, 63, 94, 0.4); color: #FB7185;">3 Missing</span>
             </div>
-
-            <div id="selected-job-details">
-              <div class="empty-state">
-                <div style="font-size: 40px; margin-bottom: 8px;">👈</div>
-                <div style="font-weight: 700; font-size: 14px;">Select a position to audit & tailor</div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Audits skills, calculates ATS match score, and enables 1-click apply</div>
-              </div>
-            </div>
-
-            <!-- Dynamic Google XYZ Tailored Resume Panel -->
-            <div id="tailored-output-panel" style="display: none; margin-top: 18px; padding: 18px; background: rgba(14, 19, 38, 0.95); border: 1px solid var(--border-glass-bright); border-radius: var(--radius-md);">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="font-size: 14px; font-weight: 800; color: #38BDF8;">✨ Tailored ATS Resume Ready</span>
-                <span class="badge-count" style="background: var(--accent-emerald); color: #000; font-weight: 800;" id="boost-pill">+18% Score Boost</span>
-              </div>
-              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px;" id="tailored-rationale">
-                Experience bullets restructured using Google's XYZ formula to emphasize high-impact competencies.
-              </p>
-              
-              <!-- Download Formats -->
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn btn-primary download-action-btn" id="btn-download-pdf" style="flex: 1; min-width: 160px; padding: 12px 16px; font-weight: 800;">
-                  <span>📥</span> <span>Download PDF (<span id="lbl-pdf-template">Corporate</span>)</span>
-                </button>
-                <button class="btn btn-secondary download-action-btn" id="btn-download-docx" style="flex: 1; min-width: 160px; padding: 12px 16px; font-weight: 800;">
-                  <span>📄</span> <span>Download DOCX (<span id="lbl-docx-template">Corporate</span>)</span>
-                </button>
-                <button class="btn btn-emerald download-action-btn" id="btn-quick-apply" style="flex: 1; min-width: 170px; padding: 12px 16px; font-weight: 800;">
-                  <span>⚡</span> <span>1-Click Auto-Apply</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Action Controls -->
-            <div style="display: flex; gap: 10px; margin-top: 16px;" id="action-buttons-group">
-              <button class="btn btn-primary" id="btn-tailor-resume" style="flex: 1;">
-                ✨ Dynamically Tailor Resume (XYZ Formula)
-              </button>
-              <button class="btn btn-secondary" id="btn-open-gap-agent" onclick="openModal('modal-gap-agent')" style="border-color: var(--accent-purple); color: var(--accent-purple);">
-                🤖 AI Gap Bridge Agent
-              </button>
-            </div>
-
-            <!-- Company Intelligence & Interview Prep Excel / CSV Export -->
-            <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 8px;">
-              <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">
-                📊 Company Intelligence & Interview Preparation:
-              </div>
-              <div style="display: flex; gap: 8px;">
-                <button class="btn btn-emerald download-action-btn" id="btn-download-excel" onclick="window.downloadApplicationExcel()" style="flex: 2; font-size: 12.5px; padding: 10px 14px;">
-                  <span>📥</span> <span>Download as Excel (.xlsx)</span>
-                </button>
-                <button class="btn btn-secondary download-action-btn" id="btn-download-csv" onclick="window.downloadApplicationCSV()" style="flex: 1; font-size: 12.5px; padding: 10px 14px;">
-                  <span>📄</span> <span>CSV</span>
-                </button>
-              </div>
+            <div class="skills-cloud" id="missing-skills-cloud">
+              <span class="skill-chip chip-gap">✗ Kubernetes</span>
+              <span class="skill-chip chip-gap">✗ Celery</span>
+              <span class="skill-chip chip-gap">✗ GraphRAG</span>
             </div>
           </div>
-        </section>
-      </main>
-    </div>
 
-    <!-- ═════════════════════════════════════════════════════════════
-         VIEW 2: RESLINK 4-STEP VIDEO STUDIO (EMBEDDED)
-         ═════════════════════════════════════════════════════════════ -->
-    <div id="view-studio" class="app-view-pane" style="display: none;">
-      <div style="max-width: 1120px; margin: 0 auto; padding-bottom: 40px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <h2 style="font-size: 22px; font-weight: 800; color: #FFF;">🎥 ResLink Video Pitch & Teleprompter Studio</h2>
-            <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 4px;">Record a 60-second personalized pitch, link your active ATS resume template, and track recruiter engagement.</p>
+          <div style="margin-top: 16px;">
+            <div class="input-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; color: #38BDF8;">
+              <span>💡 Your Additional Profile Strengths (Bonus Skills)</span>
+              <span id="extra-count-badge" class="nav-badge" style="font-size: 10px; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;">Candidate Strengths</span>
+            </div>
+            <div class="skills-cloud" id="extra-skills-cloud">
+              <span class="skill-chip chip-extra">★ React</span>
+              <span class="skill-chip chip-extra">★ TypeScript</span>
+              <span class="skill-chip chip-extra">★ LangGraph</span>
+            </div>
           </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-secondary" onclick="window.switchAppTab('radar')">← Back to Job Radar</button>
-            <button class="btn btn-primary" onclick="window.switchAppTab('showcase')">🌐 Preview Public Recruiter Link ➔</button>
+
+          <!-- International Candidate Eligibility Assessment -->
+          <div style="margin-top: 18px; background: rgba(7, 9, 19, 0.75); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-md); padding: 14px 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #CBD5E1;">🌍 International Eligibility</span>
+              <span id="match-international-badge" class="badge-worldwide">🌐 Worldwide Remote</span>
+            </div>
+            <div id="match-eligibility-notes" style="font-size: 12px; color: #94A3B8; line-height: 1.4;">
+              Fully global remote role. Open to applicants worldwide (Africa, EMEA, APAC, Americas).
+            </div>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <button type="button" class="btn btn-primary" style="width: 100%;" id="btn-bridge-gaps">
+              🤖 Bridge Gaps with AI Agent (+15% Score Boost)
+            </button>
           </div>
         </div>
 
-        <!-- Stepper Navigation -->
-        <div class="stepper-nav" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; background: rgba(14, 19, 38, 0.85); padding: 8px; border-radius: var(--radius-lg); border: 1px solid var(--border-glass);">
-          <button class="step-tab active" id="tab-step-1" onclick="window.goToStudioStep(1)" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #fff; cursor: pointer; font-weight: 700; font-size: 13px;">
-            <span class="step-num" style="width: 26px; height: 26px; border-radius: 50%; background: var(--accent-cyan); color: #000; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">1</span>
-            <span>Target Profile</span>
-          </button>
-          <button class="step-tab" id="tab-step-2" onclick="window.goToStudioStep(2)" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: transparent; border: 1px solid transparent; color: var(--text-muted); cursor: pointer; font-weight: 700; font-size: 13px;">
-            <span class="step-num" style="width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">2</span>
-            <span>Video & Prompter</span>
-          </button>
-          <button class="step-tab" id="tab-step-3" onclick="window.goToStudioStep(3)" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: transparent; border: 1px solid transparent; color: var(--text-muted); cursor: pointer; font-weight: 700; font-size: 13px;">
-            <span class="step-num" style="width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">3</span>
-            <span>CV Template</span>
-          </button>
-          <button class="step-tab" id="tab-step-4" onclick="window.goToStudioStep(4)" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: transparent; border: 1px solid transparent; color: var(--text-muted); cursor: pointer; font-weight: 700; font-size: 13px;">
-            <span class="step-num" style="width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">4</span>
-            <span>Share & Analytics</span>
-          </button>
+        <!-- 2. CV Template Style & Export Studio -->
+        <div class="glass-card" style="margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <h2 style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+              <span>🎨</span> Choose CV Template Style
+            </h2>
+            <span id="active-template-badge" class="nav-badge" style="color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
+              Modern Executive
+            </span>
+          </div>
+
+          <!-- 4 Clean Template Selection Buttons -->
+          <div class="template-selector-grid" id="templates-container">
+            <button type="button" class="template-btn active" id="btn-tmpl-modern" data-template-id="modern" onclick="window.selectTemplate('modern')">
+              <span class="tmpl-dot" style="background: #2563EB; box-shadow: 0 0 10px #2563EB;"></span>
+              <div class="tmpl-info">
+                <span class="tmpl-label">Modern Executive</span>
+                <span class="tmpl-sub">Tech & AI (Signature)</span>
+              </div>
+              <span class="tmpl-check">✓</span>
+            </button>
+
+            <button type="button" class="template-btn" id="btn-tmpl-harvard_consulting" data-template-id="harvard_consulting" onclick="window.selectTemplate('harvard_consulting')">
+              <span class="tmpl-dot" style="background: #0F2A47; border: 1px solid #38BDF8; box-shadow: 0 0 10px #38BDF8;"></span>
+              <div class="tmpl-info">
+                <span class="tmpl-label">Harvard Consulting</span>
+                <span class="tmpl-sub">MBB & Strategy Standard</span>
+              </div>
+              <span class="tmpl-check">✓</span>
+            </button>
+
+            <button type="button" class="template-btn" id="btn-tmpl-corporate_elite" data-template-id="corporate_elite" onclick="window.selectTemplate('corporate_elite')">
+              <span class="tmpl-dot" style="background: #D4AF37; box-shadow: 0 0 10px #D4AF37;"></span>
+              <div class="tmpl-info">
+                <span class="tmpl-label">Corporate Elite</span>
+                <span class="tmpl-sub">Leadership & Gold Accent</span>
+              </div>
+              <span class="tmpl-check">✓</span>
+            </button>
+
+            <button type="button" class="template-btn" id="btn-tmpl-tech_specialist" data-template-id="tech_specialist" onclick="window.selectTemplate('tech_specialist')">
+              <span class="tmpl-dot" style="background: #7C3AED; box-shadow: 0 0 10px #A855F7;"></span>
+              <div class="tmpl-info">
+                <span class="tmpl-label">Tech Specialist</span>
+                <span class="tmpl-sub">Silicon Valley & Cloud</span>
+              </div>
+              <span class="tmpl-check">✓</span>
+            </button>
+          </div>
+
+          <!-- Direct Download Action Bar with Clean Formatted Style Pill -->
+          <div class="download-action-row" style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn btn-emerald download-action-btn" id="btn-download-pdf">
+              <span>📥</span>
+              <span>Download PDF</span>
+              <span class="download-style-pill" id="lbl-pdf-template">Modern</span>
+            </button>
+            <button class="btn btn-secondary download-action-btn" id="btn-download-docx">
+              <span>📝</span>
+              <span>Download DOCX</span>
+              <span class="download-style-pill" id="lbl-docx-template">Modern</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Step 1: Target Profile -->
-        <div class="step-pane" id="pane-step-1" style="display: block;">
-          <div class="card" style="padding: 24px;">
-            <h3 style="font-size: 16px; font-weight: 800; color: #38BDF8; margin-bottom: 16px;">🎯 Step 1: Personalize Your Outreach Pitch</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-              <div class="input-group">
-                <label class="input-label">Target Job Title</label>
-                <input type="text" id="studio-target-job" class="input-field" value="Junior AI Engineer / Machine Learning Engineer">
-              </div>
-              <div class="input-group">
-                <label class="input-label">Target Company</label>
-                <input type="text" id="studio-target-company" class="input-field" value="OpenAI / Tech Labs">
-              </div>
+        <!-- 3. Autonomous Auto-Apply & Notification Hub with Self-Learning Memory Bank -->
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h2 style="font-size: 18px; font-weight: 700; margin: 0;">⚡ Autonomous Auto-Apply & Notification Hub</h2>
+            <span class="badge-employment" style="cursor: pointer; background: rgba(16, 185, 129, 0.15); color: #34D399; border-color: rgba(16, 185, 129, 0.3);" onclick="window.openQuestionnaireModal()">
+              🧠 <span id="hub-memory-count">13</span> Answers Ready
+            </span>
+          </div>
+
+          <!-- Notification Channel Checkboxes -->
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
+            <label style="display: flex; align-items: center; justify-content: space-between; font-size: 13.5px;">
+              <span>📧 Email Receipt with Tailored PDF attached</span>
+              <input type="checkbox" id="chk-email" checked style="accent-color: var(--accent-cyan); width: 18px; height: 18px;">
+            </label>
+            <label style="display: flex; align-items: center; justify-content: space-between; font-size: 13.5px;">
+              <span>📱 WhatsApp Alert Message</span>
+              <input type="checkbox" id="chk-whatsapp" checked style="accent-color: var(--accent-cyan); width: 18px; height: 18px;">
+            </label>
+            <label style="display: flex; align-items: center; justify-content: space-between; font-size: 13.5px;">
+              <span>✈️ Telegram Alert & PDF Upload</span>
+              <input type="checkbox" id="chk-telegram" checked style="accent-color: var(--accent-cyan); width: 18px; height: 18px;">
+            </label>
+          </div>
+
+          <!-- Batch Apply Volume Selector & Action Button -->
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-size: 12px; color: var(--text-dim); white-space: nowrap;">Auto-Apply Batch:</span>
+              <select id="select-batch-volume" class="select-field" style="padding: 6px 10px; font-size: 12px; height: 34px; flex: 1;">
+                <option value="all_easy" selected>All Discovered Easy Apply Jobs</option>
+                <option value="10">Apply to 10 Jobs</option>
+                <option value="25">Apply to 25 Jobs</option>
+                <option value="50">Apply to 50 Jobs</option>
+                <option value="100">Apply to 100 Jobs</option>
+              </select>
             </div>
-            <div class="input-group" style="margin-bottom: 16px;">
-              <label class="input-label">Senior Contact / Hiring Manager (Optional)</label>
-              <input type="text" id="studio-senior-contact" class="input-field" placeholder="e.g. Sarah Jenkins (Head of Engineering)" value="Sarah Jenkins (Head of AI)">
+
+            <button class="btn btn-primary" style="width: 100%; font-weight: 800; background: linear-gradient(135deg, #10B981, #059669); padding: 13px;" id="btn-batch-auto-apply">
+              ⚡ Execute Autonomous Batch Auto-Apply
+            </button>
+            <button class="btn btn-secondary" style="width: 100%; font-size: 13px;" onclick="window.openQuestionnaireModal()">
+              ⚙️ Manage Questionnaire Memory Bank
+            </button>
+          </div>
+
+          <!-- Company Intelligence & Interview Prep Excel / CSV Export -->
+          <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">
+              📊 Company Intelligence & Interview Preparation:
             </div>
-            <div class="input-group" style="margin-bottom: 20px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <label class="input-label" style="margin-bottom: 0;">AI Pitch Script (Synced with Moving Teleprompter)</label>
-                <button class="btn btn-secondary" onclick="window.regeneratePitchScript()" style="font-size: 11.5px; padding: 4px 10px;">✨ Generate Pitch with AI</button>
-              </div>
-              <textarea id="studio-pitch-script" class="input-field" style="min-height: 140px; line-height: 1.65; font-size: 13.5px;">Hi Sarah, and the OpenAI / Tech Labs team! My name is MUDATHER MOHAMMED, and I wanted to introduce myself for the Junior AI Engineer / Machine Learning Engineer role. Over the past several years, I have specialized in Python, Machine Learning models, and LLM APIs, building reliable applications that deliver measurable impact. My background enables me to contribute immediately and integrate seamlessly into your workflow. You can explore my full interactive resume below, download my tailored CV, or schedule a quick chat directly. Looking forward to connecting!</textarea>
-            </div>
-            <div style="display: flex; justify-content: flex-end;">
-              <button class="btn btn-primary" onclick="window.goToStudioStep(2)">Continue to Video & Prompter ➔</button>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-emerald download-action-btn" id="btn-download-excel" onclick="window.downloadApplicationExcel()" style="flex: 2; font-size: 12.5px; padding: 10px 14px;">
+                <span>📥</span> <span>Download as Excel (.xlsx)</span>
+              </button>
+              <button class="btn btn-secondary download-action-btn" id="btn-download-csv" onclick="window.downloadApplicationCSV()" style="flex: 1; font-size: 12.5px; padding: 10px 14px;">
+                <span>📄</span> <span>CSV</span>
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Step 2: Video & Teleprompter Studio -->
-        <div class="step-pane" id="pane-step-2" style="display: none;">
-          <div class="card" style="padding: 24px;">
-            <h3 style="font-size: 16px; font-weight: 800; color: #38BDF8; margin-bottom: 16px;">🎥 Step 2: Webcam Recording & AI Teleprompter</h3>
-            <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; margin-bottom: 20px;">
-              <!-- Left: Camera Box with Floating Teleprompter -->
-              <div style="position: relative; background: #000; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-glass);">
-                <video id="studio-webcam-preview" style="width: 100%; height: 100%; object-fit: cover;" autoplay playsinline muted></video>
-                <div id="camera-placeholder" style="position: absolute; text-align: center; color: var(--text-muted); font-size: 13px;">
-                  <div style="font-size: 36px; margin-bottom: 8px;">📹</div>
-                  <div>Camera Off. Click <b>Start Camera</b> below.</div>
-                </div>
-                <!-- Moving Teleprompter Overlay -->
-                <div id="teleprompter-overlay" style="position: absolute; top: 10px; left: 10px; right: 10px; max-height: 140px; background: rgba(4, 7, 18, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(56, 189, 248, 0.45); border-radius: 12px; padding: 12px 16px; color: #FFF; font-size: 14px; line-height: 1.6; overflow-y: auto;">
-                  <div id="teleprompter-text">Hi Sarah, and the OpenAI team! My name is MUDATHER MOHAMMED, and I wanted to introduce myself for the AI Engineer role...</div>
-                </div>
-                <!-- Recording Indicator -->
-                <div id="recording-indicator" style="position: absolute; top: 12px; right: 12px; background: #EF4444; color: #fff; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; display: none; align-items: center; gap: 6px;">
-                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #FFF;"></span>
-                  <span>REC <span id="recording-timer">00:00</span></span>
-                </div>
-              </div>
 
-              <!-- Right: Teleprompter Controls & Transcript -->
-              <div style="display: flex; flex-direction: column; gap: 14px;">
-                <div style="background: rgba(4, 7, 18, 0.6); padding: 14px; border-radius: 12px; border: 1px solid var(--border-glass);">
-                  <div style="font-size: 12.5px; font-weight: 700; color: #38BDF8; margin-bottom: 8px;">📜 Moving Teleprompter Speed:</div>
-                  <div style="display: flex; gap: 8px; align-items: center;">
-                    <button class="btn btn-secondary" onclick="window.setPrompterSpeed(0.5)" style="font-size: 12px; padding: 4px 10px;">0.5x</button>
-                    <button class="btn btn-secondary active" onclick="window.setPrompterSpeed(1.0)" style="font-size: 12px; padding: 4px 10px;">1.0x</button>
-                    <button class="btn btn-secondary" onclick="window.setPrompterSpeed(1.5)" style="font-size: 12px; padding: 4px 10px;">1.5x</button>
-                    <button class="btn btn-secondary" onclick="window.setPrompterSpeed(2.0)" style="font-size: 12px; padding: 4px 10px;">2.0x</button>
-                    <button class="btn btn-primary" id="btn-toggle-prompter" onclick="window.toggleTeleprompterScroll()" style="margin-left: auto; font-size: 12px; padding: 6px 12px;">▶ Auto-Scroll</button>
-                  </div>
-                </div>
 
-                <div style="background: rgba(4, 7, 18, 0.6); padding: 14px; border-radius: 12px; border: 1px solid var(--border-glass);">
-                  <div style="font-size: 12.5px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px;">📹 Studio Recording Controls:</div>
-                  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-secondary" id="btn-toggle-camera" onclick="window.toggleWebcam()" style="flex: 1;">📹 Start Camera</button>
-                    <button class="btn btn-emerald" id="btn-record-pitch" onclick="window.toggleRecording()" style="flex: 1;" disabled>🔴 Start Recording</button>
-                  </div>
-                </div>
+      </section>
+    </main>
 
-                <div style="background: rgba(4, 7, 18, 0.6); padding: 14px; border-radius: 12px; border: 1px solid var(--border-glass);">
-                  <div style="font-size: 12.5px; font-weight: 700; color: var(--accent-emerald); margin-bottom: 8px;">📁 Or Upload Video / MP4:</div>
-                  <input type="file" id="studio-video-upload" accept="video/mp4,video/webm" onchange="window.handleStudioVideoUpload(event)" style="font-size: 12px; color: var(--text-muted);">
-                </div>
-              </div>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <button class="btn btn-secondary" onclick="window.goToStudioStep(1)">← Back</button>
-              <button class="btn btn-primary" onclick="window.goToStudioStep(3)">Continue to CV Template ➔</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 3: CV Template Selection -->
-        <div class="step-pane" id="pane-step-3" style="display: none;">
-          <div class="card" style="padding: 24px;">
-            <h3 style="font-size: 16px; font-weight: 800; color: #38BDF8; margin-bottom: 16px;">📄 Step 3: Select Active CV Template & Download Test</h3>
-            <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 20px;">The template selected here matches your Job Radar choice and is automatically linked to the recruiter download button on your public ResLink profile.</p>
-
-            <div class="template-selector-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;">
-              <button type="button" class="template-btn" id="btn-studio-tmpl-modern" onclick="window.selectStudioTemplate('modern')">
-                <div class="template-icon">📄</div>
-                <div class="template-name">Modern Executive</div>
-                <div class="template-desc">2-Column, Blue Accents</div>
-              </button>
-              <button type="button" class="template-btn" id="btn-studio-tmpl-harvard" onclick="window.selectStudioTemplate('harvard_consulting')">
-                <div class="template-icon">🏛️</div>
-                <div class="template-name">Harvard Consulting</div>
-                <div class="template-desc">Serif, MBB Standard</div>
-              </button>
-              <button type="button" class="template-btn active" id="btn-studio-tmpl-corporate" onclick="window.selectStudioTemplate('corporate_elite')">
-                <div class="template-icon">👔</div>
-                <div class="template-name">Corporate Elite</div>
-                <div class="template-desc">Deep Navy & Gold Accent</div>
-              </button>
-              <button type="button" class="template-btn" id="btn-studio-tmpl-tech" onclick="window.selectStudioTemplate('tech_specialist')">
-                <div class="template-icon">💻</div>
-                <div class="template-name">Tech Specialist</div>
-                <div class="template-desc">Violet & Cyan, GitHub Tags</div>
-              </button>
-            </div>
-
-            <div style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
-              <div>
-                <div style="font-weight: 800; color: #FFF; font-size: 14px;">Active Linked Template: <span id="studio-active-template-name" style="color: var(--accent-cyan);">Corporate Elite</span></div>
-                <div style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">Recruiters downloading your CV will receive this exact layout.</div>
-              </div>
-              <button class="btn btn-emerald" id="btn-studio-test-download" onclick="window.downloadStudioTestPDF()" style="font-weight: 800; padding: 10px 18px;">
-                📥 Test Download PDF
-              </button>
-            </div>
-
-            <div style="display: flex; justify-content: space-between;">
-              <button class="btn btn-secondary" onclick="window.goToStudioStep(2)">← Back</button>
-              <button class="btn btn-primary" onclick="window.goToStudioStep(4)">Continue to Share & Analytics ➔</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 4: Share & Analytics -->
-        <div class="step-pane" id="pane-step-4" style="display: none;">
-          <div class="card" style="padding: 24px;">
-            <h3 style="font-size: 16px; font-weight: 800; color: #38BDF8; margin-bottom: 16px;">🚀 Step 4: Shareable Recruiter Hub & Engagement Analytics</h3>
-            
-            <div style="background: rgba(14, 19, 38, 0.95); border: 1px solid var(--border-glass-bright); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                <span style="font-weight: 800; color: #FFF; font-size: 15px;">🌐 Your Public ResLink URL:</span>
-                <button class="btn btn-primary" onclick="window.copyPublicResLink()" style="padding: 6px 14px; font-size: 12.5px;">📋 Copy Link</button>
-              </div>
-              <div style="padding: 12px 16px; background: rgba(0, 0, 0, 0.4); border-radius: 8px; font-family: monospace; color: var(--accent-cyan); font-size: 13.5px;" id="studio-public-url-text">
-                http://127.0.0.1:8000/p/mudather-mohammed
-              </div>
-            </div>
-
-            <!-- Recruiter Telemetry Analytics Grid -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;">
-              <div style="background: rgba(4, 7, 18, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; text-align: center;">
-                <div style="font-size: 24px; font-weight: 800; color: var(--accent-cyan);" id="stat-views">18</div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Recruiter Views</div>
-              </div>
-              <div style="background: rgba(4, 7, 18, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; text-align: center;">
-                <div style="font-size: 24px; font-weight: 800; color: #10B981;" id="stat-plays">14</div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Video Pitch Plays</div>
-              </div>
-              <div style="background: rgba(4, 7, 18, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; text-align: center;">
-                <div style="font-size: 24px; font-weight: 800; color: #F59E0B;" id="stat-downloads">9</div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">CV Downloads</div>
-              </div>
-              <div style="background: rgba(4, 7, 18, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; text-align: center;">
-                <div style="font-size: 24px; font-weight: 800; color: var(--accent-purple);" id="stat-bookings">3</div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Meeting Requests</div>
-              </div>
-            </div>
-
-            <!-- Personalized LinkedIn Outreach Note -->
-            <div class="input-group" style="margin-bottom: 20px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <label class="input-label" style="margin-bottom: 0;">💼 Tailored LinkedIn DM / Outreach Message:</label>
-                <button class="btn btn-secondary" onclick="window.copyLinkedInMessage()" style="font-size: 11.5px; padding: 4px 10px;">📋 Copy Message</button>
-              </div>
-              <textarea id="studio-linkedin-outreach" class="input-field" style="min-height: 120px; line-height: 1.6; font-size: 13px;">Hi Sarah,
-
-I came across the Junior AI Engineer / Machine Learning Engineer role at OpenAI / Tech Labs and was very impressed by your team's mission. Rather than just sending a flat resume, I put together a 60-second video pitch and interactive project link tailored to your requirements:
-
-👉 http://127.0.0.1:8000/p/mudather-mohammed
-
-It covers my direct experience in Python, LLM APIs, and Machine Learning. Would love to connect and discuss how I can contribute to OpenAI / Tech Labs!
-
-Best regards,
-MUDATHER MOHAMMED</textarea>
-            </div>
-
-            <div style="display: flex; justify-content: space-between;">
-              <button class="btn btn-secondary" onclick="window.goToStudioStep(3)">← Back</button>
-              <button class="btn btn-primary" onclick="window.switchAppTab('showcase')">🌐 Open Live Recruiter Showcase ➔</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ═════════════════════════════════════════════════════════════
-         VIEW 3: LIVE RECRUITER SHOWCASE PREVIEW (EMBEDDED)
-         ═════════════════════════════════════════════════════════════ -->
-    <div id="view-showcase" class="app-view-pane" style="display: none;">
-      <div style="max-width: 1120px; margin: 0 auto; padding-bottom: 40px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <h2 style="font-size: 20px; font-weight: 800; color: #FFF;">🌐 Live Recruiter Showcase View</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">This is the exact interactive web profile hiring managers and recruiters see when they open your link.</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-secondary" onclick="window.switchAppTab('studio')">← Back to Studio</button>
-            <a href="/p/mudather-mohammed" target="_blank" class="btn btn-primary" style="text-decoration: none;">↗ Open in Full Tab</a>
-          </div>
-        </div>
-
-        <div style="border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border-glass-bright); box-shadow: 0 20px 50px rgba(0,0,0,0.6); aspect-ratio: 16/10; width: 100%; min-height: 650px; background: #070913;">
-          <iframe id="showcase-preview-frame" src="/p/mudather-mohammed" style="width: 100%; height: 100%; min-height: 650px; border: none;"></iframe>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═════════════════════════════════════════════════════════════
-         MODALS & DIALOGS
-         ═════════════════════════════════════════════════════════════ -->
-
-    <!-- 1. Pricing Modal (Gumroad Edition) -->
+    <!-- Pricing Modal (Gumroad Edition) -->
     <div class="modal-backdrop" id="modal-pricing">
       <div class="modal-dialog" style="max-width: 800px;">
         <div class="modal-header">
@@ -585,7 +421,7 @@ MUDATHER MOHAMMED</textarea>
           <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-pricing')">✕</button>
         </div>
         <div class="modal-body">
-          <p style="font-size: 14px; color: var(--text-muted); text-align: center; margin-bottom: 24px;">Unlock automated job scanning, instant ATS resume tailoring, and multi-channel application alerts powered globally by Gumroad.</p>
+          <p style="font-size: 14px; color: var(--text-muted); text-align: center; margin-bottom: 24px;">Unlock unlimited real-time job scanning, instant ATS resume tailoring, and multi-channel application alerts powered globally by Gumroad.</p>
           <div class="pricing-grid">
             <div class="pricing-card">
               <div style="font-weight: 700; font-size: 18px;">Starter</div>
@@ -637,36 +473,7 @@ MUDATHER MOHAMMED</textarea>
       </div>
     </div>
 
-    <!-- 2. Settings Modal (Channels) -->
-    <div class="modal-backdrop" id="modal-settings">
-      <div class="modal-dialog">
-        <div class="modal-header">
-          <h3 style="font-size: 18px; font-weight: 800;">⚙️ Application Alert Channels</h3>
-          <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-settings')">✕</button>
-        </div>
-        <div class="modal-body">
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Configure where JobFlow sends tailored resume documents and auto-applied confirmation alerts.</p>
-          <div class="settings-group">
-            <label class="input-label">📧 Recipient Email Address</label>
-            <input type="email" id="setting-email" class="input-field" placeholder="your-email@domain.com" value="alex.rivera@email.com">
-          </div>
-          <div class="settings-group">
-            <label class="input-label">📱 WhatsApp Mobile Number (with Country Code)</label>
-            <input type="text" id="setting-whatsapp" class="input-field" placeholder="+1 (555) 000-0000" value="+1 (555) 345-6789">
-          </div>
-          <div class="settings-group">
-            <label class="input-label">✈️ Telegram Handle / Chat ID</label>
-            <input type="text" id="setting-telegram" class="input-field" placeholder="@username" value="@alex_telegram">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" onclick="closeModal('modal-settings')">Cancel</button>
-          <button class="btn btn-primary" id="btn-save-settings">Save Channels</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. AI Gap Bridge Agent Modal -->
+    <!-- AI Gap Questioning Modal -->
     <div class="modal-backdrop" id="modal-gap-agent">
       <div class="modal-dialog">
         <div class="modal-header">
@@ -678,29 +485,223 @@ MUDATHER MOHAMMED</textarea>
             The target job requires competencies not currently emphasized in your base resume. Share any freelance projects or side experiences to ground the resume update truthfully:
           </p>
           <div style="display: flex; flex-direction: column; gap: 16px;" id="questions-form">
-            <!-- Rendered dynamically -->
+            <!-- Dynamic Questions Generated Here -->
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" onclick="closeModal('modal-gap-agent')">Skip</button>
-          <button class="btn btn-primary" id="btn-submit-gap-answers">Incorporate Answers & Regenerate (+15% Score)</button>
+          <button class="btn btn-secondary" onclick="closeModal('modal-gap-agent')">Cancel</button>
+          <button class="btn btn-primary" id="btn-submit-gap-answers">Apply & Recalculate Score</button>
         </div>
       </div>
     </div>
 
-    <!-- 4. Questionnaire Memory Bank Modal -->
-    <div class="modal-backdrop" id="modal-questionnaire">
-      <div class="modal-dialog" style="max-width: 780px;">
+    <!-- Notification Channels & Settings Modal -->
+    <div class="modal-backdrop" id="modal-settings">
+      <div class="modal-dialog" style="max-width: 520px;">
         <div class="modal-header">
-          <div>
-            <h3 style="font-size: 18px; font-weight: 800;">🧠 Questionnaire Memory Bank</h3>
-            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Answers stored here are used by autonomous agents to fill out 100% of employer screening questions automatically.</p>
+          <h3 style="font-size: 16px; font-weight: 800;">⚙️ Notification Channels & Alert Settings</h3>
+          <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-settings')">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Configure where your application alerts, receipts, and tailored PDF resumes are delivered:</p>
+          
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="input-group">
+              <label class="input-label">📧 Delivery Email Address</label>
+              <input type="email" id="setting-email" class="input-field" placeholder="your.email@example.com" value="alex.rivera@email.com">
+              <span style="font-size: 11px; color: var(--text-dim);">Receives HTML application receipts and attached tailored PDF resumes.</span>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">📱 WhatsApp Phone Number (with Country Code)</label>
+              <input type="text" id="setting-whatsapp" class="input-field" placeholder="+1 (555) 345-6789" value="+15553456789">
+              <span style="font-size: 11px; color: var(--text-dim);">Receives instant WhatsApp application status and job links.</span>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">✈️ Telegram Chat ID or Handle</label>
+              <input type="text" id="setting-telegram" class="input-field" placeholder="e.g. 123456789 or @yourtelegram" value="alex_telegram">
+              <span style="font-size: 11px; color: var(--text-dim);">Receives real-time Telegram alerts + direct tailored PDF document uploads.</span>
+            </div>
+          </div>
+
+          <div id="settings-save-msg" style="font-size: 13px; margin-top: 14px; min-height: 20px;"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('modal-settings')">Cancel</button>
+          <button class="btn btn-primary" id="btn-save-settings">💾 Save Channel Preferences</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Autonomous Easy Apply Modal -->
+    <div class="modal-backdrop" id="modal-auto-apply">
+      <div class="modal-dialog" style="max-width: 650px;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">⚡</span>
+            <h3 style="font-size: 16px; font-weight: 800;" id="auto-apply-modal-title">Autonomous Easy Apply Engine</h3>
+          </div>
+          <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-auto-apply')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 18px; font-size: 12.5px; color: #FCD34D; line-height: 1.4;">
+            <b>⚡ AI One-Click Autonomous Application:</b> The agent automatically customizes your CV with the selected template, pre-populates all screening answers from your background, packages your submission bundle, and dispatches alerts.
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="input-group">
+                <label class="input-label">👤 Legal Full Name</label>
+                <input type="text" id="auto-app-name" class="input-field" placeholder="Full Name">
+              </div>
+              <div class="input-group">
+                <label class="input-label">📧 Application Email</label>
+                <input type="email" id="auto-app-email" class="input-field" placeholder="Email address">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="input-group">
+                <label class="input-label">📱 Contact Phone</label>
+                <input type="text" id="auto-app-phone" class="input-field" placeholder="+1 (555) 345-6789">
+              </div>
+              <div class="input-group">
+                <label class="input-label">💼 Total Experience</label>
+                <select id="auto-app-exp" class="select-field">
+                  <option value="1-2 years">1-2 years</option>
+                  <option value="3-5 years" selected>3-5 years</option>
+                  <option value="5-8 years">5-8 years</option>
+                  <option value="8+ years">8+ years</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="input-group">
+                <label class="input-label">🌐 LinkedIn Profile URL</label>
+                <input type="text" id="auto-app-linkedin" class="input-field" placeholder="linkedin.com/in/username">
+              </div>
+              <div class="input-group">
+                <label class="input-label">💻 GitHub / Portfolio URL</label>
+                <input type="text" id="auto-app-github" class="input-field" placeholder="github.com/username">
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">🌍 Work Authorization / Remote Status</label>
+              <input type="text" id="auto-app-auth" class="input-field" value="Eligible to work / Open to Worldwide Remote">
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">📝 Personalized Elevator Pitch Note (Optional)</label>
+              <textarea id="auto-app-note" class="input-field" rows="2" placeholder="Auto-generated by AI if left blank..."></textarea>
+            </div>
+          </div>
+
+          <!-- Auto-Apply Result Panel (Hidden by default) -->
+          <div id="auto-apply-success-box" style="display: none; margin-top: 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 14px;">
+            <div style="font-weight: 800; font-size: 14px; color: #34D399; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+              <span>✅ Application Package Ready & Dispatched!</span>
+            </div>
+            <div id="auto-apply-msg" style="font-size: 12px; color: #CBD5E1; line-height: 1.4; margin-bottom: 12px;"></div>
+            
+            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94A3B8; margin-bottom: 6px;">
+              📋 Pre-Filled Screening Answers (Instant Copy):
+            </div>
+            <div class="prefilled-field-grid" id="prefilled-answers-container"></div>
+
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+              <button class="btn btn-emerald" style="flex: 1; font-size: 12px; padding: 8px;" id="btn-auto-download-pdf">📥 Download PDF Bundle</button>
+              <button class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 8px;" id="btn-auto-download-docx">📝 Download DOCX</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('modal-auto-apply')">Close</button>
+          <button class="btn btn-primary" id="btn-execute-auto-apply" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: #000; font-weight: 800;">
+            ⚡ Submit Autonomous Application
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Questionnaire Memory Bank Studio Modal -->
+    <div class="modal-backdrop" id="modal-questionnaire">
+      <div class="modal-dialog" style="max-width: 680px;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">🧠</span>
+            <h3 style="font-size: 18px; font-weight: 800; margin: 0;">Auto-Apply Questionnaire Memory Bank</h3>
           </div>
           <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-questionnaire')">✕</button>
         </div>
-        <div class="modal-body" style="max-height: 480px; overflow-y: auto;">
-          <div id="qbank-list-container" style="display: flex; flex-direction: column; gap: 12px;">
-            <!-- Dynamic QBank Items -->
+        <div class="modal-body">
+          <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 16px;">
+            Fill your answers below. The autonomous agent saves these to memory and automatically applies to every Easy Apply job without asking you again.
+          </p>
+
+          <!-- All Questions List Container -->
+          <div id="questionnaire-list-container" style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto; padding-right: 6px;">
+            <!-- 1. First name -->
+            <div class="qbank-item" id="qitem-first_name" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-first_name" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">First name?</label>
+              <input type="text" class="qbank-input" id="qinput-first_name" value="Alex" placeholder="e.g. Alex" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
+
+            <!-- 2. Last name -->
+            <div class="qbank-item" id="qitem-last_name" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-last_name" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">Last name?</label>
+              <input type="text" class="qbank-input" id="qinput-last_name" value="Rivera" placeholder="e.g. Rivera" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
+
+            <!-- 3. Phone country code -->
+            <div class="qbank-item" id="qitem-phone_country_code" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-phone_country_code" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">Phone country code? (e.g. South Sudan (+211))</label>
+              <input type="text" class="qbank-input" id="qinput-phone_country_code" value="South Sudan (+211)" placeholder="e.g. South Sudan (+211)" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
+
+            <!-- 4. Mobile phone number -->
+            <div class="qbank-item" id="qitem-mobile_phone" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-mobile_phone" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">Mobile phone number?</label>
+              <input type="text" class="qbank-input" id="qinput-mobile_phone" value="+211 920 123 456" placeholder="e.g. +211 920 123 456" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
+
+            <!-- 5. Email address -->
+            <div class="qbank-item" id="qitem-email_address" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-email_address" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">Email address?</label>
+              <input type="email" class="qbank-input" id="qinput-email_address" value="alex.rivera@example.com" placeholder="e.g. alex.rivera@example.com" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
+
+            <!-- 6. Address -->
+            <div class="qbank-item" id="qitem-street_address" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-street_address" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">Address (Street / Line 1)?</label>
+              <input type="text" class="qbank-input" id="qinput-street_address" value="Airport Road, Sector 4" placeholder="e.g. Airport Road, Sector 4" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
+
+            <!-- 7. City -->
+            <div class="qbank-item" id="qitem-city" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-city" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">City?</label>
+              <input type="text" class="qbank-input" id="qinput-city" value="Juba" placeholder="e.g. Juba" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
+
+            <!-- 8. State / Province / Region -->
+            <div class="qbank-item" id="qitem-state" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-state" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">State / Province / Region?</label>
+              <input type="text" class="qbank-input" id="qinput-state" value="Central Equatoria" placeholder="e.g. Central Equatoria" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
+
+            <!-- 9. Work Authorization -->
+            <div class="qbank-item" id="qitem-work_auth_us" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-work_auth_us" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">Are you legally authorized to work in your target country / United States?</label>
+              <input type="text" class="qbank-input" id="qinput-work_auth_us" value="Yes" placeholder="e.g. Yes" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
+
+            <!-- 10. Visa Sponsorship -->
+            <div class="qbank-item" id="qitem-visa_sponsorship" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+              <label for="qinput-visa_sponsorship" style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">Will you now or in the future require visa sponsorship for employment?</label>
+              <input type="text" class="qbank-input" id="qinput-visa_sponsorship" value="No" placeholder="e.g. No" style="padding: 9px 12px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #fff; font-size: 13.5px;">
+            </div>
           </div>
         </div>
         <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
@@ -745,6 +746,6 @@ MUDATHER MOHAMMED</textarea>
 
   </div>
 
-  <script src="/static/app.js?v=6.0"></script>
+  <script src="/static/app.js?v=5.0"></script>
 </body>
 </html>
