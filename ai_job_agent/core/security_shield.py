@@ -1,0 +1,281 @@
+import re
+import socket
+import ipaddress
+import urllib.parse
+from pathlib import Path
+from urllib.parse import urlparse
+from typing import Optional, Set, List, Dict, Any
+from fastapi import Request, HTTPException
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+import requests
+
+
+class SecurityShield:
+    """
+    Enterprise-grade Defense Shield protecting against:
+    1. SQL Injection (SQLi)
+    2. Server-Side Request Forgery (SSRF)
+    3. Path Traversal & Local File Inclusion (LFI)
+    4. Remote Code & Command Injection (RCE)
+    5. Cross-Site Scripting (XSS) & Header Injection
+    """
+
+    # ── 1. SQL Injection Signatures ──
+    SQLI_PATTERNS = [
+        re.compile(r"(\b(UNION(\s+ALL)?|SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|EXEC|EXECUTE)\b)", re.IGNORECASE),
+        re.compile(r"(--|#|/\*|\*/|;)", re.IGNORECASE),
+        re.compile(r"(\bOR\b\s+['\"]?\d+['\"]?\s*=\s*['\"]?\d+)", re.IGNORECASE),
+        re.compile(r"(\bAND\b\s+['\"]?\d+['\"]?\s*=\s*['\"]?\d+)", re.IGNORECASE),
+        re.compile(r"(\b(INFORMATION_SCHEMA|SLEEP|BENCHMARK|PG_SLEEP|WAITFOR\s+DELAY)\b)", re.IGNORECASE),
+    ]
+
+    # ── 2. Command Injection, Path Traversal & XSS Signatures ──
+    CMD_PATTERNS = [
+        re.compile(r"(<script[\s\S]*?>[\s\S]*?</script>|javascript:|onerror=|onload=|eval\(|alert\()", re.IGNORECASE),
+        re.compile(r"(\|{1,2}|&&|;|`|\$\(|\${)", re.IGNORECASE),
+        re.compile(r"(\.\./|\.\.\\|%2e%2e%2f|%2e%2e/|%252e%252e|/etc/|windows/|win\.ini|boot\.ini)", re.IGNORECASE),
+    ]
+
+    # ── 3. SSRF Blocked IP Ranges (Private, Loopback, Link-Local, Cloud Metadata) ──
+    BLOCKED_NETWORKS = [
+        ipaddress.ip_network("127.0.0.0/8"),       # Loopback
+        ipaddress.ip_network("10.0.0.0/8"),        # Private Class A
+        ipaddress.ip_network("172.16.0.0/12"),     # Private Class B
+        ipaddress.ip_network("192.168.0.0/16"),    # Private Class C
+        ipaddress.ip_network("169.254.0.0/16"),    # Link-local / Cloud Metadata (AWS/GCP/Azure)
+        ipaddress.ip_network("::1/128"),           # IPv6 Loopback
+        ipaddress.ip_network("fc00::/7"),          # IPv6 Unique Local
+        ipaddress.ip_network("fe80::/10"),         # IPv6 Link-Local
+    ]
+
+    ALLOWED_SCHEMES = {"http", "https"}
+
+    ALLOWED_EXTERNAL_DOMAINS = {
+        "linkedin.com",
+        "www.linkedin.com",
+        "api.gumroad.com",
+        "gumroad.com",
+        "api.telegram.org",
+        "api.twilio.com",
+    }
+
+    # ─────────────────────────────────────────────────────────────
+    # Attack Vector 1: SQL Injection & XSS Input Sanitizer
+    # ─────────────────────────────────────────────────────────────
+    @classmethod
+    def sanitize_string(cls, text: str, field_name: str = "Input") -> str:
+        if not text:
+            return ""
+
+        # Recursive URL decode up to 3 times to unmask double/triple encoded payloads (e.g. %252e%252e%252f)
+        decoded_text = str(text)
+        for _ in range(3):
+            unquoted = urllib.parse.unquote(decoded_text)
+            if unquoted == decoded_text:
+                break
+            decoded_text = unquoted
+
+        # Check for aggressive SQL injection payloads
+        for pat in cls.SQLI_PATTERNS:
+            if pat.search(text) or pat.search(decoded_text):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Security Alert: Malicious SQL injection pattern detected in {field_name}."
+                )
+
+        # Check for XSS / Command injection / Path Traversal
+        for pat in cls.CMD_PATTERNS:
+            if pat.search(text) or pat.search(decoded_text):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Security Alert: Malicious pattern or traversal detected in {field_name}."
+                )
+
+        # Check for traversal delimiters
+        if any(seq in decoded_text.lower() for seq in ["../", "..\\", "/etc/", "windows/", "win.ini", "boot.ini"]):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Security Alert: Path traversal sequence detected in {field_name}."
+            )
+
+        # Strip remaining dangerous control characters
+        cleaned = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "", text)
+        cleaned = re.sub(r"<[^>]*>", "", cleaned)
+        return cleaned.strip()
+
+    @classmethod
+    def sanitize_text_content(cls, text: str, field_name: str = "Text Content") -> str:
+        """
+        Sanitizes long-form text (job descriptions, resume highlights, teleprompter scripts).
+        Strips script injection, evil event handlers, and control characters while preserving
+        legitimate text punctuation (semicolons, dashes, bullet points) and technical vocabulary.
+        """
+        if not text:
+            return ""
+
+        # Block actual XSS script execution attempts
+        xss_patterns = [
+            re.compile(r"<script[\s\S]*?>[\s\S]*?</script>", re.IGNORECASE),
+            re.compile(r"javascript:\s*", re.IGNORECASE),
+            re.compile(r"onload\s*=", re.IGNORECASE),
+            re.compile(r"onerror\s*=", re.IGNORECASE),
+            re.compile(r"eval\s*\(", re.IGNORECASE),
+        ]
+        for pat in xss_patterns:
+            if pat.search(text):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Security Alert: Malicious script detected in {field_name}."
+                )
+
+        # Strip HTML and control characters
+        cleaned = re.sub(r"<[^>]*>", "", text)
+        cleaned = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "", cleaned)
+        return cleaned.strip()
+
+    # ─────────────────────────────────────────────────────────────
+    # Attack Vector 2: SSRF Shield (URL & Hostname Verification)
+    # ─────────────────────────────────────────────────────────────
+    @classmethod
+    def validate_url_for_ssrf(cls, url: str) -> bool:
+        """
+        Validates target URL to prevent Server-Side Request Forgery.
+        Blocks local, private, and cloud metadata IP accesses.
+        """
+        if not url:
+            return False
+
+        parsed = urlparse(url)
+        if parsed.scheme.lower() not in cls.ALLOWED_SCHEMES:
+            raise HTTPException(status_code=400, detail="Security Alert: Invalid URL protocol scheme.")
+
+        hostname = parsed.hostname
+        if not hostname:
+            raise HTTPException(status_code=400, detail="Security Alert: Missing hostname in URL.")
+
+        # Check if domain matches whitelisted domains
+        domain_parts = hostname.lower().split(".")
+        root_domain = ".".join(domain_parts[-2:]) if len(domain_parts) >= 2 else hostname.lower()
+
+        is_whitelisted = any(
+            hostname.lower() == d or hostname.lower().endswith("." + d) or root_domain == d
+            for d in cls.ALLOWED_EXTERNAL_DOMAINS
+        )
+
+        if not is_whitelisted and hostname not in ["127.0.0.1", "localhost"]:
+            # Optional warning or strict enforcement
+            pass
+
+        # Resolve IP to verify it's not pointing to an internal network
+        try:
+            ip_addresses = socket.getaddrinfo(hostname, None)
+            for addr in ip_addresses:
+                ip_str = addr[4][0]
+                ip_obj = ipaddress.ip_address(ip_str)
+
+                for blocked_net in cls.BLOCKED_NETWORKS:
+                    if ip_obj in blocked_net:
+                        raise HTTPException(
+                            status_code=403,
+                            detail=f"Security Alert: SSRF attempt blocked! Hostname '{hostname}' resolves to private IP '{ip_str}'."
+                        )
+        except socket.gaierror:
+            raise HTTPException(status_code=400, detail=f"Invalid or unreachable hostname: {hostname}")
+
+        return True
+
+    @classmethod
+    def safe_http_get(cls, url: str, **kwargs) -> requests.Response:
+        """Executes a safe outbound HTTP GET request with SSRF validation."""
+        cls.validate_url_for_ssrf(url)
+        kwargs.setdefault("timeout", 15)
+        kwargs.setdefault("allow_redirects", False)  # Prevent open-redirect SSRF
+        return requests.get(url, **kwargs)
+
+    @classmethod
+    def safe_http_post(cls, url: str, **kwargs) -> requests.Response:
+        """Executes a safe outbound HTTP POST request with SSRF validation."""
+        cls.validate_url_for_ssrf(url)
+        kwargs.setdefault("timeout", 15)
+        kwargs.setdefault("allow_redirects", False)
+        return requests.post(url, **kwargs)
+
+    # ─────────────────────────────────────────────────────────────
+    # Attack Vector 3: Path Traversal Guard
+    # ─────────────────────────────────────────────────────────────
+    @classmethod
+    def sanitize_filepath(cls, filename: str, allowed_directory: Path) -> Path:
+        """
+        Guards against Directory Traversal (e.g., ../../../etc/passwd or ..\\..\\windows\\win.ini).
+        Strips null bytes and URL encoded traversal sequences.
+        """
+        if not filename:
+            raise HTTPException(status_code=400, detail="Filename cannot be empty.")
+
+        # Strip null bytes and normalize
+        clean_name = filename.replace("\x00", "")
+        clean_name = re.sub(r'(%2e%2e%2f|%2e%2e/|\.\./|\.\.\\)', '', clean_name, flags=re.IGNORECASE)
+        
+        safe_name = Path(clean_name).name
+        safe_name = re.sub(r"[^\w\-\._]", "_", safe_name)
+        safe_name = safe_name.replace("..", "_").strip("._-")
+        if not safe_name:
+            safe_name = "file_download"
+
+        target_path = (allowed_directory / safe_name).resolve()
+        allowed_dir_resolved = allowed_directory.resolve()
+
+        # Strict containment check
+        if not str(target_path).startswith(str(allowed_dir_resolved)):
+            raise HTTPException(
+                status_code=403,
+                detail="Security Alert: Path traversal attempt detected."
+            )
+
+        return target_path
+
+    @classmethod
+    def validate_safe_path(cls, file_path: Any, allowed_directory: Path) -> Path:
+        """Validates that a file_path is strictly within allowed_directory."""
+        resolved_file = Path(file_path).resolve()
+        resolved_dir = allowed_directory.resolve()
+        if not str(resolved_file).startswith(str(resolved_dir)):
+            raise HTTPException(
+                status_code=403,
+                detail="Security Alert: File path is outside allowed directory."
+            )
+        return resolved_file
+
+
+# ─────────────────────────────────────────────────────────────
+# FastAPI Global Security Middleware
+# ─────────────────────────────────────────────────────────────
+class HighSecurityMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        try:
+            # 1. Inspect Query Parameters for SQLi / XSS / Traversal
+            for key, value in request.query_params.items():
+                if key in ["template_id", "date_filter", "workplace_type", "application_type"]:
+                    # Sanitize parameter values
+                    SecurityShield.sanitize_string(value, field_name=f"Query Param '{key}'")
+                elif any(bad in value.lower() for bad in ["<script", "javascript:", "../", "..\\"]):
+                    SecurityShield.sanitize_string(value, field_name=f"Query Param '{key}'")
+
+            # 2. Process Request
+            response = await call_next(request)
+
+            # 3. Add Hardened Security Headers (OWASP Level 3)
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "SAMEORIGIN"
+            response.headers["X-XSS-Protection"] = "1; mode=block"
+            response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+            # Enable camera and microphone for ResLink Studio
+            response.headers["Permissions-Policy"] = "camera=(self), microphone=(self), geolocation=(), payment=()"
+
+            return response
+        except HTTPException as exc:
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"error": exc.detail}
+            )

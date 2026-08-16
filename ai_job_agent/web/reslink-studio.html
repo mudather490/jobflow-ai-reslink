@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ResLink Studio — AI Video Pitch & Recruiter Teleprompter Creator</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css?v=5.4">
+
+  <style>
+    .studio-container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 20px 80px 20px;
+    }
+
+    .studio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    /* Stepper Navigation Bar */
+    .stepper-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 28px;
+      background: rgba(14, 19, 38, 0.85);
+      padding: 8px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-glass);
+    }
+
+    @media (max-width: 768px) {
+      .stepper-nav {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .step-tab {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: var(--font-main);
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.25s ease;
+      text-align: left;
+    }
+
+    .step-tab:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+    }
+
+    .step-tab.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #fff;
+    }
+
+    .step-tab.completed .step-num {
+      background: #10B981;
+      color: #fff;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .step-tab.active .step-num {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    .step-pane {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .step-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .studio-card {
+      background: rgba(14, 19, 38, 0.85);
+      border: 1px solid var(--border-glass-bright);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Requirement Chips */
+    .req-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94A3B8;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .req-chip:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38BDF8;
+    }
+
+    /* Modern Textarea */
+    .modern-job-textarea {
+      width: 100%;
+      background: rgba(4, 7, 18, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      color: #E2E8F0;
+      font-size: 13.5px;
+      line-height: 1.65;
+      padding: 14px 16px;
+      font-family: var(--font-body);
+      resize: vertical;
+      transition: all 0.2s ease;
+    }
+    .modern-job-textarea:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+      background: rgba(4, 7, 18, 0.85);
+    }
+
+    /* Video Studio Layout */
+    .teleprompter-studio-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 960px) {
+      .teleprompter-studio-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .camera-wrapper {
+      position: relative;
+      background: #000;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-glass);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    }
+
+    .camera-video-elem {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Floating Overlaid Teleprompter on Camera Viewport (Real-time moving speech guide) */
+    .teleprompter-overlay-box {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      max-height: 145px;
+      background: rgba(4, 7, 18, 0.88);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #FFF;
+      font-size: 14.5px;
+      line-height: 1.65;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      z-index: 20;
+    }
+
+    .teleprompter-overlay-box::-webkit-scrollbar { width: 4px; }
+    .teleprompter-overlay-box::-webkit-scrollbar-thumb { background: var(--accent-cyan); border-radius: 4px; }
+
+    .rec-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: #EF4444;
+      color: #FFF;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 30;
+      animation: recPulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes recPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.96); }
+    }
+
+    /* Studio Right Column Containers */
+    .transcript-display-box {
+      background: rgba(4, 7, 18, 0.6);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 120px;
+      max-height: 160px;
+      overflow-y: auto;
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: #E2E8F0;
+      white-space: pre-wrap;
+    }
+
+    .ai-studio-panel {
+      background: rgba(14, 19, 38, 0.9);
+      border: 1px solid var(--border-glass-bright);
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Activity Log Table */
+    .activity-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      margin-top: 12px;
+    }
+
+    .activity-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border-glass);
+      font-weight: 700;
+    }
+
+    .activity-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #E2E8F0;
+    }
+
+    .activity-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .event-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-view { background: rgba(56, 189, 248, 0.15); color: #38BDF8; }
+    .badge-video { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+    .badge-cv { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+    .badge-booking { background: rgba(236, 72, 153, 0.15); color: #EC4899; }
+
+    /* Step Navigation Actions */
+    .step-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-glass);
+    }
+
+    .share-url-box {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-glass-bright);
+      border-radius: 12px;
+      padding: 8px 14px;
+      margin-top: 10px;
+    }
+
+    .share-url-text {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--accent-cyan);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .toast-popup {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #10B981;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+    }
+    .toast-popup.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="studio-container">
+    <!-- Navbar Header -->
+    <header class="studio-header">
+      <div>
+        <a href="/app" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+          <span style="font-size: 24px;">⚡</span>
+          <span style="font-size: 20px; font-weight: 800; color: #FFF;">JobFlow <span style="color: var(--accent-cyan);">ResLink Studio</span></span>
+        </a>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin: 0;">
+          Step-by-step interactive video resume builder with live camera teleprompter, resume integration & recruiter tracking.
+        </p>
+      </div>
+      <div class="studio-nav-bar">
+        <a href="/app" class="btn btn-secondary" style="font-size: 13px;">← Back to Job Radar</a>
+        <a href="/p/alex-rivera" target="_blank" class="btn btn-primary" id="btn-studio-preview-link" style="font-size: 13px;">
+          👁️ Open My Public ResLink
+        </a>
+      </div>
+    </header>
+
+    <!-- Stepper Navigation Bar -->
+    <nav class="stepper-nav">
+      <button class="step-tab active" id="tab-step-1" onclick="goToStep(1)">
+        <span class="step-num">1</span>
+        <div>
+          <div>Target Profile</div>
+          <div style="font-size: 11px; color: var(--text-dim);">Company & Recruiter</div>
+        </div>
+      </button>
+      <button class="step-tab" id="tab-step-2" onclick="goToStep(2)">
+        <span class="step-num">2</span>
+        <div>
+          <div>Video Studio</div>
+          <div style="font-size: 11px; color: var(--text-dim);">Camera & Prompter</div>
+        </div>
+      </button>
+      <button class="step-tab" id="tab-step-3" onclick="goToStep(3)">
+        <span class="step-num">3</span>
+        <div>
+          <div>CV Template</div>
+          <div style="font-size: 11px; color: var(--text-dim);">PDF & CTAs</div>
+        </div>
+      </button>
+      <button class="step-tab" id="tab-step-4" onclick="goToStep(4)">
+        <span class="step-num">4</span>
+        <div>
+          <div>Analytics & Share</div>
+          <div style="font-size: 11px; color: var(--text-dim);">Real Visitor Logs</div>
+        </div>
+      </button>
+    </nav>
+
+    <!-- ============================================================ -->
+    <!-- STEP 1: Target Profile (Role, Company, Senior Contact, Reqs) -->
+    <!-- ============================================================ -->
+    <div class="step-pane active" id="pane-step-1">
+      <section class="studio-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 22px;">🎯</span>
+            <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0;">
+              Step 1: Define Target Profile & Recruiter Details
+            </h2>
+          </div>
+          <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 6px 14px;" onclick="importFromLastSearch()">
+            ⚡ Auto-Fill from Discovered Job
+          </button>
+        </div>
+
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">
+          Specify the target company, position, senior contact name, and job requirements. Our engine personalizes the pitch to address the senior hiring lead directly and sanitizes the transcript for smooth teleprompter reading.
+        </p>
+
+        <!-- 4-Grid Target Profile Configuration -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 130px; gap: 12px; margin-bottom: 16px;">
+          <div class="input-group">
+            <label class="input-label" style="color: var(--accent-cyan);">🎯 Target Job Title</label>
+            <input type="text" id="studio-job-title" class="input-field" placeholder="e.g. Senior AI Engineer" value="Senior AI Engineer">
+          </div>
+          <div class="input-group">
+            <label class="input-label" style="color: #38BDF8;">🏢 Target Company Name</label>
+            <input type="text" id="studio-company-name" class="input-field" placeholder="e.g. Anthropic" value="Global Tech Employers">
+          </div>
+          <div class="input-group">
+            <label class="input-label" style="color: #34D399;">👤 Senior Contact / Recruiter Name</label>
+            <input type="text" id="studio-senior-contact" class="input-field" placeholder="e.g. Sarah Jenkins (Hiring Lead)" value="Sarah Jenkins">
+          </div>
+          <div class="input-group">
+            <label class="input-label" style="color: #CBD5E1;">⏱️ Video Length</label>
+            <select id="studio-pitch-duration" class="select-field">
+              <option value="30s">30s Speed</option>
+              <option value="60s" selected>60s Classic</option>
+              <option value="90s">90s Deep Dive</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Job Requirements Box with Clean Styling & Quick Chips -->
+        <div class="input-group" style="margin-bottom: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <label class="input-label" style="color: #E2E8F0; margin-bottom: 0;">
+              📄 Paste LinkedIn Job Description & Role Requirements
+            </label>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <span class="req-chip" onclick="injectReqChip('Python & PyTorch LLM Pipelines')">+ AI Pipelines</span>
+              <span class="req-chip" onclick="injectReqChip('Distributed Systems & FastAPI Architecture')">+ System Design</span>
+              <span class="req-chip" onclick="injectReqChip('Docker, Kubernetes & Cloud CI/CD')">+ Cloud & DevOps</span>
+            </div>
+          </div>
+          
+          <textarea id="studio-job-requirements" class="modern-job-textarea" rows="5" placeholder="Paste the key responsibilities, qualifications, and tech stack requirements from the job posting..." oninput="updateReqWordCount()"></textarea>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11.5px; color: var(--text-dim);">
+            <span>📝 <span id="req-word-count">0</span> words • ⏱️ Est. speaking time: <span id="req-est-time">0s</span></span>
+            <span style="color: #34D399;">🛡️ Auto-Sanitization & Natural Pacing Enabled</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" style="width: 100%; font-size: 15px; font-weight: 800; padding: 14px;" id="btn-studio-generate-script" onclick="generateStudioPitch()">
+          ✨ Match CV with Job & Generate Sanitized Spoken Script
+        </button>
+
+        <div class="step-actions">
+          <span style="font-size: 12.5px; color: var(--text-dim);">Step 1 of 4: Target Profile</span>
+          <button type="button" class="btn btn-primary" style="padding: 8px 20px;" onclick="goToStep(2)">
+            Continue to Video Studio ➔
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- STEP 2: Video Recording Studio with Live Moving Teleprompter -->
+    <!-- ============================================================ -->
+    <div class="step-pane" id="pane-step-2">
+      <div class="teleprompter-studio-grid">
+        <!-- Left Column: Camera Studio Feed & Moving Teleprompter -->
+        <div style="background: rgba(14, 19, 38, 0.85); border: 1px solid var(--border-glass); border-radius: var(--radius-lg); padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <!-- Camera & Prompter Header Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 14px; font-weight: 800; color: #FFF;">📹 Video Studio Camera</span>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <!-- Camera Device Switcher -->
+                <select id="studio-camera-select" class="select-field" style="padding: 3px 8px; font-size: 11px; max-width: 150px;" onchange="switchCameraDevice(this.value)">
+                  <option value="">Default Camera</option>
+                </select>
+                <!-- Prompter Speed -->
+                <select id="studio-prompter-speed" class="select-field" style="padding: 3px 8px; font-size: 11px; width: 85px;" onchange="updatePrompterSpeed()">
+                  <option value="110">110 WPM</option>
+                  <option value="135" selected>135 WPM</option>
+                  <option value="160">160 WPM</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Camera Viewport with Floating Teleprompter -->
+            <div class="camera-wrapper">
+              <video id="studio-camera-feed" class="camera-video-elem" autoplay playsinline muted></video>
+              
+              <!-- Floating Moving Teleprompter (Moves inside the video preview to guide your speech) -->
+              <div class="teleprompter-overlay-box" id="studio-prompter-box">
+                <div id="studio-prompter-text" style="color: #FFF;">
+                  ✨ Teleprompter ready. Match your CV below to load your customized spoken transcript...
+                </div>
+              </div>
+
+              <!-- Rec Indicator -->
+              <div class="rec-badge" id="studio-rec-badge" style="display: none;">
+                ● REC <span id="studio-rec-timer">00:00</span>
+              </div>
+
+              <!-- Offline Placeholder -->
+              <div id="studio-camera-offline" style="position: absolute; text-align: center; color: var(--text-dim); font-size: 13px; padding: 20px;">
+                <span style="font-size: 32px;">📷</span><br>
+                <span style="font-weight: 700; color: #CBD5E1;">Camera Offline</span><br>
+                <span style="font-size: 11.5px;">Click 'Turn On Camera' below to start</span>
+              </div>
+            </div>
+
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 8px; text-align: center;">
+              💡 <em>The teleprompter moves smoothly inside the video preview to guide your speech, but the final recorded video captures your clean camera and real voice!</em>
+            </div>
+          </div>
+
+          <!-- Studio Actions -->
+          <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary" style="flex: 1; font-size: 13px; font-weight: 700;" id="btn-studio-camera-toggle" onclick="toggleStudioCamera()">
+              📹 Turn On Camera
+            </button>
+            <button type="button" class="btn btn-primary" style="flex: 1; font-size: 13px; font-weight: 800; background: #EF4444;" id="btn-studio-record-toggle" onclick="toggleStudioRecord()" disabled>
+              🔴 Start Recording
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Top = Empty/Populated Transcript Display, Down = Bigger AI Studio Panel -->
+        <div style="background: rgba(14, 19, 38, 0.85); border: 1px solid var(--border-glass); border-radius: var(--radius-lg); padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <!-- Top: Spoken Transcript Display Area (Clean empty state until matched & sanitized) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 13.5px; font-weight: 800; color: var(--accent-cyan);">📝 Translated Spoken Transcript</span>
+              <span style="font-size: 11px; color: #34D399; font-weight: 700;">🛡️ Sanitized & Teleprompter Synced</span>
+            </div>
+
+            <textarea id="studio-script-editor" class="modern-job-textarea" rows="4" style="font-size: 13px; line-height: 1.6; background: rgba(0,0,0,0.35); font-family: var(--font-body); margin-bottom: 12px;" placeholder="✨ Translated transcript will appear here after matching with AI and moves inside the video..." oninput="syncScriptToPrompter()"></textarea>
+
+            <!-- Down: Bigger AI Studio & Match Controls -->
+            <div class="ai-studio-panel">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 18px;">✨</span>
+                  <span style="font-size: 14px; font-weight: 800; color: #FFF;">AI Transcript Matcher & Video Syncer</span>
+                </div>
+                <span style="font-size: 11px; color: #38BDF8; font-weight: 700;">⚡ Live Prompter Sync</span>
+              </div>
+
+              <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                Matches your CV with the job offer, sanitizes the text, displays it in the transcript box, and moves it inside your video screen.
+              </p>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div class="input-group">
+                  <label class="input-label" style="font-size: 11px; color: var(--text-dim);">🎯 Speaking Style</label>
+                  <select id="studio-speaking-style" class="select-field" style="font-size: 12px; padding: 6px 10px;">
+                    <option value="technical">⚡ High Technical Execution</option>
+                    <option value="leadership">🚀 Engineering Leadership</option>
+                    <option value="conversational" selected>🤝 Authentic & Conversational</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label class="input-label" style="font-size: 11px; color: var(--text-dim);">⏱️ Pitch Length</label>
+                  <select id="studio-studio-pitch-duration" class="select-field" style="font-size: 12px; padding: 6px 10px;">
+                    <option value="30s">30s Speed Pitch</option>
+                    <option value="60s" selected>60s Classic Pitch</option>
+                    <option value="90s">90s Deep Dive</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-primary" style="width: 100%; font-size: 14px; font-weight: 800; padding: 12px; margin-bottom: 12px;" id="btn-studio-match-now" onclick="matchScriptFromStudio()">
+                ✨ Match CV with Job & Move Transcript Inside Video
+              </button>
+
+              <!-- Resume Highlights Chips -->
+              <div>
+                <div style="font-size: 10.5px; font-weight: 700; color: #38BDF8; text-transform: uppercase; margin-bottom: 4px;">
+                  📄 Matched CV Highlights:
+                </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="studio-resume-badges">
+                  <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">⚡ Python & AI Systems</span>
+                  <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">🚀 High-Throughput APIs</span>
+                  <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">🌍 Worldwide Remote</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Video Recording Controls -->
+          <div style="margin-top: 14px;">
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn btn-secondary" style="flex: 1; font-size: 12px;" id="btn-studio-scroll-prompter" onclick="toggleStudioPrompterScroll()">
+                ▶ Scroll Inside Video
+              </button>
+              <label class="btn btn-secondary" style="flex: 1; font-size: 12px; text-align: center; cursor: pointer; margin: 0;">
+                📁 Upload MP4 File
+                <input type="file" accept="video/webm,video/mp4" style="display: none;" onchange="uploadVideoFile(this)">
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button type="button" class="btn btn-secondary" onclick="goToStep(1)">
+          ← Back to Target Profile
+        </button>
+        <button type="button" class="btn btn-primary" onclick="goToStep(3)">
+          Continue to Step 3 (CV Template) ➔
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- STEP 3: Connect Attached Resume Template (PDF Generator) -->
+    <!-- ============================================================ -->
+    <div class="step-pane" id="pane-step-3">
+      <section class="studio-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 22px;">📄</span>
+            <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0;">
+              Step 3: Connect Resume Template to ResLink (PDF Generator)
+            </h2>
+          </div>
+          <a id="btn-studio-test-download" href="/api/v1/resume/download-pdf?template_id=harvard" target="_blank" class="btn btn-emerald" style="font-size: 12.5px; padding: 6px 14px; text-decoration: none;">
+            📥 Test Download Selected CV (PDF)
+          </a>
+        </div>
+
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">
+          Choose which ATS-tailored CV template will be generated and downloaded when recruiters click <strong>"Download Resume (PDF)"</strong> on your public profile:
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+          <div class="input-group">
+            <label class="input-label" style="color: var(--accent-cyan);">🎨 Attached Resume Template</label>
+            <select id="studio-cv-template-select" class="select-field" onchange="updateAttachedResumeTemplate()">
+              <option value="modern">💎 Modern Executive (Two-Tone Header & Metric Badges)</option>
+              <option value="harvard_consulting">🏛️ Harvard Consulting (MBB Ivy League Standard)</option>
+              <option value="corporate_elite">👑 Corporate Elite (Executive Leadership & Finance)</option>
+              <option value="tech_specialist">⚡ Tech Specialist & AI Innovator (Skills Matrix & Repos)</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label class="input-label" style="color: #38BDF8;">📅 Interview Booking URL (Calendly / Cal.com)</label>
+            <input type="text" id="studio-calendly-input" class="input-field" placeholder="https://calendly.com/yourname" value="https://calendly.com" onchange="saveStudioSettings()">
+          </div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px;">
+          <div style="font-size: 13px; font-weight: 700; color: #FFF; margin-bottom: 6px;">
+            🔍 Recruiter Public Page Preview:
+          </div>
+          <div style="font-size: 12.5px; color: var(--text-muted);">
+            Recruiters on <code style="color: var(--accent-cyan);" id="preview-slug-text">/p/alex-rivera</code> will see your video pitch, your interactive career timeline, a <strong>"📅 Schedule Interview"</strong> button, and an instant <strong>"📥 Download Resume (PDF)"</strong> button in your selected template.
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-secondary" onclick="goToStep(2)">
+            ← Back to Video Studio
+          </button>
+          <button type="button" class="btn btn-primary" onclick="goToStep(4)">
+            Continue to Share & Analytics ➔
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- STEP 4: Share Link & Real-Time Interactive Analytics -->
+    <!-- ============================================================ -->
+    <div class="step-pane" id="pane-step-4">
+      <!-- Share Link Card -->
+      <section class="studio-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 22px;">🚀</span>
+            <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0;">
+              Share ResLink with Recruiters on LinkedIn
+            </h2>
+          </div>
+          <button type="button" class="btn btn-primary" style="font-size: 12.5px; padding: 6px 14px;" onclick="copyLinkedInPitchNote()">
+            📋 Copy LinkedIn Outreach Note
+          </button>
+        </div>
+
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+          Share your unique ResLink directly in your LinkedIn connection requests, InMail, or cover letters:
+        </p>
+
+        <div class="share-url-box">
+          <div class="share-url-text" id="share-url-display">http://127.0.0.1:8000/p/alex-rivera</div>
+          <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-left: 10px;" onclick="copyResLinkUrl()">
+            🔗 Copy Link
+          </button>
+        </div>
+
+        <!-- Recruiter Outreach Note Preview -->
+        <div style="margin-top: 14px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-glass); border-radius: 12px; padding: 14px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 6px;">
+            Personalized LinkedIn DM Message:
+          </div>
+          <div id="studio-outreach-note-preview" style="font-size: 13px; color: #CBD5E1; line-height: 1.6; white-space: pre-wrap;"></div>
+        </div>
+      </section>
+
+      <!-- Real-Time Recruiter Engagement Insights -->
+      <section class="studio-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span>📊</span> Real-Time Recruiter Engagement Insights
+            </h2>
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
+              Live tracking showing how many recruiters visited, watched your video, and downloaded your CV.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-secondary" style="font-size: 11.5px; padding: 4px 10px;" onclick="simulateRecruiterVisit()">
+              🧪 Test Live Visit
+            </button>
+            <button type="button" class="btn btn-primary" style="font-size: 11.5px; padding: 4px 10px;" onclick="loadStudioAnalytics()">
+              🔄 Refresh Live Data
+            </button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+          <div class="stat-card" style="padding: 14px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 800; color: #38BDF8;" id="studio-stat-views">0</div>
+            <div style="font-size: 11.5px; color: var(--text-dim);">Total Page Views</div>
+          </div>
+          <div class="stat-card" style="padding: 14px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 800; color: #34D399;" id="studio-stat-unique">0</div>
+            <div style="font-size: 11.5px; color: var(--text-dim);">Unique Recruiters</div>
+          </div>
+          <div class="stat-card" style="padding: 14px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 800; color: #F59E0B;" id="studio-stat-plays">0</div>
+            <div style="font-size: 11.5px; color: var(--text-dim);">Video Pitches Watched</div>
+          </div>
+          <div class="stat-card" style="padding: 14px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 800; color: #A855F7;" id="studio-stat-downloads">0</div>
+            <div style="font-size: 11.5px; color: var(--text-dim);">CVs Downloaded</div>
+          </div>
+          <div class="stat-card" style="padding: 14px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 800; color: #EC4899;" id="studio-stat-watch">0s</div>
+            <div style="font-size: 11.5px; color: var(--text-dim);">Avg. Time on Page</div>
+          </div>
+        </div>
+
+        <!-- Real-Time Activity Event Stream Table -->
+        <h3 style="font-size: 14px; font-weight: 800; color: #FFF; margin-bottom: 8px;">
+          ⚡ Live Recruiter Event Log:
+        </h3>
+        <div style="overflow-x: auto; max-height: 250px;">
+          <table class="activity-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Action / Event</th>
+                <th>Device</th>
+                <th>Referrer</th>
+              </tr>
+            </thead>
+            <tbody id="studio-activity-tbody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-dim); padding: 20px;">
+                  No visits recorded yet. Share your ResLink to start tracking!
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-secondary" onclick="goToStep(3)">
+            ← Back to CV Template
+          </button>
+          <a href="/p/alex-rivera" target="_blank" class="btn btn-primary">
+            Open Live Recruiter View 👁️
+          </a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-popup" id="studio-toast">✓ Action Completed</div>
+
+  <script>
+    let currentStep = 1;
+    let studioStream = null;
+    let studioRecorder = null;
+    let studioChunks = [];
+    let recTimer = null;
+    let recSecs = 0;
+    let prompterInterval = null;
+    let isPrompterPlaying = false;
+    let currentResLinkProfile = null;
+
+    function goToStep(stepNumber) {
+      currentStep = stepNumber;
+      document.querySelectorAll('.step-pane').forEach((p, i) => {
+        p.classList.toggle('active', i + 1 === stepNumber);
+      });
+      document.querySelectorAll('.step-tab').forEach((t, i) => {
+        t.classList.toggle('active', i + 1 === stepNumber);
+        if (i + 1 < stepNumber) t.classList.add('completed');
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('studio-toast');
+      if (t) {
+        t.innerText = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+      }
+    }
+
+    function injectReqChip(text) {
+      const ta = document.getElementById('studio-job-requirements');
+      if (ta) {
+        ta.value = ta.value ? ta.value + '\n• ' + text : '• ' + text;
+        updateReqWordCount();
+        showToast(`+ Added requirement: ${text}`);
+      }
+    }
+
+    function updateReqWordCount() {
+      const text = document.getElementById('studio-job-requirements').value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      const estSec = Math.round(words / 2.2); // ~130 WPM
+      document.getElementById('req-word-count').innerText = words;
+      document.getElementById('req-est-time').innerText = `${estSec}s`;
+    }
+
+    function syncScriptToPrompter() {
+      const text = document.getElementById('studio-script-editor').value;
+      document.getElementById('studio-prompter-text').innerText = text || "✨ Teleprompter transcript will move here while you speak...";
+    }
+
+    async function enumerateVideoDevices() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoSelect = document.getElementById('studio-camera-select');
+        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+
+        if (videoDevices.length > 0) {
+          videoSelect.innerHTML = videoDevices.map((d, i) => `
+            <option value="${d.deviceId}">${d.label || `Camera ${i + 1}`}</option>
+          `).join('');
+        }
+      } catch (err) {
+        console.warn("Could not enumerate camera devices:", err);
+      }
+    }
+
+    async function switchCameraDevice(deviceId) {
+      if (studioStream) {
+        studioStream.getTracks().forEach(t => t.stop());
+        studioStream = null;
+      }
+      try {
+        const constraints = {
+          video: deviceId ? { deviceId: { exact: deviceId }, width: 1280, height: 720 } : { facingMode: 'user', width: 1280, height: 720 },
+          audio: true
+        };
+        studioStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const video = document.getElementById('studio-camera-feed');
+        video.srcObject = studioStream;
+        document.getElementById('studio-camera-offline').style.display = 'none';
+        document.getElementById('btn-studio-camera-toggle').innerHTML = '⏹ Turn Off Camera';
+        document.getElementById('btn-studio-record-toggle').disabled = false;
+        showToast("✓ Switched Camera Successfully");
+      } catch (err) {
+        showToast(`Camera switch error: ${err.message}`);
+      }
+    }
+
+    async function updateAttachedResumeTemplate() {
+      const tmpl = document.getElementById('studio-cv-template-select').value;
+      localStorage.setItem('selected_resume_template', tmpl);
+      document.getElementById('btn-studio-test-download').href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(tmpl)}`;
+      
+      try {
+        await fetch('/api/v1/templates/active', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ template_id: tmpl })
+        });
+      } catch (e) {}
+
+      if (currentResLinkProfile) {
+        currentResLinkProfile.selected_cv_template = tmpl;
+        await saveStudioProfileToServer();
+        showToast(`✓ Attached CV Template set to ${tmpl.toUpperCase()}!`);
+      }
+    }
+
+    async function saveStudioSettings() {
+      if (!currentResLinkProfile) return;
+      const cal = document.getElementById('studio-calendly-input').value.trim();
+      if (!currentResLinkProfile.cta_settings) currentResLinkProfile.cta_settings = {};
+      currentResLinkProfile.cta_settings.calendly_url = cal;
+      await saveStudioProfileToServer();
+      showToast("✓ Settings updated successfully!");
+    }
+
+    async function saveStudioProfileToServer() {
+      try {
+        await fetch('/api/v1/reslink', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentResLinkProfile)
+        });
+      } catch (err) {
+        console.error("Error saving profile:", err);
+      }
+    }
+
+    async function loadStudioProfile() {
+      try {
+        const [rRes, pRes] = await Promise.all([
+          fetch('/api/v1/reslink'),
+          fetch('/api/v1/resume/current')
+        ]);
+
+        if (rRes.ok) {
+          currentResLinkProfile = await rRes.json();
+          const slug = currentResLinkProfile.slug || 'alex-rivera';
+          const fullUrl = `${window.location.origin}/p/${slug}`;
+
+          document.getElementById('share-url-display').innerText = fullUrl;
+          document.getElementById('btn-studio-preview-link').href = `/p/${slug}`;
+          document.getElementById('preview-slug-text').innerText = `/p/${slug}`;
+
+          if (currentResLinkProfile.target_job_title) {
+            document.getElementById('studio-job-title').value = currentResLinkProfile.target_job_title;
+          }
+          if (currentResLinkProfile.target_company) {
+            document.getElementById('studio-company-name').value = currentResLinkProfile.target_company;
+          }
+          if (currentResLinkProfile.senior_contact) {
+            document.getElementById('studio-senior-contact').value = currentResLinkProfile.senior_contact;
+          }
+          if (currentResLinkProfile.pitch_script) {
+            document.getElementById('studio-script-editor').value = currentResLinkProfile.pitch_script;
+            document.getElementById('studio-prompter-text').innerText = currentResLinkProfile.pitch_script;
+          }
+          
+          // Resolve currently active CV template from dashboard / storage / server
+          let rawTmpl = localStorage.getItem('selected_resume_template') || currentResLinkProfile.selected_cv_template || 'modern';
+          let activeTmpl = 'modern';
+          if (rawTmpl === 'harvard' || rawTmpl === 'harvard_consulting' || rawTmpl === 'mbb') activeTmpl = 'harvard_consulting';
+          else if (rawTmpl === 'corporate' || rawTmpl === 'corporate_elite' || rawTmpl === 'minimal' || rawTmpl === 'minimalist') activeTmpl = 'corporate_elite';
+          else if (rawTmpl === 'tech' || rawTmpl === 'tech_specialist' || rawTmpl === 'tech_innovator') activeTmpl = 'tech_specialist';
+          else activeTmpl = 'modern';
+
+          const tmplSelect = document.getElementById('studio-cv-template-select');
+          if (tmplSelect) tmplSelect.value = activeTmpl;
+          document.getElementById('btn-studio-test-download').href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(activeTmpl)}`;
+
+          if (currentResLinkProfile.cta_settings && currentResLinkProfile.cta_settings.calendly_url) {
+            document.getElementById('studio-calendly-input').value = currentResLinkProfile.cta_settings.calendly_url;
+          }
+          if (currentResLinkProfile.linkedin_outreach_note) {
+            document.getElementById('studio-outreach-note-preview').innerText = currentResLinkProfile.linkedin_outreach_note.replace('{reslink_url}', fullUrl);
+          }
+          if (currentResLinkProfile.competency_badges) {
+            document.getElementById('studio-resume-badges').innerHTML = currentResLinkProfile.competency_badges.map(b => `
+              <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
+            `).join('');
+          }
+        }
+
+        if (pRes.ok) {
+          const uProf = (await pRes.json()).profile;
+          if (uProf && uProf.skills) {
+            const badges = (currentResLinkProfile?.competency_badges && currentResLinkProfile.competency_badges.length > 0)
+              ? currentResLinkProfile.competency_badges
+              : uProf.skills.slice(0, 4).map(s => `⚡ ${s}`);
+            document.getElementById('studio-resume-badges').innerHTML = badges.map(b => `
+              <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
+            `).join('');
+          }
+        }
+
+        loadStudioAnalytics();
+        enumerateVideoDevices();
+        updateReqWordCount();
+      } catch (err) {
+        console.error("Error loading studio profile:", err);
+      }
+    }
+
+    async function generateStudioPitch() {
+      const jobTitle = document.getElementById('studio-job-title').value.trim() || 'Senior AI Engineer';
+      const company = document.getElementById('studio-company-name').value.trim() || 'Target Employer';
+      const seniorContact = document.getElementById('studio-senior-contact').value.trim() || 'Hiring Lead';
+      const duration = document.getElementById('studio-pitch-duration').value || '60s';
+      const reqs = document.getElementById('studio-job-requirements').value.trim() || `Target role requirements for ${jobTitle} at ${company}.`;
+
+      const btn = document.getElementById('btn-studio-generate-script');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '⚡ Matching CV & Sanitizing Script...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/v1/reslink/pitch/match-job', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            job_title: jobTitle,
+            company: company,
+            senior_contact: seniorContact,
+            duration_mode: duration,
+            job_requirements: reqs
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "Failed to synthesize script");
+        }
+        
+        const data = await res.json();
+        const p = data.pitch_data;
+
+        // Populate transcript box and teleprompter inside video
+        document.getElementById('studio-script-editor').value = p.pitch_script;
+        document.getElementById('studio-prompter-text').innerText = p.pitch_script;
+
+        const fullUrl = `${window.location.origin}/p/${currentResLinkProfile?.slug || 'alex-rivera'}`;
+        document.getElementById('studio-outreach-note-preview').innerText = p.linkedin_outreach_note.replace('{reslink_url}', fullUrl);
+
+        if (p.competency_badges) {
+          document.getElementById('studio-resume-badges').innerHTML = p.competency_badges.map(b => `
+            <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
+          `).join('');
+        }
+
+        showToast(`✓ Generated & Sanitized ${duration} Pitch for ${company} (${seniorContact})!`);
+        goToStep(2);
+      } catch (err) {
+        showToast(`Error: ${err.message}`);
+      } finally {
+        btn.innerHTML = orig;
+        btn.disabled = false;
+      }
+    }
+
+    async function matchScriptFromStudio() {
+      const jobTitle = document.getElementById('studio-job-title').value.trim() || 'Senior AI Engineer';
+      const company = document.getElementById('studio-company-name').value.trim() || 'Target Employer';
+      const seniorContact = document.getElementById('studio-senior-contact').value.trim() || 'Hiring Lead';
+      const duration = document.getElementById('studio-studio-pitch-duration').value || '60s';
+      const reqs = document.getElementById('studio-job-requirements').value.trim() || `Target role requirements for ${jobTitle} at ${company}.`;
+
+      const btn = document.getElementById('btn-studio-match-now');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '⚡ Matching with AI...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/v1/reslink/pitch/match-job', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            job_title: jobTitle,
+            company: company,
+            senior_contact: seniorContact,
+            duration_mode: duration,
+            job_requirements: reqs
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "Failed to synthesize script");
+        }
+
+        const data = await res.json();
+        const p = data.pitch_data;
+
+        document.getElementById('studio-script-editor').value = p.pitch_script;
+        document.getElementById('studio-prompter-text').innerText = p.pitch_script;
+
+        if (p.competency_badges) {
+          document.getElementById('studio-resume-badges').innerHTML = p.competency_badges.map(b => `
+            <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
+          `).join('');
+        }
+
+        showToast("✓ Teleprompter updated with sanitized AI script!");
+      } catch (err) {
+        showToast(`Error: ${err.message}`);
+      } finally {
+        btn.innerHTML = orig;
+        btn.disabled = false;
+      }
+    }
+
+    function playStudioAudioRehearsal() {
+      const text = document.getElementById('studio-script-editor').value;
+      if (!text || text.trim().length === 0) {
+        showToast("Transcript is empty. Click 'Match with AI' to generate your script first!");
+        return;
+      }
+      if (!('speechSynthesis' in window)) {
+        showToast("Audio speech synthesis not supported on this browser.");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.rate = 1.0;
+      window.speechSynthesis.speak(utt);
+      showToast("🔊 Playing Spoken Audio Pitch Practice...");
+    }
+
+    function toggleStudioPrompterScroll() {
+      const box = document.getElementById('studio-prompter-box');
+      const btn = document.getElementById('btn-studio-scroll-prompter');
+      if (!box || !btn) return;
+
+      if (isPrompterPlaying) {
+        clearInterval(prompterInterval);
+        isPrompterPlaying = false;
+        btn.innerHTML = '▶ Scroll Inside Video';
+      } else {
+        isPrompterPlaying = true;
+        btn.innerHTML = '⏸ Pause';
+
+        const wpm = parseInt(document.getElementById('studio-prompter-speed').value) || 135;
+        const step = (wpm / 135) * 1.5;
+
+        prompterInterval = setInterval(() => {
+          box.scrollTop += step;
+          if (box.scrollTop >= box.scrollHeight - box.clientHeight) {
+            clearInterval(prompterInterval);
+            isPrompterPlaying = false;
+            btn.innerHTML = '▶ Restart';
+          }
+        }, 50);
+      }
+    }
+
+    function updatePrompterSpeed() {
+      if (isPrompterPlaying) {
+        toggleStudioPrompterScroll();
+        toggleStudioPrompterScroll();
+      }
+    }
+
+    async function toggleStudioCamera() {
+      const video = document.getElementById('studio-camera-feed');
+      const off = document.getElementById('studio-camera-offline');
+      const btnCam = document.getElementById('btn-studio-camera-toggle');
+      const btnRec = document.getElementById('btn-studio-record-toggle');
+
+      if (studioStream) {
+        studioStream.getTracks().forEach(t => t.stop());
+        studioStream = null;
+        video.srcObject = null;
+        off.style.display = 'block';
+        btnCam.innerHTML = '📹 Turn On Camera';
+        btnRec.disabled = true;
+      } else {
+        try {
+          const deviceId = document.getElementById('studio-camera-select').value;
+          const constraints = {
+            video: deviceId ? { deviceId: { exact: deviceId }, width: 1280, height: 720 } : { facingMode: 'user', width: 1280, height: 720 },
+            audio: true
+          };
+          studioStream = await navigator.mediaDevices.getUserMedia(constraints);
+          video.srcObject = studioStream;
+          off.style.display = 'none';
+          btnCam.innerHTML = '⏹ Turn Off Camera';
+          btnRec.disabled = false;
+          showToast("✓ Camera and Audio Connected");
+          enumerateVideoDevices();
+        } catch (err) {
+          console.warn("Camera video stream unavailable, attempting audio fallback:", err);
+          try {
+            studioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            off.innerHTML = `
+              <span style="font-size: 32px;">🎙️</span><br>
+              <span style="font-weight: 700; color: #34D399;">Microphone Connected (Voice Mode)</span><br>
+              <span style="font-size: 11.5px; color: var(--text-dim);">Camera was blocked; recording voice pitch</span>
+            `;
+            btnCam.innerHTML = '⏹ Disconnect Mic';
+            btnRec.disabled = false;
+            showToast("🎙️ Microphone Connected for Voice Pitch!");
+          } catch (audioErr) {
+            off.innerHTML = `
+              <span style="font-size: 28px;">📁</span><br>
+              <span style="font-weight: 700; color: #F59E0B;">Camera / Mic Permission Denied</span><br>
+              <span style="font-size: 11.5px; color: var(--text-dim);">You can upload an MP4 video directly</span>
+            `;
+            showToast("Camera permission not granted. You can upload an MP4 video directly.");
+          }
+        }
+      }
+    }
+
+    function toggleStudioRecord() {
+      const btnRec = document.getElementById('btn-studio-record-toggle');
+      const badge = document.getElementById('studio-rec-badge');
+      const timer = document.getElementById('studio-rec-timer');
+
+      if (studioRecorder && studioRecorder.state === 'recording') {
+        studioRecorder.stop();
+        clearInterval(recTimer);
+        badge.style.display = 'none';
+        btnRec.innerHTML = '🔴 Start Recording';
+        btnRec.style.background = '#EF4444';
+        if (isPrompterPlaying) toggleStudioPrompterScroll();
+      } else {
+        if (!studioStream) {
+          showToast("Please turn on your camera first.");
+          return;
+        }
+
+        studioChunks = [];
+        studioRecorder = new MediaRecorder(studioStream, { mimeType: 'video/webm' });
+
+        studioRecorder.ondataavailable = e => {
+          if (e.data && e.data.size > 0) studioChunks.push(e.data);
+        };
+
+        studioRecorder.onstop = async () => {
+          const blob = new Blob(studioChunks, { type: 'video/webm' });
+          showToast("⏳ Uploading video pitch to ResLink...");
+          
+          const fd = new FormData();
+          fd.append('file', blob, 'video_pitch.webm');
+
+          try {
+            const r = await fetch('/api/v1/reslink/upload-video', { method: 'POST', body: fd });
+            if (r.ok) {
+              const d = await r.json();
+              showToast(`✓ Clean video pitch saved to ResLink (${d.filesize})!`);
+              loadStudioAnalytics();
+            } else {
+              showToast("Failed to save video pitch.");
+            }
+          } catch (e) {
+            showToast(`Upload error: ${e.message}`);
+          }
+        };
+
+        studioRecorder.start();
+        recSecs = 0;
+        badge.style.display = 'flex';
+        timer.innerText = '00:00';
+        btnRec.innerHTML = '⏹ Stop & Save Video';
+        btnRec.style.background = '#10B981';
+
+        if (!isPrompterPlaying) toggleStudioPrompterScroll();
+
+        recTimer = setInterval(() => {
+          recSecs++;
+          const m = String(Math.floor(recSecs / 60)).padStart(2, '0');
+          const s = String(recSecs % 60).padStart(2, '0');
+          timer.innerText = `${m}:${s}`;
+        }, 1000);
+      }
+    }
+
+    async function uploadVideoFile(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      showToast("⏳ Uploading video file...");
+
+      const fd = new FormData();
+      fd.append('file', file, file.name);
+
+      try {
+        const r = await fetch('/api/v1/reslink/upload-video', { method: 'POST', body: fd });
+        if (r.ok) {
+          const d = await r.json();
+          showToast(`✓ Video uploaded successfully (${d.filesize})!`);
+          loadStudioAnalytics();
+        } else {
+          showToast("Failed to upload video file.");
+        }
+      } catch (e) {
+        showToast(`Upload error: ${e.message}`);
+      }
+    }
+
+    function copyResLinkUrl() {
+      const url = document.getElementById('share-url-display').innerText;
+      navigator.clipboard.writeText(url).then(() => showToast("✓ ResLink URL copied to clipboard!"));
+    }
+
+    function copyLinkedInPitchNote() {
+      const note = document.getElementById('studio-outreach-note-preview').innerText;
+      navigator.clipboard.writeText(note).then(() => showToast("✓ LinkedIn Outreach Note copied!"));
+    }
+
+    async function loadStudioAnalytics() {
+      try {
+        const r = await fetch('/api/v1/reslink/analytics');
+        if (r.ok) {
+          const a = await r.json();
+          document.getElementById('studio-stat-views').innerText = a.total_views || 0;
+          document.getElementById('studio-stat-unique').innerText = a.unique_visitors || 0;
+          document.getElementById('studio-stat-plays').innerText = a.video_plays || 0;
+          document.getElementById('studio-stat-downloads').innerText = a.cv_downloads || 0;
+          document.getElementById('studio-stat-watch').innerText = `${a.average_watch_seconds || 0}s`;
+
+          // Populate Activity Event Stream
+          const tbody = document.getElementById('studio-activity-tbody');
+          if (a.recent_events && a.recent_events.length > 0) {
+            tbody.innerHTML = a.recent_events.map(ev => {
+              let badgeClass = 'badge-view';
+              let label = '👁️ Page View';
+              if (ev.event === 'video_play') { badgeClass = 'badge-video'; label = '▶ Video Played'; }
+              else if (ev.event === 'cv_download') { badgeClass = 'badge-cv'; label = '📥 CV Downloaded'; }
+              else if (ev.event === 'calendly_click') { badgeClass = 'badge-booking'; label = '📅 Interview Booked'; }
+
+              return `
+                <tr>
+                  <td style="font-family: var(--font-mono); font-size: 11.5px; color: var(--accent-cyan);">${ev.timestamp}</td>
+                  <td><span class="event-badge ${badgeClass}">${label}</span></td>
+                  <td style="color: var(--text-muted);">${ev.device || 'desktop'}</td>
+                  <td style="color: var(--text-muted);">${ev.referrer || 'LinkedIn Direct'}</td>
+                </tr>
+              `;
+            }).join('');
+          } else {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-dim); padding: 20px;">
+                  No visits recorded yet. Share your ResLink to start tracking!
+                </td>
+              </tr>
+            `;
+          }
+        }
+      } catch (e) {
+        console.error("Error loading analytics:", e);
+      }
+    }
+
+    async function simulateRecruiterVisit() {
+      try {
+        const events = ['page_view', 'video_play', 'cv_download', 'calendly_click'];
+        const randomEvent = events[Math.floor(Math.random() * events.length)];
+        await fetch('/api/v1/reslink/track-view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slug: currentResLinkProfile?.slug || 'alex-rivera',
+            event_type: randomEvent,
+            metadata: {
+              referrer: 'https://linkedin.com/jobs/view',
+              device: Math.random() > 0.5 ? 'desktop' : 'mobile',
+              watch_seconds: (Math.random() * 45 + 15).toFixed(1)
+            }
+          })
+        });
+        showToast(`🧪 Simulated live recruiter event: ${randomEvent}!`);
+        await loadStudioAnalytics();
+      } catch (e) {
+        console.error("Simulation error:", e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadStudioProfile);
+  </script>
+</body>
+</html>

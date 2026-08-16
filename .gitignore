@@ -1,0 +1,30 @@
+# Python & Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+secrets.json
+
+# Local App Data & Output
+ai_job_agent/data/output/*
+!ai_job_agent/data/output/.gitkeep
+ai_job_agent/data/videos/*
+!ai_job_agent/data/videos/.gitkeep
+ai_job_agent/scratch/
+*.log
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

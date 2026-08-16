@@ -1,0 +1,35 @@
+{
+  "slug": "mudather-mohammed",
+  "full_name": "MUDATHER MOHAMMED",
+  "tagline": "Junior AI Engineer | Machine Learning Engineer",
+  "location": "Worldwide Remote",
+  "summary_bio": "Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel. Built ML models, neural networks from scratch, AI lead-discovery systems, and end-to-end software applications. Currently advancing in PyTorch and AI Engineering through professional certifications and practical projects. Seeking a remote Junior AI Engineer / Machine Learning Engineer opportunity..",
+  "video_url": "/videos/test_pitch.webm",
+  "video_duration": 60.0,
+  "theme": "cyber_neon",
+  "selected_cv_template": "minimal",
+  "target_job_title": "Junior AI Engineer / Machine Learning Engineer",
+  "target_company": "OpenAI / Tech Labs",
+  "senior_contact": "Sarah Jenkins (Head of AI)",
+  "pitch_script": "Hi Sarah, and the OpenAI / Tech Labs team! My name is MUDATHER MOHAMMED, and I wanted to introduce myself for the Junior AI Engineer / Machine Learning Engineer role at OpenAI / Tech Labs. Over the past several years, I have specialized in Python and LLM APIs, building reliable software that scales smoothly under heavy production loads. At Independent / Freelance, I recently building AI-powered applications, delivering measurable impact for the business and engineering organization. What excites me most about OpenAI / Tech Labs is your commitment to high-quality engineering. My background enables me to contribute immediately and integrate seamlessly into your workflow. You can explore my full interactive resume below, download my tailored CV, or schedule a quick chat directly. Looking forward to connecting!",
+  "linkedin_outreach_note": "Hi Hiring Team,\n\nI came across the Junior AI Engineer / Machine Learning Engineer role at OpenAI / Tech Labs and was very impressed by your team's mission. Rather than just sending a flat resume, I put together a 60-second video pitch and interactive project link tailored to your requirements:\n\n\ud83d\udc49 http://127.0.0.1:8000/p/mudather-mohammed\n\nIt covers my direct experience in Python, LLM APIs and key accomplishments at Independent / Freelance. Would love to connect and discuss how I can contribute to OpenAI / Tech Labs!\n\nBest regards,\nMUDATHER MOHAMMED",
+  "competency_badges": [
+    "\u26a1 Python Specialist",
+    "\ud83d\ude80 Freelance Software & AI Developer. AI & Software Engineering : Developed practical software and AI applications combining machine learning, AI APIs, backend development, databases, and deployment @ Independent / Freelance",
+    "\ud83c\udfaf Matched for Junior AI Engineer / Machine Learning Engineer",
+    "\ud83c\udf0d Worldwide Remote & Immediate Impact"
+  ],
+  "cta_settings": {
+    "calendly_url": "https://calendly.com",
+    "whatsapp_number": "+211920123456",
+    "telegram_username": "@career_agent",
+    "direct_email": "alex.rivera@example.com",
+    "linkedin_url": "https://linkedin.com",
+    "github_url": "https://github.com",
+    "portfolio_url": "https://portfolio.dev",
+    "enable_booking": true,
+    "enable_cv_download": true
+  },
+  "is_public": true,
+  "updated_at": "2026-08-16T01:44:07.501047"
+}

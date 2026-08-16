@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobFlow.ai — Autonomous AI Job Intelligence & ATS Resume Studio</title>
+  <meta name="description" content="Land your dream job faster with JobFlow.ai. Autonomous LinkedIn job scanning, ATS gap analysis, dynamic XYZ resume tailoring, and instant alerts to Email, WhatsApp, and Telegram.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/landing.css">
+</head>
+<body>
+
+  <!-- Background Ambient Glows -->
+  <div class="glow-orb glow-orb-1"></div>
+  <div class="glow-orb glow-orb-2"></div>
+  <div class="glow-orb glow-orb-3"></div>
+
+  <div class="container">
+    
+    <!-- Navbar -->
+    <header class="navbar">
+      <a href="/" class="logo-container">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">JobFlow<span>.ai</span></div>
+      </a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#simulator">Live Simulator</a>
+        <a href="#calculator">ROI Calculator</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="/app" class="btn btn-secondary">Sign In</a>
+        <a href="/app" class="btn btn-primary">⚡ Launch App Free</a>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>Next-Gen Autonomous Career Intelligence</span>
+      </div>
+      <h1 class="hero-title">
+        Land Your Dream Job with <br>
+        <span class="gradient-text">Autonomous AI Intelligence</span>
+      </h1>
+      <p class="hero-subtitle">
+        Scan live LinkedIn opportunities for any profession, perform instant ATS gap audits, dynamically tailor pixel-perfect resumes using Google’s XYZ formula, and automate notifications directly to your <b>Email, WhatsApp, and Telegram</b>.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="/app" class="btn btn-primary btn-large">
+          <span>⚡ Launch Job Radar (Free)</span>
+        </a>
+        <a href="#simulator" class="btn btn-secondary btn-large">
+          <span>🔍 Try Interactive Simulator</span>
+        </a>
+      </div>
+
+      <!-- Hero Social Proof Ticker -->
+      <div class="social-proof-bar">
+        <span>Trusted by applicants targeting:</span>
+        <div class="company-logos">
+          <span class="company-tag">Google</span>
+          <span class="company-tag">Microsoft</span>
+          <span class="company-tag">Amazon</span>
+          <span class="company-tag">Meta</span>
+          <span class="company-tag">Apple</span>
+          <span class="company-tag">Scale AI</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Live ATS Simulator Widget -->
+    <section id="simulator" class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Interactive Live Demo</span>
+        <h2 class="section-title">See How JobFlow Bridges Your <span class="gradient-text">ATS Resume Gaps</span></h2>
+        <p class="section-desc">Select a target career path below to test our real-time semantic matcher, gap agent, and dynamic score calculation live.</p>
+      </div>
+
+      <div class="simulator-card">
+        <div class="simulator-controls">
+          <div class="role-selector">
+            <button class="role-btn active" data-role="ai">🤖 AI & ML Engineer</button>
+            <button class="role-btn" data-role="pm">📊 Product Manager</button>
+            <button class="role-btn" data-role="design">🎨 UI/UX Designer</button>
+            <button class="role-btn" data-role="growth">📈 Growth Marketing</button>
+          </div>
+        </div>
+
+        <div class="simulator-grid">
+          <!-- Left: Extracted vs Target -->
+          <div class="sim-panel">
+            <h3 class="sim-title" id="sim-role-title">Target: Senior AI Engineer at Nexus AI</h3>
+            <p class="sim-sub" id="sim-role-desc">Requires Python, FastAPI, Docker, Kubernetes, Celery, and GraphRAG pipelines.</p>
+            
+            <div class="sim-block">
+              <div class="sim-label">Matched Competencies</div>
+              <div class="skills-cloud" id="sim-matched-skills">
+                <span class="skill-chip chip-match">✓ Python</span>
+                <span class="skill-chip chip-match">✓ FastAPI</span>
+                <span class="skill-chip chip-match">✓ Docker</span>
+                <span class="skill-chip chip-match">✓ PyTorch</span>
+              </div>
+            </div>
+
+            <div class="sim-block">
+              <div class="sim-label" style="color: #FB7185;">Identified Resume Gaps</div>
+              <div class="skills-cloud" id="sim-gap-skills">
+                <span class="skill-chip chip-gap">✗ Kubernetes</span>
+                <span class="skill-chip chip-gap">✗ Celery</span>
+                <span class="skill-chip chip-gap">✗ GraphRAG</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-sim-boost" style="width: 100%; margin-top: 16px;">
+              🤖 Simulate AI Gap Resolution (+18% Score Boost)
+            </button>
+          </div>
+
+          <!-- Right: Live ATS Gauge & Preview -->
+          <div class="sim-panel sim-gauge-panel">
+            <div class="sim-gauge-circle" id="sim-gauge" style="--score: 68;">
+              <span class="sim-gauge-number" id="sim-score-text">68%</span>
+              <span class="sim-gauge-label">ATS MATCH</span>
+            </div>
+            <div class="sim-status-box">
+              <div class="sim-status-title" id="sim-status-title">Status: Moderate Match</div>
+              <div class="sim-status-desc" id="sim-status-desc">Candidate shows strong foundations. AI tailoring recommended to pass automated screening filters.</div>
+            </div>
+            <a href="/app" class="btn btn-emerald" style="width: 100%;">
+              ⚡ Ingest Your Real Resume in App
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Features Grid -->
+    <section id="features" class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Powerful Features</span>
+        <h2 class="section-title">An Entire Career Acceleration Suite <br><span class="gradient-text">Built For Your Success</span></h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🔎</div>
+          <h3 class="feature-title">Universal Live Job Scanner</h3>
+          <p class="feature-text">Scrapes live LinkedIn postings in real time for any profession without requiring login. Filter by 24h, 4d, 7d, 30d, or 70d.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3 class="feature-title">Semantic ATS Gap Analysis</h3>
+          <p class="feature-text">Audits your resume against target job requirements on demand. Highlights exact keywords missing to pass applicant tracking filters.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📄</div>
+          <h3 class="feature-title">Google XYZ Dynamic Tailor</h3>
+          <p class="feature-text">Rewrites summary and experience bullets using the proven Google XYZ formula (Accomplished [X] measured by [Y] by doing [Z]).</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3 class="feature-title">Triple-Channel Alert Hub</h3>
+          <p class="feature-text">Dispatches immediate application alerts, links, and PDF attachments across Email, WhatsApp, and Telegram in real time.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3 class="feature-title">Instant 1-Click Document Export</h3>
+          <p class="feature-text">Compiles pixel-perfect ATS-optimized PDFs and editable DOCX Word files formatted specifically for recruiter screening standards.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🌐</div>
+          <h3 class="feature-title">Universal Career Compatibility</h3>
+          <p class="feature-text">Engineered for any profession: Software & AI, Product Management, Design, Growth Marketing, Finance, and Operations.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive ROI Calculator -->
+    <section id="calculator" class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Calculate Your Advantage</span>
+        <h2 class="section-title">How Much Time Will <span class="gradient-text">JobFlow Save You?</span></h2>
+      </div>
+
+      <div class="calculator-card">
+        <div class="calc-slider-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label class="calc-label">Job Applications You Plan to Submit Per Month:</label>
+            <span class="calc-value" id="calc-apps-val">30 Applications</span>
+          </div>
+          <input type="range" id="calc-apps-slider" min="5" max="100" value="30" class="calc-slider">
+        </div>
+
+        <div class="calc-results-grid">
+          <div class="calc-result-box">
+            <div class="calc-result-number" id="calc-hours-saved">45 Hours</div>
+            <div class="calc-result-label">Saved on Manual Tailoring</div>
+          </div>
+          <div class="calc-result-box">
+            <div class="calc-result-number" id="calc-interview-boost">+320%</div>
+            <div class="calc-result-label">Higher Interview Call Rate</div>
+          </div>
+          <div class="calc-result-box">
+            <div class="calc-result-number" id="calc-money-saved">$1,350</div>
+            <div class="calc-result-label">Estimated Value of Time</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gumroad Pricing Section -->
+    <section id="pricing" class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Transparent Pricing</span>
+        <h2 class="section-title">Invest in Your Career with <span class="gradient-text">Predictable Pricing</span></h2>
+        <p class="section-desc">Global payments handled securely via Gumroad. Cancel anytime with a single click.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Starter -->
+        <div class="pricing-card">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price">$0 <span>/ month</span></div>
+          <p class="plan-desc">For candidates exploring new roles and testing their resume match score.</p>
+          <ul class="plan-features">
+            <li>✓ 3 Job Radar Scans / day</li>
+            <li>✓ Basic ATS Gap Audit</li>
+            <li>✓ Standard Document Generation</li>
+            <li>✓ Email Notifications</li>
+          </ul>
+          <a href="/app" class="btn btn-secondary" style="margin-top: auto;">Get Started Free</a>
+        </div>
+
+        <!-- Pro Tier -->
+        <div class="pricing-card featured">
+          <div class="featured-badge">MOST POPULAR</div>
+          <div class="plan-name" style="color: var(--accent-cyan);">Pro Member</div>
+          <div class="plan-price">$19 <span>/ month</span></div>
+          <p class="plan-desc">For active job seekers who want tailored CVs and higher interview conversion.</p>
+          <ul class="plan-features">
+            <li>✓ <b>Unlimited</b> LinkedIn Radar Scans</li>
+            <li>✓ Dynamic Google <b>XYZ Tailoring</b></li>
+            <li>✓ AI Gap Questioning Agent (+15% boost)</li>
+            <li>✓ Pixel-Perfect <b>PDF & DOCX Export</b></li>
+            <li>✓ Triple-Channel Alerts (Email + WA + Telegram)</li>
+          </ul>
+          <a href="https://gumroad.com" target="_blank" class="btn btn-primary" style="margin-top: auto;">
+            ⚡ Subscribe via Gumroad
+          </a>
+        </div>
+
+        <!-- Executive Pilot -->
+        <div class="pricing-card">
+          <div class="plan-name" style="color: var(--accent-purple);">Executive Pilot</div>
+          <div class="plan-price">$49 <span>/ month</span></div>
+          <p class="plan-desc">For professionals targeting high-compensation career shifts.</p>
+          <ul class="plan-features">
+            <li>✓ Everything in Pro Member</li>
+            <li>✓ Priority Search Radar & Multi-Job Batching</li>
+            <li>✓ Multi-Role Resume Profile Ingestion</li>
+            <li>✓ Instant Batch Application Alerts</li>
+            <li>✓ Dedicated Priority Support</li>
+          </ul>
+          <a href="https://gumroad.com" target="_blank" class="btn btn-gumroad" style="margin-top: auto;">
+            ⚡ Subscribe via Gumroad
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Success Stories</span>
+        <h2 class="section-title">Loved by Candidates <span class="gradient-text">Worldwide</span></h2>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <p class="testimonial-text">"JobFlow changed how I apply. The AI gap agent found competencies I forgot to mention, boosted my ATS score to 94%, and I landed 3 interviews in my first week!"</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">👨‍💻</div>
+            <div>
+              <div class="author-name">David K.</div>
+              <div class="author-role">Senior Full-Stack Engineer</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <p class="testimonial-text">"Getting WhatsApp alerts with tailored PDF resumes already compiled meant I was the first applicant on freshly posted LinkedIn roles. Total game changer."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">👩‍💼</div>
+            <div>
+              <div class="author-name">Elena R.</div>
+              <div class="author-role">Product Lead</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <p class="testimonial-text">"The Google XYZ formula rewriting produced the most professional resume I’ve ever had. Easily worth 10x the Pro subscription price."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">📊</div>
+            <div>
+              <div class="author-name">Marcus T.</div>
+              <div class="author-role">Growth & Operations Specialist</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Accordion -->
+    <section id="faq" class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Got Questions?</span>
+        <h2 class="section-title">Frequently Asked <span class="gradient-text">Questions</span></h2>
+      </div>
+
+      <div class="faq-accordion">
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Does JobFlow require my personal LinkedIn password or login?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            No! JobFlow uses a public guest scraping engine that scans LinkedIn job postings directly without ever needing your personal LinkedIn credentials. Your account remains 100% safe.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How does Gumroad billing work across different countries?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            Gumroad acts as our global Merchant-of-Record (MoR), allowing you to subscribe using PayPal, Credit Cards, Apple Pay, or Google Pay from 190+ countries with automatic currency conversions.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How do the WhatsApp and Telegram notifications work?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            Whenever a job is matched or an application is executed, our notification dispatcher triggers instant alerts with job links and attaches your newly compiled tailored PDF resume directly in your chat.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Can I customize or edit the tailored resumes before applying?</span>
+            <span class="faq-chevron">+</span>
+          </button>
+          <div class="faq-answer">
+            Yes! You can download the generated resume in both PDF and DOCX Word formats to make any personal tweaks before submission.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final Call to Action -->
+    <section class="cta-banner">
+      <h2 class="cta-title">Ready to Accelerate Your Career?</h2>
+      <p class="cta-subtitle">Join hundreds of professionals landing interviews with automated AI intelligence today.</p>
+      <a href="/app" class="btn btn-primary btn-large">
+        <span>⚡ Launch JobFlow Workspace (Free)</span>
+      </a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="logo-container">
+            <div class="logo-icon">⚡</div>
+            <div class="logo-text">JobFlow<span>.ai</span></div>
+          </div>
+          <p style="font-size: 13px; color: var(--text-dim); margin-top: 8px;">Autonomous AI Career Intelligence & ATS Resume Studio.</p>
+        </div>
+        <div class="footer-links">
+          <div class="link-col">
+            <h4>Product</h4>
+            <a href="#features">Features</a>
+            <a href="#simulator">Live Simulator</a>
+            <a href="#pricing">Pricing</a>
+            <a href="/app">Launch Workspace</a>
+          </div>
+          <div class="link-col">
+            <h4>Integration</h4>
+            <a href="#">Supabase Database</a>
+            <a href="#">Gumroad Billing</a>
+            <a href="#">Vercel Deployment</a>
+          </div>
+          <div class="link-col">
+            <h4>Legal & Trust</h4>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Candidate Support</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 JobFlow.ai. All rights reserved. Global payments powered by Gumroad.</span>
+        <span>Hosted securely on Vercel & Supabase.</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="/static/landing.js"></script>
+</body>
+</html>

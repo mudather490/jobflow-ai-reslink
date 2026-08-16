@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "web/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/web/$1"
+    },
+    {
+      "src": "/videos/(.*)",
+      "dest": "server.py"
+    },
+    {
+      "src": "/p/(.*)",
+      "dest": "server.py"
+    },
+    {
+      "src": "/reslink/(.*)",
+      "dest": "server.py"
+    },
+    {
+      "src": "/reslink",
+      "dest": "server.py"
+    },
+    {
+      "src": "/app",
+      "dest": "server.py"
+    },
+    {
+      "src": "/landing",
+      "dest": "server.py"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "server.py"
+    },
+    {
+      "src": "/",
+      "dest": "server.py"
+    }
+  ]
+}
