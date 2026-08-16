@@ -1021,7 +1021,7 @@ window.toggleTeleprompterScroll = function() {
   if (!container || !btn) return;
 
   if (isPrompterScrolling) {
-    clearInterval(prompterScrollInterval);
+    if (prompterAnimFrame) cancelAnimationFrame(prompterAnimFrame);
     isPrompterScrolling = false;
     btn.innerHTML = '▶ Start Prompter';
     btn.classList.remove('btn-emerald');
@@ -1030,26 +1030,39 @@ window.toggleTeleprompterScroll = function() {
     btn.innerHTML = '⏸ Pause Prompter';
     btn.classList.add('btn-emerald');
 
-    const wpm = parseInt(document.getElementById('teleprompter-wpm')?.value) || 50;
-    // Calibrated slow micro-step: 50 WPM moves ~0.35px per 40ms (~8.75px per second)
-    const pixelsPerStep = (wpm / 50) * 0.35;
+    let prompterScrollPos = container.scrollTop;
+    let lastTime = performance.now();
 
-    prompterScrollInterval = setInterval(() => {
-      container.scrollTop += pixelsPerStep;
-      if (container.scrollTop >= (container.scrollHeight - container.clientHeight - 2)) {
-        clearInterval(prompterScrollInterval);
+    function stepScroll(currentTime) {
+      if (!isPrompterScrolling) return;
+      const dt = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+
+      const wpm = parseInt(document.getElementById('teleprompter-wpm')?.value) || 35;
+      const pixelsPerSecond = (wpm / 35) * 4.5;
+
+      prompterScrollPos += pixelsPerSecond * dt;
+      container.scrollTop = prompterScrollPos;
+
+      if (container.scrollTop >= (container.scrollHeight - container.clientHeight - 4)) {
         isPrompterScrolling = false;
-        btn.innerHTML = '▶ Restart Prompter';
+        btn.innerHTML = '🔄 Restart Prompter';
         btn.classList.remove('btn-emerald');
+        return;
       }
-    }, 40);
+
+      prompterAnimFrame = requestAnimationFrame(stepScroll);
+    }
+
+    prompterAnimFrame = requestAnimationFrame(stepScroll);
   }
 };
 
 window.updateTeleprompterSpeed = function() {
   if (isPrompterScrolling) {
-    window.toggleTeleprompterScroll(); // pause
-    window.toggleTeleprompterScroll(); // restart with new speed
+    if (prompterAnimFrame) cancelAnimationFrame(prompterAnimFrame);
+    isPrompterScrolling = false;
+    window.toggleTeleprompterScroll();
   }
 };
 

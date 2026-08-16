@@ -507,11 +507,12 @@
                   <option value="">Default Camera</option>
                 </select>
                 <!-- Slow Prompter Speed Options -->
-                <select id="studio-prompter-speed" class="select-field" style="padding: 3px 8px; font-size: 11px; width: 130px; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; font-weight: 700;" onchange="updatePrompterSpeed()">
-                  <option value="50" selected>🐢 Ultra Slow (50 WPM)</option>
-                  <option value="75">🚶 Slow & Clear (75 WPM)</option>
-                  <option value="100">💬 Relaxed (100 WPM)</option>
-                  <option value="130">⚡ Standard (130 WPM)</option>
+                <select id="studio-prompter-speed" class="select-field" style="padding: 4px 10px; font-size: 11px; width: 145px; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; font-weight: 700;" onchange="updatePrompterSpeed()">
+                  <option value="20">🐢 Super Calm (20 WPM)</option>
+                  <option value="35" selected>🐢 Ultra Slow (35 WPM)</option>
+                  <option value="50">🚶 Slow & Clear (50 WPM)</option>
+                  <option value="75">💬 Conversational (75 WPM)</option>
+                  <option value="100">⚡ Standard (100 WPM)</option>
                 </select>
               </div>
             </div>
@@ -520,9 +521,9 @@
             <div class="camera-wrapper">
               <video id="studio-camera-feed" class="camera-video-elem" autoplay playsinline muted></video>
               
-              <!-- Floating Moving Teleprompter (Moves slowly inside the video preview) -->
-              <div class="teleprompter-overlay-box" id="studio-prompter-box" style="font-size: 14.5px; line-height: 1.65; max-height: 130px; overflow-y: auto;">
-                <div id="studio-prompter-text" style="color: #FFF; font-weight: 600;">
+              <!-- Floating Moving Teleprompter (Moves slowly & smoothly inside the video preview) -->
+              <div class="teleprompter-overlay-box" id="studio-prompter-box" style="font-size: 16px; line-height: 1.8; max-height: 140px; overflow-y: auto; background: rgba(4, 7, 18, 0.92); border: 1px solid rgba(56, 189, 248, 0.45); padding: 14px 18px; border-radius: 14px;">
+                <div id="studio-prompter-text" style="color: #FFFFFF; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,0.9); letter-spacing: 0.2px;">
                   ✨ Teleprompter ready. Click 'Turn On Camera' and 'Start Recording' to begin speaking at your own relaxed pace...
                 </div>
               </div>
@@ -1165,10 +1166,14 @@
       showToast("🔊 Playing Spoken Audio Pitch Practice...");
     }
 
+    let prompterScrollPos = 0;
+    let prompterAnimFrame = null;
+
     function resetStudioPrompter() {
       const box = document.getElementById('studio-prompter-box');
       if (box) box.scrollTop = 0;
-      showToast("Prompter reset to beginning");
+      prompterScrollPos = 0;
+      showToast("Prompter reset to top");
     }
 
     function toggleStudioPrompterScroll() {
@@ -1177,31 +1182,44 @@
       if (!box) return;
 
       if (isPrompterPlaying) {
-        clearInterval(prompterInterval);
+        if (prompterAnimFrame) cancelAnimationFrame(prompterAnimFrame);
         isPrompterPlaying = false;
         if (btn) btn.innerHTML = '▶ Scroll Prompter';
       } else {
         isPrompterPlaying = true;
-        if (btn) btn.innerHTML = '⏸ Pause';
+        if (btn) btn.innerHTML = '⏸ Pause Prompter';
 
-        const wpm = parseInt(document.getElementById('studio-prompter-speed')?.value) || 50;
-        // Calibrated slow micro-step: 50 WPM moves ~0.35px per 40ms (~8.75px per second)
-        const step = (wpm / 50) * 0.35;
+        prompterScrollPos = box.scrollTop;
+        let lastTimestamp = performance.now();
 
-        prompterInterval = setInterval(() => {
-          box.scrollTop += step;
-          if (box.scrollTop >= (box.scrollHeight - box.clientHeight - 2)) {
-            clearInterval(prompterInterval);
+        function stepScroll(currentTimestamp) {
+          if (!isPrompterPlaying) return;
+          const dt = (currentTimestamp - lastTimestamp) / 1000;
+          lastTimestamp = currentTimestamp;
+
+          const wpm = parseInt(document.getElementById('studio-prompter-speed')?.value) || 35;
+          // Ultra-slow speed: 35 WPM = ~4.5px/second, 20 WPM = ~2.6px/second
+          const pixelsPerSecond = (wpm / 35) * 4.5;
+
+          prompterScrollPos += pixelsPerSecond * dt;
+          box.scrollTop = prompterScrollPos;
+
+          if (box.scrollTop >= (box.scrollHeight - box.clientHeight - 4)) {
             isPrompterPlaying = false;
-            if (btn) btn.innerHTML = '▶ Restart';
+            if (btn) btn.innerHTML = '🔄 Restart Prompter';
+            return;
           }
-        }, 40);
+
+          prompterAnimFrame = requestAnimationFrame(stepScroll);
+        }
+
+        prompterAnimFrame = requestAnimationFrame(stepScroll);
       }
     }
 
     function updatePrompterSpeed() {
       if (isPrompterPlaying) {
-        clearInterval(prompterInterval);
+        if (prompterAnimFrame) cancelAnimationFrame(prompterAnimFrame);
         isPrompterPlaying = false;
         toggleStudioPrompterScroll();
       }

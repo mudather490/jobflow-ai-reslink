@@ -4,7 +4,7 @@
   "tagline": "Junior AI Engineer | Machine Learning Engineer",
   "location": "Worldwide Remote",
   "summary_bio": "Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel. Built ML models, neural networks from scratch, AI lead-discovery systems, and end-to-end software applications. Currently advancing in PyTorch and AI Engineering through professional certifications and practical projects. Seeking a remote Junior AI Engineer / Machine Learning Engineer opportunity..",
-  "video_url": "/videos/test_pitch.webm",
+  "video_url": "/videos/video_pitch.webm",
   "video_duration": 60.0,
   "theme": "cyber_neon",
   "selected_cv_template": "tech",
@@ -31,5 +31,5 @@
     "enable_cv_download": true
   },
   "is_public": true,
-  "updated_at": "2026-08-16T03:29:19.758514"
+  "updated_at": "2026-08-16T03:48:24.464985"
 }

@@ -1,11 +1,32 @@
 {
-  "total_views": 39,
-  "unique_visitors": 39,
-  "video_plays": 22,
+  "total_views": 41,
+  "unique_visitors": 41,
+  "video_plays": 23,
   "cv_downloads": 17,
   "calendly_clicks": 16,
   "average_watch_seconds": 935.5,
   "recent_events": [
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-16 03:51:04",
+      "referrer": "direct",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "video_play",
+      "timestamp": "2026-08-16 03:49:01",
+      "referrer": "direct",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-16 03:48:59",
+      "referrer": "direct",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "video_play",
       "timestamp": "2026-08-16 03:40:55",
@@ -331,27 +352,6 @@
     {
       "event": "video_play",
       "timestamp": "2026-08-15 04:08:18",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-15 04:08:18",
-      "referrer": "linkedin.com",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-15 04:07:43",
-      "referrer": "https://linkedin.com/in/alex",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "calendly_click",
-      "timestamp": "2026-08-15 04:07:43",
       "referrer": "direct",
       "device": "desktop",
       "city": "Global Recruiter View"
