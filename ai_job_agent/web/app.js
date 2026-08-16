@@ -1310,6 +1310,169 @@ window.verifyGumroadLicense = async function() {
   }
 };
 
+// ─────────────────────────────────────────────────────────────
+// Master Unified App Navigation & ResLink Studio Integration
+// ─────────────────────────────────────────────────────────────
+
+window.switchAppTab = function(tabName) {
+  const radarView = document.getElementById('view-radar');
+  const studioView = document.getElementById('view-studio');
+  const showcaseView = document.getElementById('view-showcase');
+
+  const btnRadar = document.getElementById('tab-btn-radar');
+  const btnStudio = document.getElementById('tab-btn-studio');
+  const btnShowcase = document.getElementById('tab-btn-showcase');
+
+  // Reset tab button states
+  [btnRadar, btnStudio, btnShowcase].forEach(btn => {
+    if (btn) {
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--text-muted)';
+      btn.style.borderColor = 'transparent';
+      btn.classList.remove('active');
+    }
+  });
+
+  // Hide all view panes
+  [radarView, studioView, showcaseView].forEach(v => {
+    if (v) v.style.display = 'none';
+  });
+
+  if (tabName === 'studio') {
+    if (studioView) studioView.style.display = 'block';
+    if (btnStudio) {
+      btnStudio.style.background = 'rgba(0, 240, 255, 0.15)';
+      btnStudio.style.color = '#00F0FF';
+      btnStudio.style.borderColor = 'rgba(0, 240, 255, 0.4)';
+      btnStudio.classList.add('active');
+    }
+    window.location.hash = 'studio';
+    window.loadStudioProfile?.();
+  } else if (tabName === 'showcase') {
+    if (showcaseView) {
+      showcaseView.style.display = 'block';
+      const iframe = document.getElementById('showcase-preview-frame');
+      const slug = (reslinkProfileState && reslinkProfileState.slug) ? reslinkProfileState.slug : 'mudather-mohammed';
+      if (iframe) {
+        iframe.src = `/p/${slug}`;
+      }
+    }
+    if (btnShowcase) {
+      btnShowcase.style.background = 'rgba(0, 240, 255, 0.15)';
+      btnShowcase.style.color = '#00F0FF';
+      btnShowcase.style.borderColor = 'rgba(0, 240, 255, 0.4)';
+      btnShowcase.classList.add('active');
+    }
+    window.location.hash = 'showcase';
+  } else {
+    // Default: radar
+    if (radarView) radarView.style.display = 'block';
+    if (btnRadar) {
+      btnRadar.style.background = 'rgba(0, 240, 255, 0.15)';
+      btnRadar.style.color = '#00F0FF';
+      btnRadar.style.borderColor = 'rgba(0, 240, 255, 0.4)';
+      btnRadar.classList.add('active');
+    }
+    window.location.hash = 'radar';
+  }
+};
+
+window.goToStudioStep = function(stepNum) {
+  for (let i = 1; i <= 4; i++) {
+    const pane = document.getElementById(`pane-step-${i}`);
+    const tab = document.getElementById(`tab-step-${i}`);
+    if (pane) pane.style.display = (i === stepNum) ? 'block' : 'none';
+    if (tab) {
+      if (i === stepNum) {
+        tab.classList.add('active');
+        tab.style.background = 'rgba(56, 189, 248, 0.15)';
+        tab.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+        tab.style.color = '#fff';
+      } else {
+        tab.classList.remove('active');
+        tab.style.background = 'transparent';
+        tab.style.borderColor = 'transparent';
+        tab.style.color = 'var(--text-muted)';
+      }
+    }
+  }
+};
+
+window.selectStudioTemplate = function(templateId) {
+  window.selectTemplate(templateId);
+  const btns = ['modern', 'harvard', 'corporate', 'tech'];
+  btns.forEach(b => {
+    const el = document.getElementById(`btn-studio-tmpl-${b}`);
+    if (el) {
+      if (templateId.startsWith(b)) el.classList.add('active');
+      else el.classList.remove('active');
+    }
+  });
+  const nameEl = document.getElementById('studio-active-template-name');
+  if (nameEl) nameEl.innerText = templateNames[templateId] || 'Corporate Elite';
+};
+
+window.downloadStudioTestPDF = function() {
+  const tmpl = window.selectedTemplateId || 'corporate_elite';
+  const url = `/api/v1/resume/download/pdf?template_id=${tmpl}`;
+  window.open(url, '_blank');
+  showToast(`📥 Downloading test CV (${templateNames[tmpl] || 'Corporate Elite'})...`);
+};
+
+window.copyPublicResLink = function() {
+  const slug = (reslinkProfileState && reslinkProfileState.slug) ? reslinkProfileState.slug : 'mudather-mohammed';
+  const url = `${window.location.origin}/p/${slug}`;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast("✓ Public ResLink URL copied to clipboard!");
+  }).catch(() => {
+    showToast(`URL: ${url}`);
+  });
+};
+
+window.copyLinkedInMessage = function() {
+  const el = document.getElementById('studio-linkedin-outreach');
+  const text = el ? el.value : '';
+  if (text) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("✓ Tailored LinkedIn outreach note copied!");
+    });
+  }
+};
+
+window.regeneratePitchScript = function() {
+  const job = document.getElementById('studio-target-job')?.value || 'AI Engineer';
+  const comp = document.getElementById('studio-target-company')?.value || 'Tech Labs';
+  const name = (currentProfile && currentProfile.full_name) ? currentProfile.full_name : 'MUDATHER MOHAMMED';
+  
+  const script = `Hi Hiring Team at ${comp}! My name is ${name}, and I'm thrilled to present my candidacy for the ${job} position. Over the past several years, I have engineered scalable software, Machine Learning models, and LLM APIs. What excites me most about ${comp} is your commitment to high-impact technical excellence. You can explore my full interactive project portfolio below, download my tailored CV, or schedule a conversation directly. Looking forward to connecting!`;
+  
+  const txt = document.getElementById('studio-pitch-script');
+  if (txt) txt.value = script;
+  const prompterTxt = document.getElementById('teleprompter-text');
+  if (prompterTxt) prompterTxt.innerText = script;
+  showToast("✨ Generated fresh personalized pitch script!");
+};
+
+window.setPrompterSpeed = function(spd) {
+  teleprompterSpeed = spd;
+  showToast(`Teleprompter speed set to ${spd}x`);
+};
+
+window.handleStudioVideoUpload = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const videoElem = document.getElementById('studio-webcam-preview');
+  const placeholder = document.getElementById('camera-placeholder');
+  if (videoElem) {
+    videoElem.srcObject = null;
+    videoElem.src = URL.createObjectURL(file);
+    videoElem.muted = false;
+    videoElem.controls = true;
+    if (placeholder) placeholder.style.display = 'none';
+    showToast(`✓ Uploaded video pitch: ${file.name}`);
+  }
+};
+
 // Load on start
 document.addEventListener('DOMContentLoaded', () => {
   loadInitialProfile();
@@ -1338,7 +1501,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  window.selectTemplate(window.selectedTemplateId || 'modern');
+  window.selectTemplate(window.selectedTemplateId || 'corporate_elite');
+
+  // Check initial hash route
+  const hash = (window.location.hash || '').replace('#', '');
+  if (hash === 'studio') {
+    window.switchAppTab('studio');
+  } else if (hash === 'showcase') {
+    window.switchAppTab('showcase');
+  } else {
+    window.switchAppTab('radar');
+  }
+
   document.getElementById('search-form')?.dispatchEvent(new Event('submit'));
 });
+
 
