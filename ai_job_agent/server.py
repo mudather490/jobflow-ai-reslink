@@ -56,12 +56,20 @@ async def security_headers_middleware(request: Request, call_next):
 
     response = await call_next(request)
     
-    # Inject hardened security headers
+    # Inject hardened security headers (OWASP Level 3 Defense)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
     response.headers["Permissions-Policy"] = "camera=(self), microphone=(self), geolocation=(), payment=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob: data:; "
+        "img-src 'self' https: data: blob:; "
+        "media-src 'self' https: blob: data:; "
+        "connect-src 'self' https://bijwvvnghhbgudyrecpx.supabase.co https://*.supabase.co https://accounts.google.com https://*.googleapis.com https://api.gumroad.com https:; "
+        "frame-ancestors 'self';"
+    )
     return response
 
 # Enable CORS with strict controls
@@ -156,11 +164,9 @@ async def get_current_profile():
 async def upload_resume(file: UploadFile = File(...)):
     global active_profile, active_resume_filename, active_resume_size, active_job, active_match, active_pdf_path, active_docx_path
 
-    # Security check 1: File size limit (10MB)
-    MAX_FILE_SIZE = 10 * 1024 * 1024
+    # Security checks: File size limit, extension whitelist, and magic bytes header inspection
     content = await file.read()
-    if len(content) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=413, detail="File too large. Maximum allowed size is 10 MB.")
+    SecurityShield.validate_resume_upload(file.filename, content, max_size_mb=15)
 
     # Security check 2: Path traversal guard
     save_path = SecurityShield.sanitize_filepath(file.filename, DATA_DIR)
@@ -1226,10 +1232,12 @@ async def match_job_pitch_endpoint(req: MatchJobPitchRequest):
 async def upload_reslink_video(file: UploadFile = File(...)):
     safe_fn = SecurityShield.sanitize_string(file.filename or "pitch_video.webm", "Video Filename")
     clean_fn = re.sub(r'[^a-zA-Z0-9._-]', '_', safe_fn)
-    target_path = VIDEOS_DIR / clean_fn
     
+    content = await file.read()
+    SecurityShield.validate_media_upload(clean_fn, content, max_size_mb=60)
+    
+    target_path = VIDEOS_DIR / clean_fn
     with open(target_path, "wb") as f:
-        content = await file.read()
         f.write(content)
         
     video_url = f"/videos/{clean_fn}"

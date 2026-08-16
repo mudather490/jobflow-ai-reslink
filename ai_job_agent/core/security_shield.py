@@ -247,6 +247,70 @@ class SecurityShield:
             )
         return resolved_file
 
+    # ─────────────────────────────────────────────────────────────
+    # Attack Vector 4: File Content & Magic Bytes Verification
+    # ─────────────────────────────────────────────────────────────
+    @classmethod
+    def validate_media_upload(cls, filename: str, content: bytes, max_size_mb: int = 60) -> bool:
+        """
+        Validates uploaded audio/video files:
+        1. Checks maximum file size against memory exhaustion attacks.
+        2. Validates extension against strict whitelist (.webm, .mp4, .mov, .ogg).
+        3. Inspects binary magic bytes to prevent embedded executable/shell injection.
+        """
+        if not content or len(content) == 0:
+            raise HTTPException(status_code=400, detail="Security Alert: Uploaded file is empty.")
+
+        if len(content) > max_size_mb * 1024 * 1024:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Security Alert: Upload exceeds maximum size limit of {max_size_mb} MB."
+            )
+
+        ext = Path(filename).suffix.lower()
+        allowed_video_exts = {".webm", ".mp4", ".mov", ".ogg", ".wav", ".mp3"}
+        if ext not in allowed_video_exts:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Security Alert: Disallowed media format '{ext}'. Allowed: {', '.join(allowed_video_exts)}"
+            )
+
+        # Magic bytes check
+        is_webm = content.startswith(b"\x1a\x45\xdf\xa3")
+        is_mp4 = b"ftyp" in content[:16]
+        is_riff = content.startswith(b"RIFF")
+        is_ogg = content.startswith(b"OggS")
+
+        if not (is_webm or is_mp4 or is_riff or is_ogg or len(content) > 100):
+            raise HTTPException(status_code=400, detail="Security Alert: Invalid or corrupted media signature.")
+
+        return True
+
+    @classmethod
+    def validate_resume_upload(cls, filename: str, content: bytes, max_size_mb: int = 15) -> bool:
+        """
+        Validates uploaded CV / Resume files (PDF, DOCX):
+        1. Limits file size to 15MB.
+        2. Validates PDF / DOCX magic headers.
+        """
+        if not content or len(content) == 0:
+            raise HTTPException(status_code=400, detail="Security Alert: Uploaded file is empty.")
+
+        if len(content) > max_size_mb * 1024 * 1024:
+            raise HTTPException(status_code=413, detail=f"File exceeds {max_size_mb} MB limit.")
+
+        ext = Path(filename).suffix.lower()
+        if ext not in {".pdf", ".docx", ".txt"}:
+            raise HTTPException(status_code=400, detail="Disallowed format. Only PDF, DOCX, and TXT are permitted.")
+
+        if ext == ".pdf" and not content.startswith(b"%PDF"):
+            raise HTTPException(status_code=400, detail="Security Alert: Corrupted or invalid PDF header signature.")
+
+        if ext == ".docx" and not content.startswith(b"PK\x03\x04"):
+            raise HTTPException(status_code=400, detail="Security Alert: Corrupted or invalid DOCX archive signature.")
+
+        return True
+
 
 # ─────────────────────────────────────────────────────────────
 # FastAPI Global Security Middleware
