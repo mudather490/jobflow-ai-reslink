@@ -1430,10 +1430,13 @@ async function syncSupabaseUserSession() {
   try {
     if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
       const client = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
+      
+      // Check active Supabase session from Google OAuth
       const { data: { session } } = await client.auth.getSession();
       if (session && session.user) {
         const userEmail = (session.user.email || '').toLowerCase();
         const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Mudather Mohammed';
+        
         if (userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com') {
           localStorage.setItem('user_subscription_tier', 'owner');
           localStorage.setItem('jobflow_auth_user', JSON.stringify({
@@ -1441,11 +1444,36 @@ async function syncSupabaseUserSession() {
             full_name: userName,
             role: 'owner',
             is_admin: true,
-            subscription_tier: 'executive'
+            subscription_tier: 'executive',
+            provider: 'google'
           }));
           window.updateTierBadges('owner');
+        } else {
+          localStorage.setItem('user_subscription_tier', 'starter');
+          localStorage.setItem('jobflow_auth_user', JSON.stringify({
+            email: userEmail,
+            full_name: userName,
+            role: 'user',
+            is_admin: false,
+            subscription_tier: 'starter',
+            provider: 'google'
+          }));
+          window.updateTierBadges('starter');
         }
+        return true;
       }
+
+      // Listen for OAuth hash redirect changes
+      client.auth.onAuthStateChange((event, newSession) => {
+        if (newSession && newSession.user) {
+          const userEmail = (newSession.user.email || '').toLowerCase();
+          const userName = newSession.user.user_metadata?.full_name || newSession.user.user_metadata?.name || 'Mudather Mohammed';
+          if (userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com') {
+            localStorage.setItem('user_subscription_tier', 'owner');
+            window.updateTierBadges('owner');
+          }
+        }
+      });
     }
   } catch (err) {
     console.warn("Supabase session sync notice:", err);
@@ -1461,8 +1489,8 @@ document.addEventListener('DOMContentLoaded', () => {
   syncSupabaseUserSession();
 
   // Set Owner Unlimited Pro Plan
-  localStorage.setItem('user_subscription_tier', 'owner');
-  window.updateTierBadges('owner');
+  const savedTier = localStorage.getItem('user_subscription_tier') || 'owner';
+  window.updateTierBadges(savedTier);
 
   // Attach direct click listeners to all template buttons
   document.querySelectorAll('.template-btn').forEach(btn => {

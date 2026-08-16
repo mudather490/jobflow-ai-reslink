@@ -179,7 +179,7 @@ window.handleSocialAuth = async function(provider = 'google') {
     banner.innerText = `Connecting to ${providerLabel} Identity Account Services...`;
   }
 
-  // Attempt Supabase Social OAuth
+  // Attempt Supabase Social OAuth with Account Picker (select_account)
   try {
     if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
       const client = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
@@ -187,7 +187,11 @@ window.handleSocialAuth = async function(provider = 'google') {
       const { data, error } = await client.auth.signInWithOAuth({
         provider: providerKey,
         options: {
-          redirectTo: window.location.origin + '/app'
+          redirectTo: window.location.origin + '/app',
+          queryParams: {
+            prompt: 'select_account',
+            access_type: 'offline'
+          }
         }
       });
       if (!error && data?.url) {
