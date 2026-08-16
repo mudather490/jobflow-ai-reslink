@@ -23,8 +23,8 @@
       --font-mono: 'JetBrains Mono', monospace;
       
       --bg-base: #060913;
-      --bg-surface: rgba(15, 23, 42, 0.75);
-      --bg-card: rgba(30, 41, 59, 0.55);
+      --bg-surface: rgba(15, 23, 42, 0.8);
+      --bg-card: rgba(30, 41, 59, 0.6);
       --border-color: rgba(255, 255, 255, 0.08);
       --border-glow: rgba(56, 189, 248, 0.35);
       --accent-primary: #38BDF8;
@@ -48,7 +48,7 @@
     }
 
     .wrapper {
-      max-width: 960px;
+      max-width: 880px;
       margin: 0 auto;
       padding: 32px 20px 80px 20px;
     }
@@ -76,38 +76,38 @@
       text-decoration: none;
     }
 
-    /* Profile Header */
+    /* Minimalist Profile Header */
     .profile-hero {
       background: var(--bg-surface);
       backdrop-filter: var(--card-blur);
       border: 1px solid var(--border-color);
       border-radius: 20px;
-      padding: 28px;
+      padding: 24px 28px;
       margin-bottom: 24px;
       box-shadow: var(--shadow-elevation);
     }
     .hero-top {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 18px;
       flex-wrap: wrap;
     }
     .avatar-box {
-      width: 72px;
-      height: 72px;
-      border-radius: 20px;
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
       background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-main);
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 800;
       color: #fff;
       box-shadow: 0 10px 25px rgba(56, 189, 248, 0.3);
       flex-shrink: 0;
     }
-    .hero-info { flex: 1; min-width: 260px; }
+    .hero-info { flex: 1; min-width: 240px; }
     .name-row {
       display: flex;
       align-items: center;
@@ -116,7 +116,7 @@
     }
     .profile-name {
       font-family: var(--font-main);
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 800;
       color: var(--text-main);
       letter-spacing: -0.5px;
@@ -127,20 +127,20 @@
       gap: 4px;
       font-size: 11.5px;
       font-weight: 700;
-      padding: 3px 10px;
+      padding: 2px 9px;
       border-radius: 999px;
       background: rgba(16, 185, 129, 0.15);
       color: var(--accent-emerald);
       border: 1px solid rgba(16, 185, 129, 0.3);
     }
     .profile-tagline {
-      font-size: 15px;
+      font-size: 14.5px;
       color: var(--accent-primary);
       font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .profile-location {
-      font-size: 13px;
+      font-size: 12.5px;
       color: var(--text-muted);
       display: flex;
       align-items: center;
@@ -148,7 +148,7 @@
     }
 
     /* ═════════════════════════════════════════════════════════════
-       1. REAL VIDEO PITCH PLAYER (Plays Authentic Voice & Video)
+       1. REAL VIDEO PITCH (Click Sign to Open & Watch with Real Voice)
        ═════════════════════════════════════════════════════════════ */
     .video-card-section {
       background: rgba(14, 19, 38, 0.9);
@@ -161,14 +161,16 @@
     }
     .section-headline {
       font-family: var(--font-main);
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 800;
       color: #FFF;
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
+
+    /* Video Viewport Wrapper */
     .video-viewport-wrapper {
       position: relative;
       background: #000;
@@ -180,7 +182,57 @@
       justify-content: center;
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      cursor: pointer;
     }
+
+    /* Initial Branded Stage with Big Play Sign */
+    .video-launch-stage {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, #0F172A 0%, #030712 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 2;
+      transition: opacity 0.3s ease;
+    }
+    .video-launch-stage.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .video-play-sign {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-size: 28px;
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.6);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s;
+    }
+    .video-viewport-wrapper:hover .video-play-sign {
+      transform: scale(1.08);
+      box-shadow: 0 0 50px rgba(56, 189, 248, 0.8);
+    }
+    .video-launch-title {
+      font-family: var(--font-main);
+      font-size: 16px;
+      font-weight: 800;
+      color: #FFF;
+    }
+    .video-launch-hint {
+      font-size: 12px;
+      color: var(--accent-primary);
+      font-weight: 600;
+    }
+
+    /* Real HTML5 Video Element */
     .video-element {
       width: 100%;
       height: 100%;
@@ -188,44 +240,21 @@
       display: block;
     }
 
-    /* Subtitle / Transcript Banner */
-    .video-transcript-box {
-      margin-top: 14px;
-      background: rgba(4, 7, 18, 0.75);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      border-radius: 12px;
-      padding: 14px 18px;
-      color: #E2E8F0;
-      font-size: 14px;
-      line-height: 1.65;
-    }
-    .transcript-header {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--accent-primary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
     /* ═════════════════════════════════════════════════════════════
-       2. CV / RESUME SHOWCASE & ONE-CLICK DOWNLOAD
+       2. CV / RESUME SHOWCASE & DIRECT DOWNLOAD
        ═════════════════════════════════════════════════════════════ */
     .cv-showcase-section {
       background: var(--bg-surface);
       backdrop-filter: var(--card-blur);
       border: 1px solid var(--border-color);
       border-radius: 20px;
-      padding: 28px;
+      padding: 26px;
       margin-bottom: 28px;
       box-shadow: var(--shadow-elevation);
     }
     .cv-preview-container {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: 1.05fr 0.95fr;
       gap: 24px;
       align-items: center;
     }
@@ -235,32 +264,33 @@
       }
     }
 
+    /* Clean Photo / Visual CV Card */
     .cv-visual-card {
       background: #FFFFFF;
       color: #0F172A;
       border-radius: 12px;
-      padding: 24px;
+      padding: 22px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
       border: 1px solid rgba(255, 255, 255, 0.2);
       position: relative;
       overflow: hidden;
-      max-height: 380px;
+      max-height: 340px;
     }
     .cv-header-rule {
       height: 3px;
       background: linear-gradient(90deg, #1A3A5C, #D4AF37);
-      margin: 8px 0 14px 0;
+      margin: 8px 0 12px 0;
       border-radius: 2px;
     }
     .cv-badge-gold {
       position: absolute;
-      top: 14px;
-      right: 14px;
+      top: 12px;
+      right: 12px;
       background: #1A3A5C;
       color: #D4AF37;
       font-size: 10px;
       font-weight: 800;
-      padding: 3px 8px;
+      padding: 2px 7px;
       border-radius: 4px;
       letter-spacing: 0.5px;
     }
@@ -268,19 +298,19 @@
     .cv-download-panel {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
     .btn-download-hero {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      padding: 16px 24px;
-      border-radius: 14px;
+      padding: 15px 22px;
+      border-radius: 12px;
       background: linear-gradient(135deg, #10B981, #059669);
       color: #FFFFFF;
       font-family: var(--font-main);
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 800;
       text-decoration: none;
       box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
@@ -294,14 +324,11 @@
       background: linear-gradient(135deg, #059669, #047857);
     }
 
-    /* ═════════════════════════════════════════════════════════════
-       3. DIRECT RECRUITER CONTACT & CALENDLY BOOKING
-       ═════════════════════════════════════════════════════════════ */
+    /* Recruiter Action Buttons */
     .recruiter-cta-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
     .cta-btn {
       display: flex;
@@ -318,6 +345,16 @@
       transition: all 0.2s ease;
       border: 1px solid transparent;
     }
+    .cta-linkedin {
+      background: #0A66C2;
+      color: #FFFFFF;
+      border-color: #0A66C2;
+    }
+    .cta-linkedin:hover {
+      background: #004182;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(10, 102, 194, 0.35);
+    }
     .cta-calendly {
       background: rgba(56, 189, 248, 0.15);
       color: var(--accent-primary);
@@ -325,24 +362,6 @@
     }
     .cta-calendly:hover {
       background: rgba(56, 189, 248, 0.25);
-      transform: translateY(-1px);
-    }
-    .cta-whatsapp {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34D399;
-      border-color: rgba(16, 185, 129, 0.3);
-    }
-    .cta-whatsapp:hover {
-      background: rgba(16, 185, 129, 0.25);
-      transform: translateY(-1px);
-    }
-    .cta-email {
-      background: rgba(255, 255, 255, 0.06);
-      color: #F8FAFC;
-      border-color: rgba(255, 255, 255, 0.12);
-    }
-    .cta-email:hover {
-      background: rgba(255, 255, 255, 0.12);
       transform: translateY(-1px);
     }
 
@@ -378,10 +397,10 @@
         <span style="font-size: 18px;">⚡</span>
         <span>JobFlow <span style="color: var(--accent-primary);">ResLink</span></span>
       </a>
-      <span style="font-size: 12px; color: var(--text-dim);">Candidate Verified Portfolio</span>
+      <span style="font-size: 12px; color: var(--text-dim);">Candidate Verified Profile</span>
     </nav>
 
-    <!-- Candidate Profile Header -->
+    <!-- Minimalist Candidate Profile Header -->
     <header class="profile-hero">
       <div class="hero-top">
         <div class="avatar-box" id="prof-avatar">MM</div>
@@ -397,36 +416,32 @@
           </div>
         </div>
       </div>
-      <p style="font-size: 14px; color: var(--text-muted); line-height: 1.65; margin-top: 14px;" id="prof-bio">
-        Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel.
-      </p>
     </header>
 
     <!-- ═════════════════════════════════════════════════════════════
-         1. REAL VIDEO PITCH PLAYER (Plays Authentic Human Audio/Video)
+         1. VIDEO PITCH (Click Sign to Open Video & Play with Voice)
          ═════════════════════════════════════════════════════════════ -->
     <section class="video-card-section">
       <div class="section-headline">
         <span>🎥</span>
-        <span>Candidate 60-Second Video Pitch</span>
+        <span>Candidate Video Pitch</span>
       </div>
 
-      <div class="video-viewport-wrapper">
+      <div class="video-viewport-wrapper" onclick="launchVideoPlayback()">
+        <!-- Launch Stage Overlay with Video Play Sign -->
+        <div class="video-launch-stage" id="video-launch-stage">
+          <div class="video-play-sign">
+            <span style="margin-left: 4px;">▶</span>
+          </div>
+          <div class="video-launch-title">Watch 60-Second Video Pitch</div>
+          <div class="video-launch-hint">Click to play video with authentic voice</div>
+        </div>
+
+        <!-- Real HTML5 Video Player -->
         <video id="reslink-video-player" class="video-element" controls playsinline preload="auto">
           <source id="video-source-element" src="/videos/test_pitch.webm" type="video/webm">
           Your browser does not support HTML5 video playback.
         </video>
-      </div>
-
-      <!-- Transcript & Moving Speech Text -->
-      <div class="video-transcript-box">
-        <div class="transcript-header">
-          <span>🎙️</span>
-          <span>Pitch Transcript (Authentic Human Voice):</span>
-        </div>
-        <div id="video-pitch-transcript">
-          Hi Sarah, and the OpenAI / Tech Labs team! My name is MUDATHER MOHAMMED, and I wanted to introduce myself for the Junior AI Engineer / Machine Learning Engineer role. Over the past several years, I have specialized in Python and LLM APIs, building reliable applications that deliver measurable impact. You can explore my full resume below, download my tailored CV, or schedule a quick chat directly. Looking forward to connecting!
-        </div>
       </div>
     </section>
 
@@ -434,16 +449,16 @@
          2. CV / RESUME SHOWCASE PHOTO & ONE-CLICK PDF DOWNLOAD
          ═════════════════════════════════════════════════════════════ -->
     <section class="cv-showcase-section">
-      <div class="section-headline" style="margin-bottom: 20px;">
+      <div class="section-headline" style="margin-bottom: 18px;">
         <span>📄</span>
         <span>Tailored Resume (<span id="cv-template-name" style="color: var(--accent-primary);">Corporate Elite</span>)</span>
       </div>
 
       <div class="cv-preview-container">
-        <!-- Visual CV Preview Snapshot -->
+        <!-- Visual CV Photo / Snapshot Preview -->
         <div class="cv-visual-card">
           <div class="cv-badge-gold" id="cv-badge-tag">CORPORATE ELITE</div>
-          <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 800; color: #1A3A5C;" id="cv-preview-name">
+          <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 800; color: #1A3A5C;" id="cv-preview-name">
             MUDATHER MOHAMMED
           </div>
           <div style="font-size: 11px; color: #64748B; margin-top: 2px;" id="cv-preview-contact">
@@ -454,7 +469,7 @@
           <div style="font-size: 11px; font-weight: 700; color: #1A3A5C; text-transform: uppercase; margin-bottom: 4px;">
             Executive Summary
           </div>
-          <p style="font-size: 11px; color: #334155; line-height: 1.5; margin-bottom: 10px;">
+          <p style="font-size: 11px; color: #334155; line-height: 1.5; margin-bottom: 8px;">
             Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI applications using Python, Scikit-learn, TensorFlow, and LLM APIs.
           </p>
 
@@ -470,12 +485,12 @@
           </div>
         </div>
 
-        <!-- Download Action & Details -->
+        <!-- Download Action & LinkedIn Connection -->
         <div class="cv-download-panel">
           <div>
-            <h3 style="font-size: 16px; font-weight: 800; color: #FFF; margin-bottom: 6px;">Download Complete Verified Resume</h3>
-            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
-              Formatted in high-resolution ATS-optimized PDF layout including all technical projects, certifications, and experience details.
+            <h3 style="font-size: 16px; font-weight: 800; color: #FFF; margin-bottom: 4px;">Download Full PDF Resume</h3>
+            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+              Formatted in high-resolution ATS-optimized PDF layout including all technical projects and certifications.
             </p>
           </div>
 
@@ -484,16 +499,13 @@
             <span>Download PDF Resume</span>
           </a>
 
-          <!-- Recruiter Contact Actions -->
+          <!-- Recruiter Contact Actions (LinkedIn & Calendly) -->
           <div class="recruiter-cta-bar">
+            <a id="cta-linkedin-btn" href="https://linkedin.com" target="_blank" class="cta-btn cta-linkedin">
+              <span>💼</span> <span>Connect on LinkedIn</span>
+            </a>
             <a id="cta-calendly-btn" href="https://calendly.com" target="_blank" class="cta-btn cta-calendly" onclick="trackBookingClick()">
-              <span>📅</span> <span>Schedule Interview</span>
-            </a>
-            <a id="cta-whatsapp-btn" href="https://wa.me/211920123456" target="_blank" class="cta-btn cta-whatsapp">
-              <span>💬</span> <span>WhatsApp</span>
-            </a>
-            <a id="cta-email-btn" href="mailto:alex.rivera@example.com" class="cta-btn cta-email">
-              <span>✉️</span> <span>Direct Email</span>
+              <span>📅</span> <span>Schedule Quick Chat</span>
             </a>
           </div>
         </div>
@@ -515,12 +527,17 @@
       }
     }
 
+    function launchVideoPlayback() {
+      const stage = document.getElementById('video-launch-stage');
+      const videoElem = document.getElementById('reslink-video-player');
+      if (stage) stage.classList.add('hidden');
+      if (videoElem) {
+        videoElem.play().catch(() => {});
+      }
+    }
+
     async function loadResLinkProfile() {
       try {
-        const pathSegments = window.location.pathname.split('/');
-        let slug = pathSegments[pathSegments.length - 1] || 'mudather-mohammed';
-        if (slug === 'p' || !slug) slug = 'mudather-mohammed';
-
         const res = await fetch('/api/v1/reslink');
         if (res.ok) {
           reslinkProfile = await res.json();
@@ -543,19 +560,13 @@
       }
       if (p.tagline) document.getElementById('prof-tagline').innerText = p.tagline;
       if (p.location) document.getElementById('prof-location').innerText = p.location;
-      if (p.summary_bio) document.getElementById('prof-bio').innerText = p.summary_bio;
 
-      // Update Video Pitch & Real Audio/Video source (NO AI synthetic voice)
+      // Update Video Pitch Source (Real Authentic Audio/Video File)
       const videoElem = document.getElementById('reslink-video-player');
       const videoSource = document.getElementById('video-source-element');
       if (p.video_url && videoElem && videoSource) {
         videoSource.src = p.video_url;
         videoElem.load();
-      }
-
-      // Update Transcript Text
-      if (p.pitch_script) {
-        document.getElementById('video-pitch-transcript').innerText = p.pitch_script;
       }
 
       // Update Active Template & Download Button
@@ -576,16 +587,13 @@
         downloadBtn.href = `/api/v1/resume/download/pdf?template_id=${templateId}`;
       }
 
-      // Update CTA Links
+      // Update LinkedIn & Calendly Links
       if (p.cta_settings) {
+        if (p.cta_settings.linkedin_url) {
+          document.getElementById('cta-linkedin-btn').href = p.cta_settings.linkedin_url;
+        }
         if (p.cta_settings.calendly_url) {
           document.getElementById('cta-calendly-btn').href = p.cta_settings.calendly_url;
-        }
-        if (p.cta_settings.whatsapp_number) {
-          document.getElementById('cta-whatsapp-btn').href = `https://wa.me/${p.cta_settings.whatsapp_number.replace(/[^0-9]/g, '')}`;
-        }
-        if (p.cta_settings.direct_email) {
-          document.getElementById('cta-email-btn').href = `mailto:${p.cta_settings.direct_email}`;
         }
       }
     }
