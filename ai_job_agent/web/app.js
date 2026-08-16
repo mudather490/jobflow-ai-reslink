@@ -1259,12 +1259,75 @@ async function loadInitialResLinkProfile() {
   }
 }
 
+// Gumroad License Verification
+window.verifyGumroadLicense = async function() {
+  const input = document.getElementById('input-gumroad-license');
+  const statusMsg = document.getElementById('license-status-msg');
+  const key = input ? input.value.trim() : '';
+  if (!key) {
+    showToast("Please enter a valid Gumroad license key.");
+    return;
+  }
+
+  const btn = document.getElementById('btn-verify-license');
+  const origText = btn.innerText;
+  btn.innerText = 'Verifying...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/v1/licenses/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ license_key: key })
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem('user_subscription_tier', data.tier || 'pro');
+      localStorage.setItem('gumroad_license_key', key);
+      statusMsg.style.display = 'block';
+      statusMsg.style.color = '#10B981';
+      statusMsg.innerText = `✓ Successfully activated ${data.plan}! Unlimited access enabled.`;
+      showToast(`✓ Activated ${data.plan}!`);
+      
+      const badge = document.getElementById('btn-pricing-modal');
+      if (badge) {
+        badge.innerText = `⚡ ${data.plan}`;
+        badge.style.borderColor = '#10B981';
+        badge.style.color = '#10B981';
+      }
+      setTimeout(() => closeModal('modal-pricing'), 2000);
+    } else {
+      statusMsg.style.display = 'block';
+      statusMsg.style.color = '#EF4444';
+      statusMsg.innerText = `✕ ${data.message || 'Invalid or expired license key.'}`;
+      showToast("License verification failed.");
+    }
+  } catch (err) {
+    showToast(`Verification error: ${err.message}`);
+  } finally {
+    btn.innerText = origText;
+    btn.disabled = false;
+  }
+};
+
 // Load on start
 document.addEventListener('DOMContentLoaded', () => {
   loadInitialProfile();
   loadNotificationSettings();
   loadQuestionnaireBank();
   loadInitialResLinkProfile();
+
+  // Restore active subscription tier badge if present
+  const savedTier = localStorage.getItem('user_subscription_tier');
+  if (savedTier && savedTier !== 'starter') {
+    const badge = document.getElementById('btn-pricing-modal');
+    if (badge) {
+      const planName = savedTier === 'executive' ? 'Executive Pilot' : 'Pro Member';
+      badge.innerText = `⚡ ${planName}`;
+      badge.style.borderColor = '#10B981';
+      badge.style.color = '#10B981';
+    }
+  }
 
   // Attach direct click listeners to all template buttons
   document.querySelectorAll('.template-btn').forEach(btn => {
