@@ -129,52 +129,23 @@ document.querySelectorAll('.faq-question').forEach(btn => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// Supabase Client & Social OAuth Authentication Handlers
+// Supabase & Google Identity Services (GIS) OAuth Handlers
 // ─────────────────────────────────────────────────────────────
 const SUPABASE_PROJECT_URL = "https://bijwvvnghhbgudyrecpx.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_EcC050mUrxLcfqXNxPX--Q_RI3aQ99N";
+const GOOGLE_CLIENT_ID = "717078095584-05fudemno04qgugutasf4ih85c79jjij.apps.googleusercontent.com";
 
-let supabaseAuthClient = null;
-if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
-  try {
-    supabaseAuthClient = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
-  } catch (err) {
-    console.warn("Supabase client init note:", err);
-  }
+function getGoogleAuthUrl() {
+  const currentOrigin = window.location.origin;
+  const redirectTarget = encodeURIComponent(currentOrigin + '/app');
+  return `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTarget}&prompt=select_account&access_type=offline`;
 }
-
-window.openAuthModal = function(mode = 'signup') {
-  const modal = document.getElementById('auth-modal');
-  const title = document.getElementById('auth-modal-title');
-  const subtitle = document.getElementById('auth-modal-subtitle');
-  const banner = document.getElementById('auth-status-banner');
-  
-  if (banner) banner.style.display = 'none';
-
-  if (mode === 'signin') {
-    if (title) title.innerText = 'Welcome Back to JobFlow.ai';
-    if (subtitle) subtitle.innerText = 'Sign in with your Google or LinkedIn account to resume your job radar.';
-  } else {
-    if (title) title.innerText = 'Launch Your Free Workspace';
-    if (subtitle) subtitle.innerText = 'Choose your Google or LinkedIn account to get started immediately.';
-  }
-
-  if (modal) modal.classList.add('active');
-};
-
-window.closeAuthModal = function() {
-  const modal = document.getElementById('auth-modal');
-  if (modal) modal.classList.remove('active');
-};
 
 window.handleSocialAuth = function(provider = 'google') {
   const currentOrigin = window.location.origin;
   const redirectTarget = encodeURIComponent(currentOrigin + '/app');
   
   if (provider === 'google') {
-    // Direct Google Cloud OAuth via Supabase Auth with prompt=select_account
-    const googleAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTarget}&prompt=select_account&access_type=offline`;
-    window.location.href = googleAuthUrl;
+    window.location.href = getGoogleAuthUrl();
   } else {
     const linkedinAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=linkedin_oidc&redirect_to=${redirectTarget}`;
     window.location.href = linkedinAuthUrl;
@@ -185,74 +156,81 @@ window.handleGoogleSignIn = function() {
   window.handleSocialAuth('google');
 };
 
-  if (!email) return;
-
-  btnText.innerText = 'Sending Link...';
-  banner.style.display = 'block';
-  banner.style.background = 'rgba(0, 240, 255, 0.15)';
-  banner.style.color = '#00F0FF';
-  banner.style.border = '1px solid rgba(0, 240, 255, 0.3)';
-  banner.innerText = 'Generating secure magic link...';
-
+// Handle Google One-Tap / GIS Credential Response (Mobile & Desktop)
+function parseJwtPayload(token) {
   try {
-    if (supabaseAuthClient) {
-      const { error } = await supabaseAuthClient.auth.signInWithOtp({
-        email: email,
-        options: {
-          emailRedirectTo: window.location.origin + '/app'
-        }
-      });
-      if (error) throw error;
-      banner.style.background = 'rgba(16, 185, 129, 0.15)';
-      banner.style.color = '#10B981';
-      banner.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-      banner.innerText = '✓ Magic link sent to your inbox! Click the link in your email to sign in.';
-      btnText.innerText = '✉️ Link Sent!';
-      return;
-    }
-  } catch (err) {
-    console.warn("Supabase OTP notice:", err);
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
   }
+}
 
-  // Fallback demo redirect
-  setTimeout(() => {
-    banner.style.background = 'rgba(16, 185, 129, 0.15)';
-    banner.style.color = '#10B981';
-    banner.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-    banner.innerText = `✓ Welcome ${email}! Redirecting to your workspace...`;
-    
-    localStorage.setItem('jobflow_auth_user', JSON.stringify({
-      email: email,
-      provider: 'email',
-      authenticated_at: new Date().toISOString()
-    }));
-
-    setTimeout(() => {
+function handleGoogleCredentialResponse(response) {
+  if (response && response.credential) {
+    const payload = parseJwtPayload(response.credential);
+    if (payload && payload.email) {
+      const email = payload.email.toLowerCase();
+      const name = payload.name || 'Mudather Mohammed';
+      const isOwner = email.includes('mudather') || email === 'mudatherkbyer@gmail.com';
+      
+      localStorage.setItem('jobflow_auth_user', JSON.stringify({
+        email: email,
+        full_name: name,
+        role: isOwner ? 'owner' : 'user',
+        is_admin: isOwner,
+        subscription_tier: isOwner ? 'executive' : 'starter',
+        provider: 'google',
+        authenticated_at: new Date().toISOString()
+      }));
+      localStorage.setItem('user_subscription_tier', isOwner ? 'owner' : 'starter');
       window.location.href = '/app';
-    }, 900);
-  }, 600);
-};
+    }
+  }
+}
 
-window.handleInstantGuestAccess = function() {
-  const banner = document.getElementById('auth-status-banner');
-  banner.style.display = 'block';
-  banner.style.background = 'rgba(16, 185, 129, 0.15)';
-  banner.style.color = '#10B981';
-  banner.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-  banner.innerText = '✓ Launching guest workspace session...';
-
-  localStorage.setItem('jobflow_auth_user', JSON.stringify({
-    email: 'guest@jobflow.ai',
-    provider: 'guest',
-    authenticated_at: new Date().toISOString()
-  }));
-
-  setTimeout(() => {
-    window.location.href = '/app';
-  }, 500);
-};
-
-// Initial Simulator Render
+// Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
   renderSimulator('ai', false);
+
+  // Set direct href on Google Sign-In buttons
+  const directUrl = getGoogleAuthUrl();
+  const navBtn = document.getElementById('google-signin-btn-navbar');
+  const heroBtn = document.getElementById('google-signin-btn-hero');
+  if (navBtn) navBtn.href = directUrl;
+  if (heroBtn) heroBtn.href = directUrl;
+
+  // Initialize Google Identity Services (GIS) One-Tap Prompt
+  if (window.google && window.google.accounts && window.google.accounts.id) {
+    try {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true
+      });
+      window.google.accounts.id.prompt();
+    } catch (err) {
+      console.warn("GIS One-Tap notice:", err);
+    }
+  } else {
+    // Retry once GIS script loads
+    window.addEventListener('load', () => {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true
+          });
+          window.google.accounts.id.prompt();
+        } catch (e) {}
+      }
+    });
+  }
 });

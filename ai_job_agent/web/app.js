@@ -1426,7 +1426,45 @@ window.updateTierBadges = function(tier) {
 const SUPABASE_PROJECT_URL = "https://bijwvvnghhbgudyrecpx.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_EcC050mUrxLcfqXNxPX--Q_RI3aQ99N";
 
+function extractUserFromUrlHash() {
+  const hash = window.location.hash || '';
+  if (hash && hash.includes('access_token=')) {
+    const params = new URLSearchParams(hash.substring(1));
+    const token = params.get('access_token');
+    if (token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+        if (payload && payload.email) {
+          const userEmail = payload.email.toLowerCase();
+          const userName = payload.user_metadata?.full_name || payload.user_metadata?.name || 'Mudather Mohammed';
+          const isOwner = userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com';
+          
+          localStorage.setItem('user_subscription_tier', isOwner ? 'owner' : 'starter');
+          localStorage.setItem('jobflow_auth_user', JSON.stringify({
+            email: userEmail,
+            full_name: userName,
+            role: isOwner ? 'owner' : 'user',
+            is_admin: isOwner,
+            subscription_tier: isOwner ? 'executive' : 'starter',
+            provider: 'google'
+          }));
+          window.updateTierBadges(isOwner ? 'owner' : 'starter');
+          history.replaceState(null, document.title, window.location.pathname + window.location.search);
+          return true;
+        }
+      } catch (err) {
+        console.warn("Hash token decode notice:", err);
+      }
+    }
+  }
+  return false;
+}
+
 async function syncSupabaseUserSession() {
+  extractUserFromUrlHash();
+
   try {
     if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
       const client = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
@@ -1437,29 +1475,17 @@ async function syncSupabaseUserSession() {
         const userEmail = (session.user.email || '').toLowerCase();
         const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Mudather Mohammed';
         
-        if (userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com') {
-          localStorage.setItem('user_subscription_tier', 'owner');
-          localStorage.setItem('jobflow_auth_user', JSON.stringify({
-            email: userEmail,
-            full_name: userName,
-            role: 'owner',
-            is_admin: true,
-            subscription_tier: 'executive',
-            provider: 'google'
-          }));
-          window.updateTierBadges('owner');
-        } else {
-          localStorage.setItem('user_subscription_tier', 'starter');
-          localStorage.setItem('jobflow_auth_user', JSON.stringify({
-            email: userEmail,
-            full_name: userName,
-            role: 'user',
-            is_admin: false,
-            subscription_tier: 'starter',
-            provider: 'google'
-          }));
-          window.updateTierBadges('starter');
-        }
+        const isOwner = userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com';
+        localStorage.setItem('user_subscription_tier', isOwner ? 'owner' : 'starter');
+        localStorage.setItem('jobflow_auth_user', JSON.stringify({
+          email: userEmail,
+          full_name: userName,
+          role: isOwner ? 'owner' : 'user',
+          is_admin: isOwner,
+          subscription_tier: isOwner ? 'executive' : 'starter',
+          provider: 'google'
+        }));
+        window.updateTierBadges(isOwner ? 'owner' : 'starter');
         return true;
       }
 
@@ -1468,10 +1494,9 @@ async function syncSupabaseUserSession() {
         if (newSession && newSession.user) {
           const userEmail = (newSession.user.email || '').toLowerCase();
           const userName = newSession.user.user_metadata?.full_name || newSession.user.user_metadata?.name || 'Mudather Mohammed';
-          if (userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com') {
-            localStorage.setItem('user_subscription_tier', 'owner');
-            window.updateTierBadges('owner');
-          }
+          const isOwner = userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com';
+          localStorage.setItem('user_subscription_tier', isOwner ? 'owner' : 'starter');
+          window.updateTierBadges(isOwner ? 'owner' : 'starter');
         }
       });
     }

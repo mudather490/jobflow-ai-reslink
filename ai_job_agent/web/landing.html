@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/landing.css">
+  <!-- Google Identity Services (GIS) for mobile/desktop account chooser -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -33,7 +35,7 @@
         <a href="#faq">FAQ</a>
       </nav>
       <div class="nav-actions">
-        <a href="/app" class="btn btn-primary" onclick="handleSocialAuth('google'); return false;" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; padding: 10px 18px; border-radius: 8px;">
+        <a id="google-signin-btn-navbar" href="/app" class="btn btn-primary" onclick="handleSocialAuth('google'); return false;" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; padding: 10px 18px; border-radius: 8px;">
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -62,7 +64,7 @@
       <!-- Center Hero Direct Sign-In CTA (Google Account) -->
       <div class="hero-cta-group" style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 24px;">
         <!-- Primary Google Sign-In Button in Middle of Hero -->
-        <a href="/app" class="btn btn-large btn-hero-google" onclick="handleSocialAuth('google'); return false;" style="display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 16px 32px; font-size: 16px; font-weight: 800; background: #FFFFFF; color: #1E293B; border-radius: 12px; box-shadow: 0 6px 24px rgba(66, 133, 244, 0.4); text-decoration: none; border: 1px solid #E2E8F0; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+        <a id="google-signin-btn-hero" href="/app" class="btn btn-large btn-hero-google" onclick="handleSocialAuth('google'); return false;" style="display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 16px 32px; font-size: 16px; font-weight: 800; background: #FFFFFF; color: #1E293B; border-radius: 12px; box-shadow: 0 6px 24px rgba(66, 133, 244, 0.4); text-decoration: none; border: 1px solid #E2E8F0; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
           <svg viewBox="0 0 24 24" width="24" height="24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>

@@ -67,6 +67,7 @@ async def security_headers_middleware(request: Request, call_next):
         "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob: data:; "
         "img-src 'self' https: data: blob:; "
         "media-src 'self' https: blob: data:; "
+        "frame-src 'self' https://accounts.google.com https://*.google.com; "
         "connect-src 'self' https://bijwvvnghhbgudyrecpx.supabase.co https://*.supabase.co https://accounts.google.com https://*.googleapis.com https://api.gumroad.com https:; "
         "frame-ancestors 'self';"
     )
