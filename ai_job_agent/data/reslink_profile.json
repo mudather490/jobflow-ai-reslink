@@ -7,7 +7,7 @@
   "video_url": "/videos/test_pitch.webm",
   "video_duration": 60.0,
   "theme": "cyber_neon",
-  "selected_cv_template": "minimal",
+  "selected_cv_template": "tech",
   "target_job_title": "Junior AI Engineer / Machine Learning Engineer",
   "target_company": "OpenAI / Tech Labs",
   "senior_contact": "Sarah Jenkins (Head of AI)",
@@ -31,5 +31,5 @@
     "enable_cv_download": true
   },
   "is_public": true,
-  "updated_at": "2026-08-16T03:09:00.472139"
+  "updated_at": "2026-08-16T03:29:19.758514"
 }

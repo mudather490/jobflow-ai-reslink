@@ -1,11 +1,46 @@
 {
-  "total_views": 35,
-  "unique_visitors": 35,
-  "video_plays": 19,
+  "total_views": 37,
+  "unique_visitors": 37,
+  "video_plays": 21,
   "cv_downloads": 17,
   "calendly_clicks": 16,
-  "average_watch_seconds": 1846.5,
+  "average_watch_seconds": 935.5,
   "recent_events": [
+    {
+      "event": "video_play",
+      "timestamp": "2026-08-16 03:24:05",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-16 03:24:00",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_leave",
+      "timestamp": "2026-08-16 03:22:46",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "video_play",
+      "timestamp": "2026-08-16 03:22:24",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-16 03:22:22",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "page_view",
       "timestamp": "2026-08-16 03:09:01",
@@ -317,41 +352,6 @@
     {
       "event": "page_view",
       "timestamp": "2026-08-15 04:07:43",
-      "referrer": "linkedin.com",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-15 04:07:22",
-      "referrer": "https://linkedin.com/in/alex",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "calendly_click",
-      "timestamp": "2026-08-15 04:07:22",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "cv_download",
-      "timestamp": "2026-08-15 04:07:22",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
-      "timestamp": "2026-08-15 04:07:22",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-15 04:07:22",
       "referrer": "linkedin.com",
       "device": "desktop",
       "city": "Global Recruiter View"
