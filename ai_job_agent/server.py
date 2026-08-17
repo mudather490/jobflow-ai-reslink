@@ -633,6 +633,7 @@ async def get_templates():
     }
 
 
+@app.get("/api/v1/resume/download/pdf")
 @app.get("/api/v1/resume/download-pdf")
 async def download_pdf(template_id: Optional[str] = None):
     global active_pdf_path, active_profile, active_job, active_match, active_resume_filename, active_template
@@ -666,6 +667,7 @@ async def download_pdf(template_id: Optional[str] = None):
     )
 
 
+@app.get("/api/v1/resume/download/docx")
 @app.get("/api/v1/resume/download-docx")
 async def download_docx(template_id: Optional[str] = None):
     global active_docx_path, active_profile, active_job, active_match, active_resume_filename, active_template
@@ -1182,7 +1184,10 @@ async def gumroad_webhook(request: Request):
 async def get_reslink_profile_endpoint():
     global active_profile
     profile = ResLinkManager.load_profile(fallback_profile=active_profile)
-    return profile.model_dump()
+    res_data = profile.model_dump()
+    if active_profile:
+        res_data["resume_profile"] = active_profile.model_dump()
+    return res_data
 
 
 @app.post("/api/v1/reslink")

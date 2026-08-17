@@ -687,8 +687,8 @@
             </select>
           </div>
           <div class="input-group">
-            <label class="input-label" style="color: #38BDF8;">📅 Interview Booking URL (Calendly / Cal.com)</label>
-            <input type="text" id="studio-calendly-input" class="input-field" placeholder="https://calendly.com/yourname" value="https://calendly.com" onchange="saveStudioSettings()">
+            <label class="input-label" style="color: #38BDF8;">💼 LinkedIn Profile URL</label>
+            <input type="text" id="studio-linkedin-input" class="input-field" placeholder="https://linkedin.com/in/yourname" value="https://linkedin.com" onchange="saveStudioSettings()">
           </div>
         </div>
 
@@ -697,7 +697,7 @@
             🔍 Recruiter Public Page Preview:
           </div>
           <div style="font-size: 12.5px; color: var(--text-muted);">
-            Recruiters on <code style="color: var(--accent-cyan);" id="preview-slug-text">/p/alex-rivera</code> will see your video pitch, your interactive career timeline, a <strong>"📅 Schedule Interview"</strong> button, and an instant <strong>"📥 Download Resume (PDF)"</strong> button in your selected template.
+            Recruiters on <code style="color: var(--accent-cyan);" id="preview-slug-text">/p/alex-rivera</code> will see your identity header with <strong>[▶ Play the Video]</strong>, a full-screen interactive ATS resume canvas matching your active template, one-click <strong>[📥 Download CV (PDF)]</strong>, and direct <strong>[💼 Connect on LinkedIn]</strong>.
           </div>
         </div>
 
@@ -1021,9 +1021,9 @@
 
     async function saveStudioSettings() {
       if (!currentResLinkProfile) return;
-      const cal = document.getElementById('studio-calendly-input').value.trim();
+      const li = document.getElementById('studio-linkedin-input').value.trim();
       if (!currentResLinkProfile.cta_settings) currentResLinkProfile.cta_settings = {};
-      currentResLinkProfile.cta_settings.calendly_url = cal;
+      currentResLinkProfile.cta_settings.linkedin_url = li;
       await saveStudioProfileToServer();
       showToast("✓ Settings updated successfully!");
     }
@@ -1082,8 +1082,8 @@
           if (tmplSelect) tmplSelect.value = activeTmpl;
           document.getElementById('btn-studio-test-download').href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(activeTmpl)}`;
 
-          if (currentResLinkProfile.cta_settings && currentResLinkProfile.cta_settings.calendly_url) {
-            document.getElementById('studio-calendly-input').value = currentResLinkProfile.cta_settings.calendly_url;
+          if (currentResLinkProfile.cta_settings && currentResLinkProfile.cta_settings.linkedin_url) {
+            document.getElementById('studio-linkedin-input').value = currentResLinkProfile.cta_settings.linkedin_url;
           }
           if (currentResLinkProfile.linkedin_outreach_note) {
             document.getElementById('studio-outreach-note-preview').innerText = currentResLinkProfile.linkedin_outreach_note.replace('{reslink_url}', fullUrl);

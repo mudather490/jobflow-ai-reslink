@@ -1,692 +1,1722 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="glassmorphic_dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title id="page-title">Candidate Profile & Video Pitch | ResLink</title>
   
   <!-- OpenGraph & Social Preview Meta Tags -->
-  <meta property="og:title" id="og-title" content="Candidate Profile & Video Pitch">
-  <meta property="og:description" id="og-desc" content="Watch my video pitch and view my tailored resume.">
+  <meta property="og:title" id="og-title" content="Candidate Profile & Video Pitch | ResLink">
+  <meta property="og:description" id="og-desc" content="Watch my interactive video pitch and explore my full ATS resume.">
   <meta property="og:type" content="profile">
-  <meta property="og:site_name" content="ResLink Career Hub">
+  <meta property="og:site_name" content="ResLink.io Candidate Career Hub">
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Plus Jakarta Sans (Modern UI), Inter (Body), JetBrains Mono (Code/Tech), Newsreader & Times (MBB Serif) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600;1,700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&display=swap" rel="stylesheet">
 
   <style>
+    /* ═════════════════════════════════════════════════════════════════════
+       1. GLOBAL RESET & BASE THEME VARIABLES (ResLink.io Design System)
+       ═════════════════════════════════════════════════════════════════════ */
     :root {
-      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-body: 'Inter', sans-serif;
+      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
+      --font-serif: 'Newsreader', 'Times New Roman', Georgia, serif;
       
-      --bg-base: #060913;
-      --bg-surface: rgba(15, 23, 42, 0.8);
-      --bg-card: rgba(30, 41, 59, 0.6);
-      --border-color: rgba(255, 255, 255, 0.08);
-      --border-glow: rgba(56, 189, 248, 0.35);
-      --accent-primary: #38BDF8;
-      --accent-secondary: #818CF8;
+      --bg-dark-base: #060913;
+      --bg-surface: rgba(15, 23, 42, 0.88);
+      --bg-glass-card: rgba(22, 32, 54, 0.75);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow-cyan: rgba(56, 189, 248, 0.35);
+      --border-glow-indigo: rgba(99, 102, 241, 0.35);
+      
+      --accent-cyan: #38BDF8;
+      --accent-blue: #2563EB;
+      --accent-indigo: #6366F1;
       --accent-emerald: #10B981;
+      --accent-gold: #D4AF37;
+      --accent-gold-dark: #C59B27;
+      --accent-violet: #7C3AED;
+      --accent-oxford: #0F2A47;
+      --accent-navy: #1A3A5C;
+      
       --text-main: #F8FAFC;
       --text-muted: #94A3B8;
       --text-dim: #64748B;
+      
       --card-blur: blur(20px);
-      --shadow-elevation: 0 20px 45px -15px rgba(0, 0, 0, 0.6);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
+      --shadow-header: 0 10px 30px -5px rgba(0, 0, 0, 0.7);
+      --shadow-sheet: 0 25px 65px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: var(--font-body);
-      background-color: var(--bg-base);
+      background-color: var(--bg-dark-base);
+      background-image: 
+        radial-gradient(circle at 20% 15%, rgba(56, 189, 248, 0.07) 0%, transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5) 0%, transparent 100%);
+      background-attachment: fixed;
       color: var(--text-main);
       min-height: 100vh;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    .wrapper {
-      max-width: 880px;
+    /* ═════════════════════════════════════════════════════════════════════
+       2. FIXED / STICKY TOP HEADER BAR (Candidate Identity & Actions)
+       ═════════════════════════════════════════════════════════════════════ */
+    .reslink-sticky-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 74px;
+      z-index: 1000;
+      background: rgba(6, 9, 19, 0.88);
+      backdrop-filter: var(--card-blur);
+      -webkit-backdrop-filter: var(--card-blur);
+      border-bottom: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-header);
+    }
+
+    .header-inner {
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 32px 20px 80px 20px;
-    }
-
-    /* Top Brand Bar */
-    .reslink-nav {
+      height: 100%;
+      padding: 0 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
-      padding: 12px 20px;
-      background: var(--bg-surface);
-      backdrop-filter: var(--card-blur);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
+      gap: 16px;
     }
-    .brand-tag {
+
+    /* Left Side: Candidate Identity */
+    .candidate-identity {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-family: var(--font-main);
-      font-weight: 800;
-      font-size: 15px;
-      color: #FFF;
+      gap: 14px;
+      min-width: 0;
       text-decoration: none;
     }
 
-    /* Minimalist Profile Header */
-    .profile-hero {
-      background: var(--bg-surface);
-      backdrop-filter: var(--card-blur);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 24px 28px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow-elevation);
+    .avatar-badge-wrapper {
+      position: relative;
+      flex-shrink: 0;
     }
-    .hero-top {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-    .avatar-box {
-      width: 64px;
-      height: 64px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+
+    .avatar-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-main);
-      font-size: 24px;
       font-weight: 800;
-      color: #fff;
-      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.3);
-      flex-shrink: 0;
+      font-size: 17px;
+      color: #FFFFFF;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      user-select: none;
     }
-    .hero-info { flex: 1; min-width: 240px; }
+
+    .avatar-status-dot {
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 13px;
+      height: 13px;
+      background: var(--accent-emerald);
+      border: 2.5px solid #060913;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+    }
+
+    .candidate-meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
     .name-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
+      gap: 8px;
+      flex-wrap: nowrap;
     }
-    .profile-name {
+
+    .candidate-name {
       font-family: var(--font-main);
-      font-size: 24px;
+      font-size: 16.5px;
       font-weight: 800;
       color: var(--text-main);
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+
     .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.14);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .verified-pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      animation: emeraldPulse 2s infinite ease-in-out;
+    }
+
+    @keyframes emeraldPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .sub-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .target-title {
+      color: var(--accent-cyan);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .meta-dot {
+      color: var(--text-dim);
+      font-size: 10px;
+    }
+
+    .location-badge {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: var(--text-muted);
+    }
+
+    /* Right Side: Action CTA Button Group */
+    .action-cta-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 17px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-main);
+      font-size: 13.5px;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* 1. [▶ Play the Video] */
+    .cta-video {
+      background: linear-gradient(135deg, #0284C7 0%, #6366F1 100%);
+      color: #FFFFFF;
+      box-shadow: 0 4px 18px rgba(2, 132, 199, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-video::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .cta-video:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.55);
+    }
+    .cta-video:hover::after {
+      opacity: 1;
+    }
+    .cta-video .play-icon {
+      font-size: 12px;
+      margin-right: 1px;
+    }
+
+    /* 2. [📥 Download CV (PDF)] */
+    .cta-download {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #FFFFFF;
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+    }
+    .cta-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+
+    /* 3. [💼 Connect on LinkedIn] */
+    .cta-linkedin {
+      background: #0A66C2;
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(10, 102, 194, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .cta-linkedin:hover {
+      transform: translateY(-2px);
+      background: #004182;
+      box-shadow: 0 6px 20px rgba(10, 102, 194, 0.45);
+    }
+
+    /* ═════════════════════════════════════════════════════════════════════
+       3. MAIN VIEWPORT & CONTROLS TOOLBAR
+       ═════════════════════════════════════════════════════════════════════ */
+    .reslink-main-viewport {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 98px 20px 80px 20px;
+    }
+
+    /* Personalized Company Banner */
+    .company-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      border-radius: var(--radius-md);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--accent-cyan);
+      font-size: 13.5px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* Control Toolbar (ATS Template Switcher + Score Badge) */
+    .canvas-control-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: var(--card-blur);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 10px 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .template-selector-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .template-pill-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tmpl-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      font-family: var(--font-main);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tmpl-pill:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFF;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .tmpl-pill.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--accent-cyan);
+      color: #FFFFFF;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+    }
+
+    .ats-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    /* ═════════════════════════════════════════════════════════════════════
+       4. FULL-SCREEN INTERACTIVE ATS RESUME CANVAS (Pristine White Document)
+       ═════════════════════════════════════════════════════════════════════ */
+    .resume-canvas-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .ats-resume-document {
+      background: #FFFFFF;
+      color: #0F172A;
+      border-radius: 14px;
+      box-shadow: var(--shadow-sheet);
+      padding: 48px 56px;
+      min-height: 980px;
+      transition: all 0.25s ease;
+    }
+
+    @media (max-width: 768px) {
+      .ats-resume-document {
+        padding: 28px 22px;
+      }
+    }
+
+    /* Common ATS Document Elements */
+    .resume-sec {
+      margin-bottom: 20px;
+    }
+
+    .resume-sec-title {
+      font-family: var(--font-main);
+      font-size: 13.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      padding-bottom: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .resume-paragraph {
+      font-size: 13px;
+      color: #334155;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .resume-entry {
+      margin-bottom: 14px;
+    }
+
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+
+    .entry-title {
+      font-family: var(--font-main);
+      font-size: 13.5px;
+      font-weight: 700;
+    }
+
+    .entry-company {
+      font-weight: 700;
+    }
+
+    .entry-date {
+      font-size: 12px;
+      color: #64748B;
+      font-weight: 600;
+    }
+
+    .entry-subtitle {
+      font-size: 12.5px;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+
+    .entry-bullets {
+      list-style-type: disc;
+      padding-left: 18px;
+      margin-top: 4px;
+    }
+
+    .entry-bullets li {
+      font-size: 12.5px;
+      color: #334155;
+      line-height: 1.55;
+      margin-bottom: 4px;
+    }
+
+    .entry-bullets li strong {
+      color: #0F172A;
+    }
+
+    .tech-pill-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #F1F5F9;
+      color: #334155;
+      border: 1px solid #E2E8F0;
+      margin-right: 4px;
+      margin-bottom: 4px;
+    }
+
+    .repo-link-btn {
       display: inline-flex;
       align-items: center;
       gap: 4px;
       font-size: 11.5px;
       font-weight: 700;
-      padding: 2px 9px;
-      border-radius: 999px;
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--accent-emerald);
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #2563EB;
+      text-decoration: none;
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      padding: 2px 8px;
+      border-radius: 5px;
+      transition: all 0.2s;
     }
-    .profile-tagline {
-      font-size: 14.5px;
-      color: var(--accent-primary);
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .profile-location {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .repo-link-btn:hover {
+      background: #DBEAFE;
+      color: #1D4ED8;
     }
 
-    /* ═════════════════════════════════════════════════════════════
-       1. REAL VIDEO PITCH (Click Sign to Open & Watch with Real Voice)
-       ═════════════════════════════════════════════════════════════ */
-    .video-card-section {
-      background: rgba(14, 19, 38, 0.9);
-      backdrop-filter: var(--card-blur);
-      border: 1px solid var(--border-glow);
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 28px;
-      box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+    .contact-item-link {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.15s;
     }
-    .section-headline {
+    .contact-item-link:hover {
+      text-decoration: underline;
+    }
+
+    /* ─── TEMPLATE SPECIFIC STYLING ─── */
+
+    /* 1. CORPORATE ELITE (Deep Navy #1A3A5C + Antique Gold #D4AF37) */
+    .template-corporate_elite {
+      font-family: var(--font-body);
+    }
+    .template-corporate_elite .cand-header-table {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 640px) {
+      .template-corporate_elite .cand-header-table { grid-template-columns: 1fr; }
+    }
+    .template-corporate_elite .cand-name {
       font-family: var(--font-main);
-      font-size: 16px;
+      font-size: 24px;
       font-weight: 800;
-      color: #FFF;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
+      color: #1A3A5C;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+    }
+    .template-corporate_elite .cand-headline {
+      font-size: 13px;
+      font-weight: 700;
+      color: #C59B27;
+      margin-top: 4px;
+    }
+    .template-corporate_elite .cand-contacts-right {
+      text-align: right;
+      font-size: 11.5px;
+      color: #475569;
+      line-height: 1.45;
+    }
+    @media (max-width: 640px) {
+      .template-corporate_elite .cand-contacts-right { text-align: left; }
+    }
+    .template-corporate_elite .cand-divider {
+      height: 3px;
+      background: linear-gradient(90deg, #1A3A5C 0%, #D4AF37 50%, #1A3A5C 100%);
+      border-radius: 2px;
+      margin: 10px 0 16px 0;
+    }
+    .template-corporate_elite .resume-sec-title {
+      color: #1A3A5C;
+      border-bottom: 1.5px solid #D4AF37;
+    }
+    .template-corporate_elite .entry-title {
+      color: #1A3A5C;
+    }
+    .template-corporate_elite .skills-cat-title {
+      font-weight: 700;
+      color: #1A3A5C;
     }
 
-    /* Video Viewport Wrapper */
-    .video-viewport-wrapper {
-      position: relative;
-      background: #000;
-      border-radius: 16px;
+    /* 2. HARVARD MBB (Oxford Navy #0F2A47 + Classic Ivy Serif) */
+    .template-harvard_consulting {
+      font-family: var(--font-serif);
+      color: #111827;
+    }
+    .template-harvard_consulting .cand-header-centered {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .template-harvard_consulting .cand-name {
+      font-family: var(--font-serif);
+      font-size: 26px;
+      font-weight: 700;
+      color: #0F2A47;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+    .template-harvard_consulting .cand-headline {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #111827;
+      margin-top: 4px;
+    }
+    .template-harvard_consulting .cand-contacts-bar {
+      font-size: 12px;
+      color: #4B5563;
+      margin-top: 5px;
+    }
+    .template-harvard_consulting .cand-divider {
+      height: 1.5px;
+      background: #0F2A47;
+      margin: 10px 0 16px 0;
+    }
+    .template-harvard_consulting .resume-sec-title {
+      font-family: var(--font-serif);
+      color: #0F2A47;
+      border-bottom: 1.2px solid #0F2A47;
+      font-weight: 700;
+      font-size: 14.5px;
+    }
+    .template-harvard_consulting .entry-title {
+      font-family: var(--font-serif);
+      font-size: 14px;
+      color: #0F2A47;
+    }
+    .template-harvard_consulting .entry-date {
+      font-style: italic;
+      font-family: var(--font-serif);
+    }
+    .template-harvard_consulting .entry-bullets li {
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    /* 3. TECH SPECIALIST (Electric Violet #7C3AED + Cyan #0284C7) */
+    .template-tech_specialist {
+      font-family: var(--font-body);
+    }
+    .template-tech_specialist .cand-header-table {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 640px) {
+      .template-tech_specialist .cand-header-table { grid-template-columns: 1fr; }
+    }
+    .template-tech_specialist .cand-name {
+      font-family: var(--font-main);
+      font-size: 24px;
+      font-weight: 800;
+      color: #7C3AED;
+      letter-spacing: -0.5px;
+    }
+    .template-tech_specialist .cand-headline {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0284C7;
+      margin-top: 3px;
+    }
+    .template-tech_specialist .cand-contacts-right {
+      text-align: right;
+      font-size: 11.5px;
+      color: #475569;
+      line-height: 1.45;
+    }
+    @media (max-width: 640px) {
+      .template-tech_specialist .cand-contacts-right { text-align: left; }
+    }
+    .template-tech_specialist .cand-divider {
+      height: 2.5px;
+      background: linear-gradient(90deg, #7C3AED, #0284C7);
+      border-radius: 2px;
+      margin: 10px 0 16px 0;
+    }
+    .template-tech_specialist .resume-sec-title {
+      color: #7C3AED;
+      border-bottom: 1.5px solid #0284C7;
+    }
+    .template-tech_specialist .entry-title {
+      color: #7C3AED;
+    }
+    .template-tech_specialist .tech-pill-badge {
+      background: #F3E8FF;
+      color: #6B21A8;
+      border: 1px solid #E9D5FF;
+      font-weight: 700;
+    }
+
+    /* 4. MODERN EXECUTIVE (Royal Blue #2563EB) */
+    .template-modern {
+      font-family: var(--font-body);
+    }
+    .template-modern .cand-header-table {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 640px) {
+      .template-modern .cand-header-table { grid-template-columns: 1fr; }
+    }
+    .template-modern .cand-name {
+      font-family: var(--font-main);
+      font-size: 24px;
+      font-weight: 800;
+      color: #2563EB;
+      letter-spacing: -0.5px;
+    }
+    .template-modern .cand-headline {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1D4ED8;
+      margin-top: 3px;
+    }
+    .template-modern .cand-contacts-right {
+      text-align: right;
+      font-size: 11.5px;
+      color: #475569;
+      line-height: 1.45;
+    }
+    @media (max-width: 640px) {
+      .template-modern .cand-contacts-right { text-align: left; }
+    }
+    .template-modern .cand-divider {
+      height: 2px;
+      background: #2563EB;
+      margin: 10px 0 16px 0;
+    }
+    .template-modern .resume-sec-title {
+      color: #2563EB;
+      border-bottom: 1.5px solid #2563EB;
+    }
+    .template-modern .entry-title {
+      color: #1E293B;
+    }
+
+    /* ═════════════════════════════════════════════════════════════════════
+       5. FLOATING / DOCKED VIDEO PITCH PLAYER (Interactive Picture-in-Picture)
+       ═════════════════════════════════════════════════════════════════════ */
+    .floating-video-dock {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 380px;
+      z-index: 990;
+      background: rgba(10, 15, 30, 0.95);
+      backdrop-filter: var(--card-blur);
+      -webkit-backdrop-filter: var(--card-blur);
+      border: 1px solid var(--border-glow-cyan);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(56, 189, 248, 0.25);
       overflow: hidden;
-      aspect-ratio: 16 / 9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-      cursor: pointer;
-    }
-
-    /* Initial Branded Stage with Big Play Sign */
-    .video-launch-stage {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at center, #0F172A 0%, #030712 100%);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      z-index: 2;
-      transition: opacity 0.3s ease;
-    }
-    .video-launch-stage.hidden {
-      opacity: 0;
-      pointer-events: none;
+      transform: translateY(0);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .video-play-sign {
-      width: 76px;
-      height: 76px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    .floating-video-dock.dock-minimized {
+      width: 240px;
+    }
+    .floating-video-dock.dock-minimized .video-player-frame,
+    .floating-video-dock.dock-minimized .video-dock-footer {
+      display: none;
+    }
+
+    .floating-video-dock.dock-theater {
+      width: 580px;
+    }
+
+    @media (max-width: 640px) {
+      .floating-video-dock {
+        right: 12px;
+        left: 12px;
+        bottom: 12px;
+        width: auto !important;
+      }
+    }
+
+    .video-dock-header {
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .dock-title-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--font-main);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .rec-dot-pulsing {
+      color: #EF4444;
+      font-size: 14px;
+      animation: recPulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes recPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .dock-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dock-btn-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #000;
-      font-size: 28px;
-      box-shadow: 0 0 35px rgba(56, 189, 248, 0.6);
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s;
+      font-size: 11px;
+      transition: all 0.15s;
     }
-    .video-viewport-wrapper:hover .video-play-sign {
-      transform: scale(1.08);
-      box-shadow: 0 0 50px rgba(56, 189, 248, 0.8);
-    }
-    .video-launch-title {
-      font-family: var(--font-main);
-      font-size: 16px;
-      font-weight: 800;
+    .dock-btn-icon:hover {
+      background: rgba(255, 255, 255, 0.2);
       color: #FFF;
     }
-    .video-launch-hint {
-      font-size: 12px;
-      color: var(--accent-primary);
-      font-weight: 600;
+
+    .video-player-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
     }
 
-    /* Real HTML5 Video Element */
-    .video-element {
+    .dock-video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
 
-    /* ═════════════════════════════════════════════════════════════
-       2. CV / RESUME SHOWCASE & DIRECT DOWNLOAD
-       ═════════════════════════════════════════════════════════════ */
-    .cv-showcase-section {
-      background: var(--bg-surface);
-      backdrop-filter: var(--card-blur);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 26px;
-      margin-bottom: 28px;
-      box-shadow: var(--shadow-elevation);
-    }
-    .cv-preview-container {
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 24px;
-      align-items: center;
-    }
-    @media (max-width: 768px) {
-      .cv-preview-container {
-        grid-template-columns: 1fr;
-      }
+    .video-dock-footer {
+      padding: 10px 14px;
+      background: rgba(10, 15, 30, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    /* Clean Photo / Visual CV Card */
-    .cv-visual-card {
-      background: #FFFFFF;
-      color: #0F172A;
-      border-radius: 12px;
-      padding: 22px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      position: relative;
-      overflow: hidden;
-      max-height: 340px;
-    }
-    .cv-header-rule {
-      height: 3px;
-      background: linear-gradient(90deg, #1A3A5C, #D4AF37);
-      margin: 8px 0 12px 0;
-      border-radius: 2px;
-    }
-    .cv-badge-gold {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: #1A3A5C;
-      color: #D4AF37;
-      font-size: 10px;
-      font-weight: 800;
-      padding: 2px 7px;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
+    .dock-pitch-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
     }
 
-    .cv-download-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .btn-download-hero {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 15px 22px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #10B981, #059669);
-      color: #FFFFFF;
-      font-family: var(--font-main);
-      font-size: 15px;
-      font-weight: 800;
-      text-decoration: none;
-      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .btn-download-hero:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(16, 185, 129, 0.45);
-      background: linear-gradient(135deg, #059669, #047857);
-    }
-
-    /* Recruiter Action Buttons */
-    .recruiter-cta-bar {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .cta-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 18px;
-      border-radius: 12px;
-      font-family: var(--font-main);
+    .mini-badge {
+      font-size: 10.5px;
       font-weight: 700;
-      font-size: 13.5px;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
-    }
-    .cta-linkedin {
-      background: #0A66C2;
-      color: #FFFFFF;
-      border-color: #0A66C2;
-    }
-    .cta-linkedin:hover {
-      background: #004182;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 15px rgba(10, 102, 194, 0.35);
-    }
-    .cta-calendly {
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-primary);
-      border-color: rgba(56, 189, 248, 0.3);
-    }
-    .cta-calendly:hover {
-      background: rgba(56, 189, 248, 0.25);
-      transform: translateY(-1px);
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.3);
     }
 
-    /* Toast */
-    #toast-msg {
+    /* Floating Re-Open Trigger (Shown when video dock is hidden) */
+    .floating-fab-video {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: #10B981;
-      color: #fff;
+      z-index: 980;
+      display: none;
+      align-items: center;
+      gap: 8px;
       padding: 12px 20px;
-      border-radius: 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #0284C7, #6366F1);
+      color: #FFFFFF;
+      font-family: var(--font-main);
+      font-size: 13.5px;
+      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(2, 132, 199, 0.5);
+      cursor: pointer;
+      animation: fabFloat 3s infinite ease-in-out;
+      transition: transform 0.2s;
+    }
+    .floating-fab-video:hover {
+      transform: scale(1.05);
+    }
+
+    @keyframes fabFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* Toast Notification */
+    #toast-msg {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #10B981;
+      color: #FFFFFF;
+      padding: 12px 22px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-main);
       font-weight: 700;
-      font-size: 14px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      font-size: 13.5px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
       opacity: 0;
-      transform: translateY(20px);
+      pointer-events: none;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 1000;
+      z-index: 2000;
     }
     #toast-msg.show {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsive Header Tweaks */
+    @media (max-width: 900px) {
+      .reslink-sticky-header {
+        height: auto;
+        padding: 10px 0;
+      }
+      .header-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 0 16px;
+      }
+      .candidate-identity {
+        justify-content: space-between;
+      }
+      .action-cta-group {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+      .reslink-main-viewport {
+        padding-top: 138px;
+      }
+    }
+    @media (max-width: 480px) {
+      .action-cta-group .cta-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="wrapper">
-    <!-- Top Nav Brand Bar -->
-    <nav class="reslink-nav">
-      <a href="/" class="brand-tag">
-        <span style="font-size: 18px;">⚡</span>
-        <span>JobFlow <span style="color: var(--accent-primary);">ResLink</span></span>
-      </a>
-      <span style="font-size: 12px; color: var(--text-dim);">Candidate Verified Profile</span>
-    </nav>
+  <!-- ═════════════════════════════════════════════════════════════════════
+       1. FIXED / STICKY TOP HEADER BAR
+       ═════════════════════════════════════════════════════════════════════ -->
+  <header class="reslink-sticky-header">
+    <div class="header-inner">
+      <!-- Left: Candidate Identity -->
+      <div class="candidate-identity">
+        <div class="avatar-badge-wrapper">
+          <div class="avatar-badge" id="prof-avatar">MM</div>
+          <div class="avatar-status-dot" title="Active Candidate"></div>
+        </div>
+        <div class="candidate-meta">
+          <div class="name-row">
+            <h1 class="candidate-name" id="prof-name">MUDATHER MOHAMMED</h1>
+            <span class="verified-badge">
+              <span class="verified-pulse-dot"></span>
+              <span>ResLink Verified</span>
+            </span>
+          </div>
+          <div class="sub-row">
+            <span class="target-title" id="prof-tagline">Junior AI Engineer | Machine Learning Engineer</span>
+            <span class="meta-dot">•</span>
+            <span class="location-badge">
+              <span>📍</span>
+              <span id="prof-location">Worldwide Remote</span>
+            </span>
+          </div>
+        </div>
+      </div>
 
+      <!-- Right: Action CTA Button Group -->
+      <div class="action-cta-group">
+        <!-- a) [▶ Play the Video] -->
+        <button id="btn-play-video-cta" class="cta-btn cta-video" onclick="toggleVideoPitch(true)" title="Watch interactive candidate video pitch">
+          <span class="play-icon">▶</span>
+          <span>Play the Video</span>
+        </button>
+
+        <!-- b) [📥 Download CV (PDF)] -->
+        <a id="btn-download-pdf-cta" href="/api/v1/resume/download-pdf" class="cta-btn cta-download" target="_blank" onclick="trackCVDownload()" title="Download official verified ATS resume PDF">
+          <span>📥</span>
+          <span>Download CV (PDF)</span>
+        </a>
+
+        <!-- c) [💼 Connect on LinkedIn] -->
+        <a id="btn-linkedin-cta" href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="cta-btn cta-linkedin" title="Connect with candidate on LinkedIn">
+          <span>💼</span>
+          <span>Connect on LinkedIn</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═════════════════════════════════════════════════════════════════════
+       2. MAIN VIEWPORT & ATS RESUME CANVAS
+       ═════════════════════════════════════════════════════════════════════ -->
+  <main class="reslink-main-viewport">
     <!-- Company-Tailored Banner (Shown if ?company=XYZ is passed) -->
-    <div id="company-tailored-banner" style="display: none; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; margin-bottom: 18px; border-radius: 12px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #38BDF8; font-size: 13.5px; font-weight: 700; text-align: center;">
-      <span>🏢</span> <span id="company-banner-text">Tailored Video Pitch & Verified Resume for Amazon Hiring Team</span>
+    <div id="company-tailored-banner" class="company-banner" style="display: none;">
+      <span>🏢</span>
+      <span id="company-banner-text">Personalized Pitch & Tailored Resume for Hiring Team</span>
     </div>
 
-    <!-- Minimalist Candidate Profile Header -->
-    <header class="profile-hero">
-      <div class="hero-top">
-        <div class="avatar-box" id="prof-avatar">MM</div>
-        <div class="hero-info">
-          <div class="name-row">
-            <h1 class="profile-name" id="prof-name">MUDATHER MOHAMMED</h1>
-            <span class="verified-badge">✓ Verified Candidate</span>
-          </div>
-          <div class="profile-tagline" id="prof-tagline">Junior AI Engineer | Machine Learning Engineer</div>
-          <div class="profile-location">
-            <span>📍</span>
-            <span id="prof-location">Worldwide Remote</span>
-          </div>
+    <!-- ATS Format Control Toolbar (Template Switcher) -->
+    <div class="canvas-control-toolbar">
+      <div class="template-selector-container">
+        <span class="toolbar-label">ATS Layout:</span>
+        <div class="template-pill-group">
+          <button type="button" class="tmpl-pill active" data-template="corporate_elite" onclick="switchResumeTemplate('corporate_elite')">
+            <span>👑 Corporate Elite</span>
+          </button>
+          <button type="button" class="tmpl-pill" data-template="harvard_consulting" onclick="switchResumeTemplate('harvard_consulting')">
+            <span>🏛️ Harvard MBB</span>
+          </button>
+          <button type="button" class="tmpl-pill" data-template="tech_specialist" onclick="switchResumeTemplate('tech_specialist')">
+            <span>⚡ Tech Specialist</span>
+          </button>
+          <button type="button" class="tmpl-pill" data-template="modern" onclick="switchResumeTemplate('modern')">
+            <span>⭐ Modern Executive</span>
+          </button>
         </div>
       </div>
-    </header>
-
-    <!-- ═════════════════════════════════════════════════════════════
-         1. VIDEO PITCH (Click Sign to Open Video & Play with Voice)
-         ═════════════════════════════════════════════════════════════ -->
-    <section class="video-card-section">
-      <div class="section-headline">
-        <span>🎥</span>
-        <span>Candidate Video Pitch</span>
+      <div class="ats-status-badge">
+        <span>✓</span> <span>ATS Score: 98% Screen-Matched</span>
       </div>
+    </div>
 
-      <div class="video-viewport-wrapper" onclick="launchVideoPlayback()">
-        <!-- Launch Stage Overlay with Video Play Sign -->
-        <div class="video-launch-stage" id="video-launch-stage">
-          <div class="video-play-sign">
-            <span style="margin-left: 4px;">▶</span>
-          </div>
-          <div class="video-launch-title">Watch 60-Second Video Pitch</div>
-          <div class="video-launch-hint">Click to play video with authentic voice</div>
-        </div>
+    <!-- Center ATS Resume Paper Document -->
+    <div class="resume-canvas-wrapper">
+      <article class="ats-resume-document template-corporate_elite" id="ats-resume-sheet">
+        <!-- Rendered dynamically by renderATSResumeCanvas() with 100% security -->
+      </article>
+    </div>
+  </main>
 
-        <!-- Real HTML5 Video Player -->
-        <video id="reslink-video-player" class="video-element" controls playsinline preload="auto">
-          <source id="video-source-element" src="/videos/test_pitch.webm" type="video/webm">
-          Your browser does not support HTML5 video playback.
-        </video>
+  <!-- ═════════════════════════════════════════════════════════════════════
+       3. FLOATING / INTERACTIVE VIDEO PITCH PLAYER
+       ═════════════════════════════════════════════════════════════════════ -->
+  <div id="floating-video-dock" class="floating-video-dock" style="display: none;">
+    <div class="video-dock-header">
+      <div class="dock-title-group">
+        <span class="rec-dot-pulsing">●</span>
+        <span>Candidate Video Pitch <span style="font-size: 11px; opacity: 0.75; font-weight: 500;">(60s)</span></span>
       </div>
-    </section>
-
-    <!-- ═════════════════════════════════════════════════════════════
-         2. CV / RESUME SHOWCASE PHOTO & ONE-CLICK PDF DOWNLOAD
-         ═════════════════════════════════════════════════════════════ -->
-    <section class="cv-showcase-section">
-      <div class="section-headline" style="margin-bottom: 18px;">
-        <span>📄</span>
-        <span>Tailored Resume (<span id="cv-template-name" style="color: var(--accent-primary);">Corporate Elite</span>)</span>
+      <div class="dock-controls">
+        <button class="dock-btn-icon" title="Toggle Size" onclick="toggleVideoDockSize()">⛶</button>
+        <button class="dock-btn-icon" title="Minimize to icon" onclick="toggleVideoPitch(false)">✕</button>
       </div>
+    </div>
+    
+    <div class="video-player-frame">
+      <video id="reslink-video-element" class="dock-video" playsinline controls preload="metadata">
+        <source id="video-source-element" src="/videos/test_pitch.webm" type="video/webm">
+        Your browser does not support HTML5 video.
+      </video>
+    </div>
 
-      <div class="cv-preview-container">
-        <!-- Visual CV Photo / Snapshot Preview -->
-        <div class="cv-visual-card">
-          <div class="cv-badge-gold" id="cv-badge-tag">CORPORATE ELITE</div>
-          <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 800; color: #1A3A5C;" id="cv-preview-name">
-            MUDATHER MOHAMMED
-          </div>
-          <div style="font-size: 11px; color: #64748B; margin-top: 2px;" id="cv-preview-contact">
-            Junior AI Engineer • Worldwide Remote • Python, ML, FastAPI, Supabase
-          </div>
-          <div class="cv-header-rule"></div>
-          
-          <div style="font-size: 11px; font-weight: 700; color: #1A3A5C; text-transform: uppercase; margin-bottom: 4px;">
-            Executive Summary
-          </div>
-          <p style="font-size: 11px; color: #334155; line-height: 1.5; margin-bottom: 8px;">
-            Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI applications using Python, Scikit-learn, TensorFlow, and LLM APIs.
-          </p>
-
-          <div style="font-size: 11px; font-weight: 700; color: #1A3A5C; text-transform: uppercase; margin-bottom: 4px;">
-            Core Competencies & Technical Skills
-          </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 4px; font-size: 10px; color: #1E293B;">
-            <span style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">Python</span>
-            <span style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">Machine Learning</span>
-            <span style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">LLM APIs</span>
-            <span style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">FastAPI</span>
-            <span style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">Supabase</span>
-          </div>
-        </div>
-
-        <!-- Download Action & LinkedIn Connection -->
-        <div class="cv-download-panel">
-          <div>
-            <h3 style="font-size: 16px; font-weight: 800; color: #FFF; margin-bottom: 4px;">Download Full PDF Resume</h3>
-            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
-              Formatted in high-resolution ATS-optimized PDF layout including all technical projects and certifications.
-            </p>
-          </div>
-
-          <a id="btn-download-cv-hero" href="/api/v1/resume/download/pdf?template_id=corporate_elite" class="btn-download-hero" target="_blank" onclick="trackCVDownload()">
-            <span>📥</span>
-            <span>Download PDF Resume</span>
-          </a>
-
-          <!-- Recruiter Contact Actions (LinkedIn & Calendly) -->
-          <div class="recruiter-cta-bar">
-            <a id="cta-linkedin-btn" href="https://linkedin.com" target="_blank" class="cta-btn cta-linkedin">
-              <span>💼</span> <span>Connect on LinkedIn</span>
-            </a>
-            <a id="cta-calendly-btn" href="https://calendly.com" target="_blank" class="cta-btn cta-calendly" onclick="trackBookingClick()">
-              <span>📅</span> <span>Schedule Quick Chat</span>
-            </a>
-          </div>
-        </div>
+    <div class="video-dock-footer">
+      <div class="dock-pitch-badges" id="dock-pitch-badges">
+        <span class="mini-badge">⚡ Python & AI Specialist</span>
+        <span class="mini-badge">🚀 Production ML & LLM Pipelines</span>
+        <span class="mini-badge">🌍 Worldwide Remote Ready</span>
       </div>
-    </section>
+    </div>
   </div>
 
+  <!-- Re-open Floating Action Button (Shown when video is closed) -->
+  <button id="floating-video-trigger-fab" class="floating-fab-video" onclick="toggleVideoPitch(true)" title="Watch 60s Candidate Pitch">
+    <span>▶</span>
+    <span>Watch Pitch</span>
+  </button>
+
+  <!-- Toast Notification -->
   <div id="toast-msg">✓ ResLink Action Completed</div>
 
+  <!-- ═════════════════════════════════════════════════════════════════════
+       4. CLIENT-SIDE SCRIPT (Data Sync, Video Player, Security & Telemetry)
+       ═════════════════════════════════════════════════════════════════════ -->
   <script>
+    // Safe State Session
     let reslinkProfile = null;
+    let resumeProfile = null;
+    let currentTemplate = 'corporate_elite';
+    let isVideoPlayedTelemetrySent = false;
+
+    // ── 1. Safe String & HTML Sanitization ──
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function sanitizeUrl(url) {
+      if (!url) return '#';
+      const clean = String(url).trim();
+      if (clean.startsWith('https://') || clean.startsWith('http://') || clean.startsWith('mailto:')) {
+        return clean;
+      }
+      return 'https://' + clean;
+    }
 
     function showToast(msg) {
       const toast = document.getElementById('toast-msg');
       if (toast) {
-        toast.innerText = msg;
+        toast.textContent = msg;
         toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
+        setTimeout(() => toast.classList.remove('show'), 3200);
       }
     }
 
-    function launchVideoPlayback() {
-      const stage = document.getElementById('video-launch-stage');
-      const videoElem = document.getElementById('reslink-video-player');
-      if (stage) stage.classList.add('hidden');
-      if (videoElem) {
-        videoElem.play().catch(() => {});
-      }
-    }
+    // ── 2. Video Pitch Player Controls ──
+    function toggleVideoPitch(open) {
+      const dock = document.getElementById('floating-video-dock');
+      const fab = document.getElementById('floating-video-trigger-fab');
+      const video = document.getElementById('reslink-video-element');
 
-    async function loadResLinkProfile() {
-      try {
-        const res = await fetch('/api/v1/reslink');
-        if (res.ok) {
-          reslinkProfile = await res.json();
-          renderProfileData(reslinkProfile);
+      if (open) {
+        if (dock) dock.style.display = 'flex';
+        if (fab) fab.style.display = 'none';
+        if (video) {
+          video.play().catch(() => {
+            // Autoplay with audio might require recruiter interaction
+          });
         }
-      } catch (err) {
-        console.warn("Failed to load profile:", err);
+      } else {
+        if (dock) dock.style.display = 'none';
+        if (fab) fab.style.display = 'inline-flex';
+        if (video) {
+          video.pause();
+        }
       }
     }
 
-    function renderProfileData(p) {
-      if (!p) return;
-
-      // Update Header
-      if (p.full_name) {
-        document.getElementById('prof-name').innerText = p.full_name;
-        document.getElementById('cv-preview-name').innerText = p.full_name;
-        const initials = p.full_name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
-        document.getElementById('prof-avatar').innerText = initials || 'MM';
+    function toggleVideoDockSize() {
+      const dock = document.getElementById('floating-video-dock');
+      if (dock) {
+        if (dock.classList.contains('dock-theater')) {
+          dock.classList.remove('dock-theater');
+        } else {
+          dock.classList.add('dock-theater');
+        }
       }
-      if (p.tagline) document.getElementById('prof-tagline').innerText = p.tagline;
-      if (p.location) document.getElementById('prof-location').innerText = p.location;
+    }
 
-      // Update Video Pitch Source (Real Authentic Audio/Video File)
-      const videoElem = document.getElementById('reslink-video-player');
-      const videoSource = document.getElementById('video-source-element');
-      if (p.video_url && videoElem && videoSource) {
-        videoSource.src = p.video_url;
-        videoElem.load();
-      }
+    // ── 3. Template Switcher ──
+    function switchResumeTemplate(tmplId) {
+      const valid = ['corporate_elite', 'harvard_consulting', 'tech_specialist', 'modern'];
+      if (!valid.includes(tmplId)) tmplId = 'corporate_elite';
+      currentTemplate = tmplId;
 
-      // Update Active Template & Download Button
-      const templateId = p.selected_cv_template || 'corporate_elite';
-      const templateTitles = {
-        'modern': 'Modern Executive',
-        'harvard_consulting': 'Harvard Consulting (MBB)',
-        'corporate_elite': 'Corporate Elite',
-        'tech_specialist': 'Tech Specialist & AI Innovator'
-      };
+      // Update Toolbar Pills
+      document.querySelectorAll('.tmpl-pill').forEach(btn => {
+        if (btn.getAttribute('data-template') === tmplId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
 
-      const tmplName = templateTitles[templateId] || 'Corporate Elite';
-      document.getElementById('cv-template-name').innerText = tmplName;
-      document.getElementById('cv-badge-tag').innerText = tmplName.toUpperCase();
-      
-      const downloadBtn = document.getElementById('btn-download-cv-hero');
+      // Update Download PDF CTA button URL
+      const downloadBtn = document.getElementById('btn-download-pdf-cta');
       if (downloadBtn) {
-        downloadBtn.href = `/api/v1/resume/download/pdf?template_id=${templateId}`;
+        downloadBtn.href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(tmplId)}`;
       }
 
-      // Update LinkedIn & Calendly Links
-      if (p.cta_settings) {
-        if (p.cta_settings.linkedin_url) {
-          document.getElementById('cta-linkedin-btn').href = p.cta_settings.linkedin_url;
-        }
-        if (p.cta_settings.calendly_url) {
-          document.getElementById('cta-calendly-btn').href = p.cta_settings.calendly_url;
-        }
-      // Check Company Query Parameter
-      const urlParams = new URLSearchParams(window.location.search);
-      const companyParam = urlParams.get('company') || urlParams.get('c');
-      if (companyParam) {
-        const companyBanner = document.getElementById('company-tailored-banner');
-        const companyText = document.getElementById('company-banner-text');
-        if (companyBanner && companyText) {
-          companyBanner.style.display = 'flex';
-          companyText.innerHTML = `Personalized Pitch & Verified Portfolio for <strong>${companyParam}</strong> Engineering & Talent Team`;
-        }
-        document.title = `${p.full_name || 'Mudather Mohammed'} • Tailored for ${companyParam}`;
-      }
+      // Re-render ATS canvas
+      renderATSResumeCanvas();
     }
 
-    async function trackCVDownload() {
-      showToast("📥 Downloading verified PDF resume...");
+    // ── 4. Telemetry Dispatcher ──
+    async function sendTelemetry(eventType, metadata = {}) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct';
+        const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct Link';
         await fetch('/api/v1/reslink/track-view', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            slug: reslinkProfile?.slug || 'mudather-mohammed',
-            event_type: 'cv_download',
-            metadata: { 
-              template: reslinkProfile?.selected_cv_template || 'corporate_elite',
-              company: companyParam
-            }
-          })
-        });
-      } catch (e) {}
-    }
-
-    async function trackBookingClick() {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct';
-        await fetch('/api/v1/reslink/track-view', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            slug: reslinkProfile?.slug || 'mudather-mohammed',
-            event_type: 'calendly_click',
-            metadata: { company: companyParam }
-          })
-        });
-      } catch (e) {}
-    }
-
-    // Video play event tracking
-    document.getElementById('reslink-video-player')?.addEventListener('play', () => {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct';
-        fetch('/api/v1/reslink/track-view', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            slug: reslinkProfile?.slug || 'mudather-mohammed',
-            event_type: 'video_play',
-            metadata: { company: companyParam }
-          })
-        });
-      } catch (e) {}
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadResLinkProfile();
-      // Track page view telemetry
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct';
-        fetch('/api/v1/reslink/track-view', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            slug: 'mudather-mohammed',
-            event_type: 'page_view',
-            metadata: { 
-              user_agent: navigator.userAgent,
+            slug: reslinkProfile?.slug || 'candidate',
+            event_type: eventType,
+            metadata: {
+              ...metadata,
               company: companyParam,
+              template: currentTemplate,
               referrer: document.referrer || 'Direct Link'
             }
           })
         });
-      } catch (e) {}
+      } catch (e) {
+        // Silently handle telemetry network failures
+      }
+    }
+
+    function trackCVDownload() {
+      showToast("📥 Downloading verified ATS PDF resume...");
+      sendTelemetry('cv_download', { template_id: currentTemplate });
+    }
+
+    // ── 5. Data Fetching & Sync ──
+    async function loadCandidateProfileData() {
+      try {
+        const [reslinkRes, resumeRes] = await Promise.all([
+          fetch('/api/v1/reslink').catch(() => null),
+          fetch('/api/v1/resume/current').catch(() => null)
+        ]);
+
+        if (reslinkRes && reslinkRes.ok) {
+          reslinkProfile = await reslinkRes.json();
+          if (reslinkProfile.resume_profile) {
+            resumeProfile = reslinkProfile.resume_profile;
+          }
+        }
+
+        if (!resumeProfile && resumeRes && resumeRes.ok) {
+          const resData = await resumeRes.json();
+          resumeProfile = resData.profile;
+        }
+
+        applyProfileToUI();
+      } catch (err) {
+        console.warn("ResLink profile load fallback active:", err);
+        applyProfileToUI();
+      }
+    }
+
+    function applyProfileToUI() {
+      // 1. Resolve Candidate Details
+      const p = reslinkProfile || {};
+      const r = resumeProfile || {};
+
+      const fullName = p.full_name || r.full_name || "MUDATHER MOHAMMED";
+      const tagline = p.tagline || r.headline || "Junior AI Engineer | Machine Learning Engineer";
+      const location = p.location || r.contact?.location || "Worldwide Remote";
+      const videoUrl = p.video_url || "/videos/video_pitch.webm";
+      const linkedinUrl = p.cta_settings?.linkedin_url || r.contact?.linkedin || "https://linkedin.com";
+
+      // 2. Set Header Elements (Safe text insertion)
+      document.getElementById('prof-name').textContent = fullName.toUpperCase();
+      document.getElementById('prof-tagline').textContent = tagline;
+      document.getElementById('prof-location').textContent = location;
+
+      // Initials for avatar badge
+      const initials = fullName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'MM';
+      document.getElementById('prof-avatar').textContent = initials;
+
+      // 3. Set Video Source
+      const videoElem = document.getElementById('reslink-video-element');
+      const videoSource = document.getElementById('video-source-element');
+      if (videoElem && videoSource && videoUrl) {
+        videoSource.src = videoUrl;
+        videoElem.load();
+      }
+
+      // 4. Set Action CTA Button Links
+      const linkedinBtn = document.getElementById('btn-linkedin-cta');
+      if (linkedinBtn) {
+        linkedinBtn.href = sanitizeUrl(linkedinUrl);
+      }
+
+      // 5. Check Template Selection
+      let rawTmpl = p.selected_cv_template || 'corporate_elite';
+      if (rawTmpl === 'minimal' || rawTmpl === 'corporate') rawTmpl = 'corporate_elite';
+      if (rawTmpl === 'harvard' || rawTmpl === 'mbb') rawTmpl = 'harvard_consulting';
+      if (rawTmpl === 'tech' || rawTmpl === 'tech_innovator') rawTmpl = 'tech_specialist';
+      switchResumeTemplate(rawTmpl);
+
+      // 6. Check Company Personalization Query Parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const companyParam = urlParams.get('company') || urlParams.get('c');
+      if (companyParam) {
+        const safeComp = escapeHtml(companyParam);
+        const banner = document.getElementById('company-tailored-banner');
+        const bannerText = document.getElementById('company-banner-text');
+        if (banner && bannerText) {
+          banner.style.display = 'flex';
+          bannerText.innerHTML = `Tailored Video Pitch & Verified Resume for <strong>${safeComp}</strong> Hiring Team`;
+        }
+        document.title = `${fullName} • Tailored for ${companyParam} | ResLink`;
+      } else {
+        document.title = `${fullName} • Video Pitch & Verified Portfolio | ResLink`;
+      }
+
+      // 7. Update Dock Pitch Badges if available
+      if (p.competency_badges && Array.isArray(p.competency_badges) && p.competency_badges.length > 0) {
+        const badgeContainer = document.getElementById('dock-pitch-badges');
+        if (badgeContainer) {
+          badgeContainer.innerHTML = '';
+          p.competency_badges.slice(0, 3).forEach(badgeText => {
+            const span = document.createElement('span');
+            span.className = 'mini-badge';
+            span.textContent = badgeText;
+            badgeContainer.appendChild(span);
+          });
+        }
+      }
+    }
+
+    // ── 6. High-Fidelity ATS Resume Canvas Renderer ──
+    function renderATSResumeCanvas() {
+      const sheet = document.getElementById('ats-resume-sheet');
+      if (!sheet) return;
+
+      // Update Template Class
+      sheet.className = `ats-resume-document template-${currentTemplate}`;
+
+      const p = reslinkProfile || {};
+      const r = resumeProfile || {};
+
+      // Fallback Data Preparation
+      const fullName = (r.full_name || p.full_name || "MUDATHER MOHAMMED").toUpperCase();
+      const headline = r.headline || p.tagline || "Junior AI Engineer | Machine Learning Engineer";
+      
+      const email = r.contact?.email || p.cta_settings?.direct_email || "mudather@example.com";
+      const phone = r.contact?.phone || p.cta_settings?.whatsapp_number || "+211 920 123 456";
+      const location = r.contact?.location || p.location || "Worldwide Remote";
+      const linkedin = r.contact?.linkedin || p.cta_settings?.linkedin_url || "https://linkedin.com";
+      const github = r.contact?.github || p.cta_settings?.github_url || "https://github.com";
+      const portfolio = r.contact?.portfolio || p.cta_settings?.portfolio_url || "https://portfolio.dev";
+
+      const summary = r.summary || p.summary_bio || 
+        "Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel. Built ML models, neural networks from scratch, AI lead-discovery systems, and end-to-end software applications. Currently advancing in PyTorch and AI Engineering through professional certifications and practical projects. Seeking a remote Junior AI Engineer / Machine Learning Engineer opportunity.";
+
+      // Grouped Skills
+      let catSkills = r.categorized_skills;
+      if (!catSkills || Object.keys(catSkills).length === 0) {
+        catSkills = {
+          "AI & Machine Learning": ["Python", "Machine Learning", "Deep Learning", "TensorFlow", "Scikit-learn", "LLM APIs", "AI Agents", "Prompt Engineering", "NumPy", "Pandas"],
+          "Backend & APIs": ["FastAPI", "Flask", "RESTful APIs", "Python OOP", "Asynchronous Programming"],
+          "Databases & Cloud": ["Supabase", "PostgreSQL", "Docker", "Git", "GitHub", "Vercel", "Cloud Deployment"],
+          "Software & Methodologies": ["Data Preprocessing", "Feature Engineering", "Agile Development", "System Design"]
+        };
+      }
+
+      // Practical Projects
+      let projects = r.projects;
+      if (!projects || projects.length === 0) {
+        projects = [
+          {
+            name: "AI-Powered Lead Discovery & Qualification Agent",
+            subtitle: "Autonomous AI System & Backend Pipeline",
+            technologies: ["Python", "FastAPI", "LLM APIs", "AI Agents", "Supabase", "Vercel"],
+            repository: "https://github.com/mudather490/ai-lead-discovery",
+            bullets: [
+              "Architected an autonomous multi-agent lead discovery pipeline integrating web scraping, LLM-driven criteria matching, and automated email outreach drafts.",
+              "Implemented asynchronous batch processing with FastAPI and Supabase, reducing end-to-end data parsing time by 45%.",
+              "Built real-time analytics dashboard tracking outreach conversion, qualification scores, and candidate pipeline metrics."
+            ]
+          },
+          {
+            name: "End-to-End Machine Learning Prediction & Classifier Pipeline",
+            subtitle: "Supervised ML & Neural Network Implementation",
+            technologies: ["Python", "Scikit-learn", "TensorFlow", "NumPy", "Pandas", "Docker"],
+            repository: "https://github.com/mudather490/ml-classifier-pipeline",
+            bullets: [
+              "Designed and trained supervised learning classification models with feature engineering, cross-validation, and hyperparameter tuning.",
+              "Achieved 94.2% test accuracy on complex tabular datasets with automated data validation and missing value imputation.",
+              "Containerized model inference service using Docker and created automated unit tests verifying inference consistency."
+            ]
+          },
+          {
+            name: "JobFlow.ai — Autonomous Career & ResLink Platform",
+            subtitle: "Full-Stack AI Application & Document Generator",
+            technologies: ["Python", "FastAPI", "ReportLab", "Supabase", "JavaScript", "CSS3"],
+            repository: "https://github.com/mudather490/jobflow-ai-reslink",
+            bullets: [
+              "Built universal resume parser and multi-template ATS document generation engine creating pixel-matched PDF and DOCX outputs.",
+              "Developed interactive ResLink video pitch player and real-time recruiter telemetry analytics system."
+            ]
+          }
+        ];
+      }
+
+      // Work Experience
+      let experience = r.experience;
+      if (!experience || experience.length === 0) {
+        experience = [
+          {
+            company: "Independent / Freelance",
+            role: "Freelance Software & AI Developer",
+            location: "Worldwide Remote",
+            duration: "2023 — Present",
+            subtitle: "AI & Software Engineering",
+            summary: "Developed practical software and AI applications combining machine learning, AI APIs, backend development, databases, and deployment.",
+            bullets: [
+              "Engineered customized AI automations and NLP data extraction pipelines for remote clients using Python and modern APIs.",
+              "Integrated FastAPI backends with PostgreSQL and Supabase databases, guaranteeing low-latency response times under load.",
+              "Delivered robust, modular codebase adhering strictly to clean code practices, PEP 8, and CI/CD best practices."
+            ]
+          }
+        ];
+      }
+
+      // Certifications
+      let certs = r.certifications;
+      if (!certs || certs.length === 0) {
+        certs = [
+          { name: "AI Engineering & Deep Learning Specialization", issuer: "DeepLearning.AI / Coursera", status: "In Progress", details: "Hands-on PyTorch, Neural Networks & Generative AI" },
+          { name: "Machine Learning with Python", issuer: "IBM / Cognitive Class", status: "Completed", details: "Scikit-learn, Regression, Classification & Clustering" },
+          { name: "FastAPI & Modern Python Microservices", issuer: "Professional Certification", status: "Completed", details: "Asynchronous Backend Architecture & REST APIs" }
+        ];
+      }
+
+      // Education
+      let education = r.education;
+      if (!education || education.length === 0) {
+        education = [
+          { institution: "University / Academic Institution", degree: "Bachelor of Science in Computer Science / Engineering", year: "Graduated", details: "Coursework in Data Structures, Algorithms, Mathematics for ML, Operating Systems" }
+        ];
+      }
+
+      // ── Render Template HTML Safely ──
+      let html = '';
+
+      // A. HEADER SECTION
+      if (currentTemplate === 'harvard_consulting') {
+        html += `
+          <div class="cand-header-centered">
+            <h1 class="cand-name">${escapeHtml(fullName)}</h1>
+            <div class="cand-headline">${escapeHtml(headline)}</div>
+            <div class="cand-contacts-bar">
+              ${phone ? `<span>${escapeHtml(phone)}</span> • ` : ''}
+              ${email ? `<a href="mailto:${escapeHtml(email)}" class="contact-item-link">${escapeHtml(email)}</a> • ` : ''}
+              <span>${escapeHtml(location)}</span>
+              ${linkedin ? ` • <a href="${sanitizeUrl(linkedin)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">LinkedIn</a>` : ''}
+              ${github ? ` • <a href="${sanitizeUrl(github)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">GitHub</a>` : ''}
+            </div>
+            <div class="cand-divider"></div>
+          </div>
+        `;
+      } else {
+        // Two-column Header (Corporate Elite, Tech Specialist, Modern Executive)
+        html += `
+          <div class="cand-header-table">
+            <div>
+              <h1 class="cand-name">${escapeHtml(fullName)}</h1>
+              <div class="cand-headline">${escapeHtml(headline)}</div>
+            </div>
+            <div class="cand-contacts-right">
+              ${phone ? `<div><strong>Phone:</strong> ${escapeHtml(phone)}</div>` : ''}
+              ${email ? `<div><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}" class="contact-item-link">${escapeHtml(email)}</a></div>` : ''}
+              ${location ? `<div><strong>Location:</strong> ${escapeHtml(location)}</div>` : ''}
+              ${linkedin ? `<div><strong>LinkedIn:</strong> <a href="${sanitizeUrl(linkedin)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">linkedin.com/profile ↗</a></div>` : ''}
+              ${github ? `<div><strong>GitHub:</strong> <a href="${sanitizeUrl(github)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">github.com/profile ↗</a></div>` : ''}
+            </div>
+          </div>
+          <div class="cand-divider"></div>
+        `;
+      }
+
+      // Helper Section Renderers
+      function renderSummaryBlock() {
+        if (!summary) return '';
+        return `
+          <section class="resume-sec">
+            <h2 class="resume-sec-title">Executive Summary</h2>
+            <p class="resume-paragraph">${escapeHtml(summary)}</p>
+          </section>
+        `;
+      }
+
+      function renderSkillsBlock() {
+        let content = '';
+        if (catSkills && Object.keys(catSkills).length > 0) {
+          for (const [cat, sks] of Object.entries(catSkills)) {
+            if (sks && sks.length > 0) {
+              if (currentTemplate === 'tech_specialist') {
+                content += `
+                  <div style="margin-bottom: 8px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #7C3AED; margin-bottom: 3px;">${escapeHtml(cat)}:</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                      ${sks.map(s => `<span class="tech-pill-badge">${escapeHtml(s)}</span>`).join('')}
+                    </div>
+                  </div>
+                `;
+              } else {
+                content += `
+                  <div style="font-size: 12.5px; margin-bottom: 4px; color: #334155;">
+                    <strong class="skills-cat-title">${escapeHtml(cat)}:</strong> ${escapeHtml(sks.join(', '))}
+                  </div>
+                `;
+              }
+            }
+          }
+        }
+        return `
+          <section class="resume-sec">
+            <h2 class="resume-sec-title">Technical Skills & Core Competencies</h2>
+            ${content}
+          </section>
+        `;
+      }
+
+      function renderProjectsBlock() {
+        if (!projects || projects.length === 0) return '';
+        let content = '';
+        projects.forEach(p => {
+          content += `
+            <div class="resume-entry">
+              <div class="entry-header">
+                <div class="entry-title">
+                  ${escapeHtml(p.name)}
+                  ${p.repository ? ` <a href="${sanitizeUrl(p.repository)}" target="_blank" rel="noopener noreferrer" class="repo-link-btn">🔗 Code Repo ↗</a>` : ''}
+                </div>
+                ${p.subtitle ? `<div class="entry-subtitle">${escapeHtml(p.subtitle)}</div>` : ''}
+              </div>
+              ${p.technologies && p.technologies.length > 0 ? `
+                <div style="margin: 3px 0 5px 0;">
+                  ${p.technologies.map(t => `<span class="tech-pill-badge">${escapeHtml(t)}</span>`).join('')}
+                </div>
+              ` : ''}
+              ${p.description ? `<p class="resume-paragraph" style="margin-bottom: 4px;">${escapeHtml(p.description)}</p>` : ''}
+              ${p.bullets && p.bullets.length > 0 ? `
+                <ul class="entry-bullets">
+                  ${p.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
+                </ul>
+              ` : ''}
+            </div>
+          `;
+        });
+        return `
+          <section class="resume-sec">
+            <h2 class="resume-sec-title">Practical Engineering Projects</h2>
+            ${content}
+          </section>
+        `;
+      }
+
+      function renderExperienceBlock() {
+        if (!experience || experience.length === 0) return '';
+        let content = '';
+        experience.forEach(exp => {
+          content += `
+            <div class="resume-entry">
+              <div class="entry-header">
+                <div>
+                  <span class="entry-title">${escapeHtml(exp.role || "Software Engineer")}</span>
+                  <span style="color: #64748B;"> at </span>
+                  <span class="entry-company">${escapeHtml(exp.company || "Independent")}</span>
+                </div>
+                <div class="entry-date">${escapeHtml(exp.duration || "Recent")}</div>
+              </div>
+              ${exp.subtitle ? `<div class="entry-subtitle">${escapeHtml(exp.subtitle)} ${exp.location ? `• ${escapeHtml(exp.location)}` : ''}</div>` : ''}
+              ${exp.summary ? `<p class="resume-paragraph" style="margin-bottom: 4px;">${escapeHtml(exp.summary)}</p>` : ''}
+              ${exp.bullets && exp.bullets.length > 0 ? `
+                <ul class="entry-bullets">
+                  ${exp.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
+                </ul>
+              ` : ''}
+            </div>
+          `;
+        });
+        return `
+          <section class="resume-sec">
+            <h2 class="resume-sec-title">Professional Experience</h2>
+            ${content}
+          </section>
+        `;
+      }
+
+      function renderEducationAndCertsBlock() {
+        let content = '';
+        if (education && education.length > 0) {
+          content += `
+            <div style="margin-bottom: 12px;">
+              <h2 class="resume-sec-title">Education</h2>
+              ${education.map(edu => `
+                <div class="resume-entry" style="margin-bottom: 6px;">
+                  <div class="entry-header">
+                    <div><strong>${escapeHtml(edu.institution)}</strong> — <span>${escapeHtml(edu.degree)}</span></div>
+                    <div class="entry-date">${escapeHtml(edu.year || "")}</div>
+                  </div>
+                  ${edu.details ? `<div style="font-size: 12px; color: #475569;">${escapeHtml(edu.details)}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        if (certs && certs.length > 0) {
+          content += `
+            <div style="margin-bottom: 8px;">
+              <h2 class="resume-sec-title">Training & Professional Certifications</h2>
+              ${certs.map(c => `
+                <div class="resume-entry" style="margin-bottom: 6px;">
+                  <div class="entry-header">
+                    <div>
+                      <strong>${escapeHtml(c.name)}</strong>
+                      ${c.issuer ? ` <span style="color: #64748B;">— ${escapeHtml(c.issuer)}</span>` : ''}
+                      ${c.status ? ` <span style="font-size: 11px; background: #DCFCE7; color: #166534; font-weight: 700; padding: 1px 6px; border-radius: 4px;">${escapeHtml(c.status)}</span>` : ''}
+                    </div>
+                  </div>
+                  ${c.details ? `<div style="font-size: 12px; color: #475569;">${escapeHtml(c.details)}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        return content;
+      }
+
+      // Template Flow Order Alignment
+      if (currentTemplate === 'tech_specialist') {
+        html += renderSummaryBlock();
+        html += renderSkillsBlock();
+        html += renderProjectsBlock();
+        html += renderExperienceBlock();
+        html += renderEducationAndCertsBlock();
+      } else if (currentTemplate === 'harvard_consulting') {
+        html += renderSummaryBlock();
+        html += renderExperienceBlock();
+        html += renderEducationAndCertsBlock();
+        html += renderSkillsBlock();
+        html += renderProjectsBlock();
+      } else if (currentTemplate === 'corporate_elite') {
+        html += renderSummaryBlock();
+        html += renderSkillsBlock();
+        html += renderExperienceBlock();
+        html += renderProjectsBlock();
+        html += renderEducationAndCertsBlock();
+      } else { // modern
+        html += renderSummaryBlock();
+        html += renderSkillsBlock();
+        html += renderProjectsBlock();
+        html += renderExperienceBlock();
+        html += renderEducationAndCertsBlock();
+      }
+
+      // Additional Background & Target Role Statement
+      const targetRole = r.target_role || p.target_job_title;
+      if (targetRole || location) {
+        html += `
+          <section class="resume-sec" style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #E2E8F0;">
+            <div style="font-size: 12px; color: #64748B; line-height: 1.5;">
+              <strong>Target Role:</strong> ${escapeHtml(targetRole || 'Junior AI Engineer | Machine Learning Engineer')} • 
+              <strong>Availability:</strong> Worldwide Remote, Immediate Full-Time Availability.
+            </div>
+          </section>
+        `;
+      }
+
+      sheet.innerHTML = html;
+    }
+
+    // ── 7. Video Telemetry Listeners ──
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCandidateProfileData();
+
+      // Page View Telemetry
+      sendTelemetry('page_view');
+
+      // Video Play Telemetry
+      const video = document.getElementById('reslink-video-element');
+      if (video) {
+        video.addEventListener('play', () => {
+          if (!isVideoPlayedTelemetrySent) {
+            isVideoPlayedTelemetrySent = true;
+            sendTelemetry('video_play');
+          }
+        });
+      }
     });
   </script>
 </body>
