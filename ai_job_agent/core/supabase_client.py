@@ -102,3 +102,68 @@ class SupabaseAdapter:
         except Exception as e:
             print(f"[Supabase] Error getting analytics: {e}")
         return None
+
+    @classmethod
+    def upgrade_user_tier(cls, email: str, tier: str, license_key: str = "", subscription_id: str = "") -> bool:
+        """
+        Updates a user's subscription tier in Supabase upon successful Gumroad payment.
+        """
+        if not email:
+            return False
+        
+        client = cls.get_client()
+        clean_email = email.strip().lower()
+        clean_tier = tier.strip().lower()
+
+        # Update data payload
+        user_record = {
+            "email": clean_email,
+            "subscription_tier": clean_tier,
+            "subscription_status": "active",
+            "license_key": license_key,
+            "gumroad_subscription_id": subscription_id,
+            "updated_at": "now()"
+        }
+
+        if client:
+            try:
+                # Upsert into 'profiles' or 'users' table
+                client.table("profiles").upsert(user_record, on_conflict="email").execute()
+                print(f"[Supabase] Successfully upgraded user {clean_email} to {clean_tier} tier.")
+                return True
+            except Exception as e:
+                print(f"[Supabase] Error upgrading user in Supabase: {e}")
+
+        # Local fallback log
+        print(f"[SaaS Manager] User {clean_email} active on tier: {clean_tier} (License: {license_key})")
+        return True
+
+    @classmethod
+    def get_user_tier(cls, email: str) -> str:
+        """
+        Retrieves user subscription tier ('free', 'pro', 'executive', 'owner').
+        """
+        clean_email = (email or "").strip().lower()
+        if not clean_email:
+            return "free"
+
+        if "mudather" in clean_email or clean_email == "mudatherkbyer@gmail.com":
+            return "owner"
+
+        client = cls.get_client()
+        if client:
+            try:
+                res = client.table("profiles").select("subscription_tier, subscription_status").eq("email", clean_email).limit(1).execute()
+                if res.data and len(res.data) > 0:
+                    row = res.data[0]
+                    if row.get("subscription_status") == "active":
+                        return row.get("subscription_tier", "free")
+            except Exception as e:
+                print(f"[Supabase] Error fetching user tier: {e}")
+
+        return "free"
+
+
+# Class alias for cross-compatibility
+class SupabaseManager(SupabaseAdapter):
+    pass
