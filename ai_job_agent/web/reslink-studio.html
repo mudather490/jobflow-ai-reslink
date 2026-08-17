@@ -1691,6 +1691,18 @@
 
     async function handleSaveCompanyResLink(e) {
       e.preventDefault();
+      const currentTier = (localStorage.getItem('user_subscription_tier') || 'free').toLowerCase();
+      const currentCompanies = companyResLinksList || [];
+
+      if ((currentTier === 'free' || currentTier === 'starter') && currentCompanies.length >= 1) {
+        showToast("🔒 Free Plan Limit: 1 ResLink link included. Upgrade to Pro (20 links) or Executive (Unlimited)!");
+        return;
+      }
+      if (currentTier === 'pro' && currentCompanies.length >= 20) {
+        showToast("🔒 Pro Plan Limit: 20 company links reached. Upgrade to Executive for Unlimited Links!");
+        return;
+      }
+
       const companyName = document.getElementById('modal-company-name').value.trim();
       const targetRole = document.getElementById('modal-target-role').value.trim();
       const recruiterName = document.getElementById('modal-recruiter-name').value.trim() || 'Hiring Lead';
