@@ -46,6 +46,16 @@ window.selectedTemplateId = localStorage.getItem('selected_resume_template') || 
 
 window.selectTemplate = function(templateId) {
   const normId = (templateId === 'harvard_consulting' ? 'harvard' : (templateId === 'tech_specialist' ? 'tech' : (templateId === 'corporate_elite' ? 'minimal' : templateId))) || 'modern';
+  
+  const currentTier = (localStorage.getItem('user_subscription_tier') || 'free').toLowerCase();
+  if (currentTier === 'free' || currentTier === 'starter') {
+    if (normId !== 'modern') {
+      showToast("🔒 Premium Template: Upgrade to Pro or Executive to unlock all ATS templates!");
+      openModal('modal-pricing');
+      return;
+    }
+  }
+
   window.selectedTemplateId = normId;
   localStorage.setItem('selected_resume_template', normId);
 
@@ -274,6 +284,27 @@ document.getElementById('select-app-type')?.addEventListener('change', async () 
 });
 
 async function executeJobSearch() {
+  const currentTier = (localStorage.getItem('user_subscription_tier') || 'free').toLowerCase();
+
+  // Enforce 3 searches/day limit for Free Plan
+  if (currentTier === 'free' || currentTier === 'starter') {
+    const today = new Date().toISOString().slice(0, 10);
+    let quota = {};
+    try {
+      quota = JSON.parse(localStorage.getItem('jobflow_free_search_quota') || '{}');
+    } catch (e) {}
+
+    if (quota.date !== today) {
+      quota = { date: today, count: 0 };
+    }
+
+    if (quota.count >= 3) {
+      showToast("⚠️ Daily limit reached (3/3 searches used on Free Plan). Please upgrade to Pro for unlimited searches!");
+      openModal('modal-pricing');
+      return;
+    }
+  }
+
   const keywords = document.getElementById('input-keywords')?.value.trim() || 'AI Engineer';
   const workplaceType = document.getElementById('select-workplace-type')?.value || 'worldwide_remote';
   const appType = document.getElementById('select-app-type')?.value || 'all';
@@ -294,6 +325,20 @@ async function executeJobSearch() {
     const data = await res.json();
     currentJobs = data.jobs || [];
     renderJobsList(currentJobs);
+
+    // Track search quota for free users
+    if (currentTier === 'free' || currentTier === 'starter') {
+      const today = new Date().toISOString().slice(0, 10);
+      let quota = {};
+      try {
+        quota = JSON.parse(localStorage.getItem('jobflow_free_search_quota') || '{}');
+      } catch (e) {}
+      if (quota.date !== today) {
+        quota = { date: today, count: 0 };
+      }
+      quota.count += 1;
+      localStorage.setItem('jobflow_free_search_quota', JSON.stringify(quota));
+    }
 
     if (currentJobs.length > 0) {
       selectJob(currentJobs[0]);
@@ -652,11 +697,22 @@ window.openAutoApplyModal = async function(jobIdx, event) {
   if (titleEl) titleEl.innerText = `⚡ Autonomous Easy Apply: ${autoApplyTargetJob.title} @ ${autoApplyTargetJob.company}`;
 
   const saved = getSavedCandidateProfile() || {};
-  document.getElementById('auto-app-name').value = saved.full_name || (currentProfile?.full_name || 'Mudather Mohammed');
-  document.getElementById('auto-app-email').value = saved.email || (currentProfile?.contact?.email || 'mudatherkbyer@gmail.com');
+  let authUser = null;
+  try {
+    const rawAuth = localStorage.getItem('jobflow_auth_user');
+    if (rawAuth) authUser = JSON.parse(rawAuth);
+  } catch (e) {}
+
+  const defaultName = authUser?.full_name || (currentProfile?.full_name || 'Alex Rivera');
+  const defaultEmail = authUser?.email || (currentProfile?.contact?.email || 'alex.rivera@email.com');
+  const defaultLinkedin = currentProfile?.contact?.linkedin || 'linkedin.com/in/alex-rivera';
+  const defaultGithub = currentProfile?.contact?.github || 'github.com/alexrivera';
+
+  document.getElementById('auto-app-name').value = saved.full_name || defaultName;
+  document.getElementById('auto-app-email').value = saved.email || defaultEmail;
   document.getElementById('auto-app-phone').value = saved.phone || (currentProfile?.contact?.phone || '+1 (555) 345-6789');
-  document.getElementById('auto-app-linkedin').value = saved.linkedin_url || (currentProfile?.contact?.linkedin || 'linkedin.com/in/mudather-mohammed');
-  document.getElementById('auto-app-github').value = saved.github_url || (currentProfile?.contact?.github || 'github.com/mudather');
+  document.getElementById('auto-app-linkedin').value = saved.linkedin_url || defaultLinkedin;
+  document.getElementById('auto-app-github').value = saved.github_url || defaultGithub;
   if (saved.years_of_experience) document.getElementById('auto-app-exp').value = saved.years_of_experience;
   if (saved.work_authorization) document.getElementById('auto-app-auth').value = saved.work_authorization;
 
@@ -1383,12 +1439,22 @@ window.verifyGumroadLicense = async function() {
   }
 };
 
+const OWNER_EMAIL = "mudatherkbyer@gmail.com";
+
+function isOwnerEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  return email.trim().toLowerCase() === OWNER_EMAIL;
+}
+
 window.updateTierBadges = function(tier) {
   const navBadge = document.getElementById('tier-badge');
   const upgradeBtn = document.getElementById('btn-pricing-modal');
+  const barPlan = document.getElementById('bar-plan');
   
-  // Owner & Admin Highest Tier (Executive $49 Lifetime Unlimited)
-  if (tier === 'owner' || tier === 'executive_owner' || tier === 'executive' || !tier) {
+  const normalizedTier = (tier || '').toString().toLowerCase().trim();
+
+  // ONLY mudatherkbyer@gmail.com can receive owner tier
+  if (normalizedTier === 'owner') {
     if (navBadge) {
       navBadge.innerText = '👑 OWNER & ADMIN • LIFETIME UNLIMITED ($49)';
       navBadge.style.borderColor = 'rgba(0, 240, 255, 0.6)';
@@ -1402,34 +1468,127 @@ window.updateTierBadges = function(tier) {
       upgradeBtn.style.color = '#10B981';
       upgradeBtn.style.background = 'rgba(16, 185, 129, 0.18)';
     }
-  } else if (tier === 'pro') {
+    if (barPlan) {
+      barPlan.innerText = 'Owner & Admin ($49 Lifetime)';
+      barPlan.style.color = '#00F0FF';
+    }
+  } else if (normalizedTier === 'executive') {
+    if (navBadge) {
+      navBadge.innerText = 'EXECUTIVE VIP ($49) ACTIVE';
+      navBadge.style.borderColor = 'rgba(168, 85, 247, 0.6)';
+      navBadge.style.color = '#C084FC';
+      navBadge.style.background = 'rgba(168, 85, 247, 0.15)';
+      navBadge.style.boxShadow = '0 0 20px rgba(168, 85, 247, 0.25)';
+    }
+    if (upgradeBtn) {
+      upgradeBtn.innerText = '👑 Executive Plan Active';
+      upgradeBtn.style.borderColor = '#A855F7';
+      upgradeBtn.style.color = '#C084FC';
+      upgradeBtn.style.background = 'rgba(168, 85, 247, 0.18)';
+    }
+    if (barPlan) {
+      barPlan.innerText = 'Executive VIP ($49/mo)';
+      barPlan.style.color = '#C084FC';
+    }
+  } else if (normalizedTier === 'pro') {
     if (navBadge) {
       navBadge.innerText = 'PRO PLAN ($19) ACTIVE';
       navBadge.style.borderColor = 'rgba(56, 189, 248, 0.5)';
       navBadge.style.color = '#38BDF8';
       navBadge.style.background = 'rgba(56, 189, 248, 0.1)';
+      navBadge.style.boxShadow = 'none';
     }
     if (upgradeBtn) {
       upgradeBtn.innerText = '⚡ Pro Plan ($19) Active';
       upgradeBtn.style.borderColor = '#10B981';
       upgradeBtn.style.color = '#10B981';
+      upgradeBtn.style.background = 'rgba(16, 185, 129, 0.18)';
+    }
+    if (barPlan) {
+      barPlan.innerText = 'Pro Member ($19/mo)';
+      barPlan.style.color = '#38BDF8';
     }
   } else {
+    // Strictly Free / Starter for any missing, undefined, null, or guest tier
     if (navBadge) {
       navBadge.innerText = 'FREE PLAN';
       navBadge.style.borderColor = 'rgba(148, 163, 184, 0.4)';
       navBadge.style.color = '#94A3B8';
+      navBadge.style.background = 'transparent';
+      navBadge.style.boxShadow = 'none';
     }
     if (upgradeBtn) {
       upgradeBtn.innerText = '⚡ Upgrade Plan';
       upgradeBtn.style.borderColor = '';
       upgradeBtn.style.color = '';
+      upgradeBtn.style.background = '';
+    }
+    if (barPlan) {
+      barPlan.innerText = 'Free Plan ($0)';
+      barPlan.style.color = '#94A3B8';
     }
   }
 };
 
 const SUPABASE_PROJECT_URL = "https://bijwvvnghhbgudyrecpx.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_EcC050mUrxLcfqXNxPX--Q_RI3aQ99N";
+
+async function isolateAndSetUserSession(userPayload) {
+  const email = (userPayload.email || '').trim().toLowerCase();
+  if (!email) return 'free';
+
+  const currentStored = localStorage.getItem('jobflow_auth_user');
+  let currentEmail = null;
+  if (currentStored) {
+    try {
+      currentEmail = (JSON.parse(currentStored).email || '').trim().toLowerCase();
+    } catch (e) {}
+  }
+
+  // Account switch detected -> clear stale localStorage to prevent leaks
+  if (currentEmail && currentEmail !== email) {
+    console.log(`[JobFlow Auth] Account switch detected from ${currentEmail} to ${email}. Isolating storage.`);
+    localStorage.removeItem('candidate_quick_profile');
+    localStorage.removeItem('gumroad_license_key');
+    localStorage.removeItem('user_subscription_tier');
+    localStorage.removeItem('jobflow_free_search_quota');
+  }
+
+  const isOwner = isOwnerEmail(email);
+  const fullName = userPayload.full_name || userPayload.name || (email.split('@')[0]);
+
+  let tier = isOwner ? 'owner' : 'free';
+
+  // If not owner, verify subscription tier against backend & Supabase
+  if (!isOwner) {
+    try {
+      const res = await fetch(`/api/v1/auth/user-status?email=${encodeURIComponent(email)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.tier && data.tier !== 'owner') {
+          tier = data.tier;
+        }
+      }
+    } catch (err) {
+      console.warn("User status sync error:", err);
+      tier = 'free';
+    }
+  }
+
+  localStorage.setItem('user_subscription_tier', tier);
+  localStorage.setItem('jobflow_auth_user', JSON.stringify({
+    email: email,
+    full_name: fullName,
+    role: isOwner ? 'owner' : 'user',
+    is_admin: isOwner,
+    subscription_tier: tier,
+    provider: userPayload.provider || 'google',
+    authenticated_at: new Date().toISOString()
+  }));
+
+  window.updateTierBadges(tier);
+  return tier;
+}
 
 function extractUserFromUrlHash() {
   const hash = window.location.hash || '';
@@ -1442,20 +1601,15 @@ function extractUserFromUrlHash() {
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
         if (payload && payload.email) {
-          const userEmail = payload.email.toLowerCase();
-          const userName = payload.user_metadata?.full_name || payload.user_metadata?.name || 'Mudather Mohammed';
-          const isOwner = userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com';
+          const userEmail = (payload.email || '').trim().toLowerCase();
+          const userName = payload.user_metadata?.full_name || payload.user_metadata?.name || payload.name || userEmail.split('@')[0];
           
-          localStorage.setItem('user_subscription_tier', isOwner ? 'owner' : 'starter');
-          localStorage.setItem('jobflow_auth_user', JSON.stringify({
+          isolateAndSetUserSession({
             email: userEmail,
             full_name: userName,
-            role: isOwner ? 'owner' : 'user',
-            is_admin: isOwner,
-            subscription_tier: isOwner ? 'executive' : 'starter',
             provider: 'google'
-          }));
-          window.updateTierBadges(isOwner ? 'owner' : 'starter');
+          });
+          
           history.replaceState(null, document.title, window.location.pathname + window.location.search);
           return true;
         }
@@ -1477,31 +1631,27 @@ async function syncSupabaseUserSession() {
       // Check active Supabase session from Google OAuth
       const { data: { session } } = await client.auth.getSession();
       if (session && session.user) {
-        const userEmail = (session.user.email || '').toLowerCase();
-        const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Mudather Mohammed';
+        const userEmail = (session.user.email || '').trim().toLowerCase();
+        const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || userEmail.split('@')[0];
         
-        const isOwner = userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com';
-        localStorage.setItem('user_subscription_tier', isOwner ? 'owner' : 'starter');
-        localStorage.setItem('jobflow_auth_user', JSON.stringify({
+        await isolateAndSetUserSession({
           email: userEmail,
           full_name: userName,
-          role: isOwner ? 'owner' : 'user',
-          is_admin: isOwner,
-          subscription_tier: isOwner ? 'executive' : 'starter',
           provider: 'google'
-        }));
-        window.updateTierBadges(isOwner ? 'owner' : 'starter');
+        });
         return true;
       }
 
       // Listen for OAuth hash redirect changes
-      client.auth.onAuthStateChange((event, newSession) => {
+      client.auth.onAuthStateChange(async (event, newSession) => {
         if (newSession && newSession.user) {
-          const userEmail = (newSession.user.email || '').toLowerCase();
-          const userName = newSession.user.user_metadata?.full_name || newSession.user.user_metadata?.name || 'Mudather Mohammed';
-          const isOwner = userEmail.includes('mudather') || userEmail === 'mudatherkbyer@gmail.com';
-          localStorage.setItem('user_subscription_tier', isOwner ? 'owner' : 'starter');
-          window.updateTierBadges(isOwner ? 'owner' : 'starter');
+          const userEmail = (newSession.user.email || '').trim().toLowerCase();
+          const userName = newSession.user.user_metadata?.full_name || newSession.user.user_metadata?.name || userEmail.split('@')[0];
+          await isolateAndSetUserSession({
+            email: userEmail,
+            full_name: userName,
+            provider: 'google'
+          });
         }
       });
     }
@@ -1518,8 +1668,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadInitialResLinkProfile();
   syncSupabaseUserSession();
 
-  // Set Owner Unlimited Pro Plan
-  const savedTier = localStorage.getItem('user_subscription_tier') || 'owner';
+  // Tier initialization: Strictly default to 'free'
+  const savedTier = localStorage.getItem('user_subscription_tier') || 'free';
   window.updateTierBadges(savedTier);
 
   // Attach direct click listeners to all template buttons
@@ -1531,8 +1681,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Explicitly Pre-select Template 4: Corporate Elite
-  window.selectTemplate('corporate_elite');
+  // Pre-select template according to subscription tier
+  if (savedTier === 'owner' || savedTier === 'pro' || savedTier === 'executive') {
+    window.selectTemplate('corporate_elite');
+  } else {
+    window.selectTemplate('modern');
+  }
   document.getElementById('search-form')?.dispatchEvent(new Event('submit'));
 
   // Automatic Gumroad Purchase & License Activation from Redirect URL

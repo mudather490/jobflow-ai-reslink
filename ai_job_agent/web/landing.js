@@ -170,24 +170,41 @@ function parseJwtPayload(token) {
   }
 }
 
+const OWNER_EMAIL = "mudatherkbyer@gmail.com";
+
 function handleGoogleCredentialResponse(response) {
   if (response && response.credential) {
     const payload = parseJwtPayload(response.credential);
     if (payload && payload.email) {
-      const email = payload.email.toLowerCase();
-      const name = payload.name || 'Mudather Mohammed';
-      const isOwner = email.includes('mudather') || email === 'mudatherkbyer@gmail.com';
+      const email = payload.email.trim().toLowerCase();
+      const name = payload.name || payload.full_name || email.split('@')[0];
+      const isOwner = (email === OWNER_EMAIL);
       
+      // Account isolation: Clear stale localStorage if switched accounts
+      const currentStored = localStorage.getItem('jobflow_auth_user');
+      if (currentStored) {
+        try {
+          const prev = JSON.parse(currentStored);
+          if (prev.email && prev.email.trim().toLowerCase() !== email) {
+            localStorage.removeItem('candidate_quick_profile');
+            localStorage.removeItem('gumroad_license_key');
+            localStorage.removeItem('user_subscription_tier');
+            localStorage.removeItem('jobflow_free_search_quota');
+          }
+        } catch (e) {}
+      }
+
+      const initialTier = isOwner ? 'owner' : 'free';
       localStorage.setItem('jobflow_auth_user', JSON.stringify({
         email: email,
         full_name: name,
         role: isOwner ? 'owner' : 'user',
         is_admin: isOwner,
-        subscription_tier: isOwner ? 'executive' : 'starter',
+        subscription_tier: initialTier,
         provider: 'google',
         authenticated_at: new Date().toISOString()
       }));
-      localStorage.setItem('user_subscription_tier', isOwner ? 'owner' : 'starter');
+      localStorage.setItem('user_subscription_tier', initialTier);
       window.location.href = '/app';
     }
   }

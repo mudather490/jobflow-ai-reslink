@@ -138,16 +138,20 @@ class SupabaseAdapter:
         print(f"[SaaS Manager] User {clean_email} active on tier: {clean_tier} (License: {license_key})")
         return True
 
+    OWNER_EMAIL = "mudatherkbyer@gmail.com"
+
     @classmethod
     def get_user_tier(cls, email: str) -> str:
         """
         Retrieves user subscription tier ('free', 'pro', 'executive', 'owner').
+        ONLY 'mudatherkbyer@gmail.com' (case-insensitive exact match) gets 'owner'.
+        Any other account defaults strictly to 'free' unless active in Supabase profiles.
         """
         clean_email = (email or "").strip().lower()
         if not clean_email:
             return "free"
 
-        if "mudather" in clean_email or clean_email == "mudatherkbyer@gmail.com":
+        if clean_email == cls.OWNER_EMAIL:
             return "owner"
 
         client = cls.get_client()
@@ -156,8 +160,10 @@ class SupabaseAdapter:
                 res = client.table("profiles").select("subscription_tier, subscription_status").eq("email", clean_email).limit(1).execute()
                 if res.data and len(res.data) > 0:
                     row = res.data[0]
-                    if row.get("subscription_status") == "active":
-                        return row.get("subscription_tier", "free")
+                    status = (row.get("subscription_status") or "").strip().lower()
+                    tier = (row.get("subscription_tier") or "free").strip().lower()
+                    if status == "active" and tier in ["pro", "executive", "owner"]:
+                        return tier
             except Exception as e:
                 print(f"[Supabase] Error fetching user tier: {e}")
 

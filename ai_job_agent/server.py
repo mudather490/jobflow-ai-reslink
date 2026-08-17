@@ -1133,6 +1133,65 @@ async def update_notification_settings(req: NotificationSettingsRequest):
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
 
+class UserStatusRequest(BaseModel):
+    email: Optional[str] = None
+
+
+@app.get("/api/v1/auth/user-status")
+@app.post("/api/v1/auth/user-status")
+async def get_user_status_endpoint(request: Request, email: Optional[str] = None):
+    """
+    Watertight Tier Status & RBAC Verification Endpoint:
+    - Strictly grants 'owner' status ONLY to mudatherkbyer@gmail.com (case-insensitive exact match).
+    - All other accounts default strictly to 'free' unless active in Supabase profiles (pro/executive).
+    """
+    req_email = email
+    if not req_email and request.method == "POST":
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                req_email = body.get("email")
+        except Exception:
+            pass
+
+    clean_email = (req_email or "").strip().lower()
+    if clean_email:
+        try:
+            SecurityShield.sanitize_string(clean_email, "Email")
+        except Exception:
+            clean_email = ""
+
+    from core.supabase_client import SupabaseAdapter
+    tier = SupabaseAdapter.get_user_tier(clean_email)
+    is_owner = (tier == "owner" and clean_email == SupabaseAdapter.OWNER_EMAIL)
+
+    limits = {
+        "daily_searches": "unlimited" if tier in ["owner", "executive"] else (50 if tier == "pro" else 3),
+        "reslink_links": "unlimited" if tier in ["owner", "executive"] else (20 if tier == "pro" else 1),
+        "allowed_templates": ["modern", "harvard", "tech", "minimal"] if tier in ["owner", "executive", "pro"] else ["modern"],
+        "unlimited_access": tier in ["owner", "executive"],
+    }
+
+    plan_names = {
+        "owner": "👑 Owner & Admin • Lifetime Unlimited ($49)",
+        "executive": "Executive VIP Lifetime ($49)",
+        "pro": "Pro Member ($19/mo)",
+        "free": "Free Plan"
+    }
+
+    return {
+        "status": "success",
+        "email": clean_email,
+        "tier": tier,
+        "role": "owner" if is_owner else "user",
+        "is_owner": is_owner,
+        "is_admin": is_owner,
+        "subscription_status": "active" if tier != "free" else "free",
+        "plan_name": plan_names.get(tier, "Free Plan"),
+        "limits": limits
+    }
+
+
 class LicenseVerifyRequest(BaseModel):
     license_key: str
 

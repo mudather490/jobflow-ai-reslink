@@ -676,7 +676,8 @@ class ResumeDocumentGenerator:
             parts = [p.capitalize() if p.islower() or p.isupper() else p for p in clean_name.split("_") if p]
             base_name = "_".join(parts)
         else:
-            candidate_clean = "_".join([w.capitalize() for w in profile.full_name.split() if w.strip()])
+            candidate_clean = "_".join([w.capitalize() for w in profile.full_name.split() if w.strip()]) or "Candidate"
+            base_name = f"{candidate_clean}_Resume"
         base_name = cls._sanitize_filename(base_name)
         import uuid
         uid = uuid.uuid4().hex[:8]
