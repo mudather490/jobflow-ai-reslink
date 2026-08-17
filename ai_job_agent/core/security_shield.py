@@ -313,28 +313,90 @@ class SecurityShield:
 
 
 # ─────────────────────────────────────────────────────────────
+# In-Memory Sliding-Window Rate Limiter & Abuse Defense
+# ─────────────────────────────────────────────────────────────
+class RateLimiter:
+    """
+    In-memory rate limiter protecting against brute-force attacks,
+    API flooding, and quota bypasses.
+    """
+    _requests: Dict[str, List[float]] = {}
+    _search_daily_counts: Dict[str, Dict[str, int]] = {}
+
+    @classmethod
+    def check_rate_limit(cls, client_ip: str, endpoint: str, max_requests: int = 60, window_seconds: int = 60) -> bool:
+        import time
+        now = time.time()
+        key = f"{client_ip}:{endpoint}"
+        
+        if key not in cls._requests:
+            cls._requests[key] = []
+            
+        # Clean timestamps older than window
+        cls._requests[key] = [t for t in cls._requests[key] if now - t < window_seconds]
+        
+        if len(cls._requests[key]) >= max_requests:
+            return False
+            
+        cls._requests[key].append(now)
+        return True
+
+    @classmethod
+    def check_daily_search_quota(cls, client_ip: str, user_email: str, is_paid: bool, max_free: int = 3) -> bool:
+        if is_paid:
+            return True
+        import datetime
+        today = datetime.date.today().isoformat()
+        key = user_email or client_ip
+        
+        if key not in cls._search_daily_counts or cls._search_daily_counts[key].get("date") != today:
+            cls._search_daily_counts[key] = {"date": today, "count": 0}
+            
+        if cls._search_daily_counts[key]["count"] >= max_free:
+            return False
+            
+        cls._search_daily_counts[key]["count"] += 1
+        return True
+
+
+# ─────────────────────────────────────────────────────────────
 # FastAPI Global Security Middleware
 # ─────────────────────────────────────────────────────────────
 class HighSecurityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
-            # 1. Inspect Query Parameters for SQLi / XSS / Traversal
+            client_ip = request.client.host if request.client else "127.0.0.1"
+            path = request.url.path
+
+            # 1. Endpoint Rate Limiting (Prevent Brute-Force & Flooding)
+            if path.startswith("/api/v1/licenses/verify"):
+                if not RateLimiter.check_rate_limit(client_ip, "license_verify", max_requests=10, window_seconds=60):
+                    raise HTTPException(
+                        status_code=429,
+                        detail="Security Alert: Too many license verification attempts. Please wait 1 minute."
+                    )
+            elif path.startswith("/api/"):
+                if not RateLimiter.check_rate_limit(client_ip, "general_api", max_requests=120, window_seconds=60):
+                    raise HTTPException(
+                        status_code=429,
+                        detail="Security Alert: API request rate limit exceeded. Please slow down."
+                    )
+
+            # 2. Inspect Query Parameters for SQLi / XSS / Traversal
             for key, value in request.query_params.items():
                 if key in ["template_id", "date_filter", "workplace_type", "application_type"]:
-                    # Sanitize parameter values
                     SecurityShield.sanitize_string(value, field_name=f"Query Param '{key}'")
                 elif any(bad in value.lower() for bad in ["<script", "javascript:", "../", "..\\"]):
                     SecurityShield.sanitize_string(value, field_name=f"Query Param '{key}'")
 
-            # 2. Process Request
+            # 3. Process Request
             response = await call_next(request)
 
-            # 3. Add Hardened Security Headers (OWASP Level 3)
+            # 4. Add Hardened Security Headers (OWASP Level 3)
             response.headers["X-Content-Type-Options"] = "nosniff"
             response.headers["X-Frame-Options"] = "SAMEORIGIN"
             response.headers["X-XSS-Protection"] = "1; mode=block"
             response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-            # Enable camera and microphone for ResLink Studio
             response.headers["Permissions-Policy"] = "camera=(self), microphone=(self), geolocation=(), payment=()"
 
             return response
