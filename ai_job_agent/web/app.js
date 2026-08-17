@@ -1242,19 +1242,21 @@ window.toggleRecording = async function() {
 };
 
 window.saveResLinkConfiguration = async function() {
-  const calendly = document.getElementById('reslink-setting-calendly').value.trim();
-  const whatsapp = document.getElementById('reslink-setting-whatsapp').value.trim();
-  const theme = document.getElementById('reslink-setting-theme').value;
+  const calendly = document.getElementById('reslink-setting-calendly')?.value?.trim() || '';
+  const linkedin = document.getElementById('reslink-setting-linkedin')?.value?.trim() || '';
+  const whatsapp = document.getElementById('reslink-setting-whatsapp')?.value?.trim() || '';
+  const theme = document.getElementById('reslink-setting-theme')?.value || 'glassmorphic_dark';
 
   try {
     const getRes = await fetch('/api/v1/reslink');
     const cur = await getRes.json();
 
     cur.cta_settings = cur.cta_settings || {};
-    cur.cta_settings.calendly_url = calendly;
-    cur.cta_settings.whatsapp_number = whatsapp;
+    if (calendly) cur.cta_settings.calendly_url = calendly;
+    if (linkedin) cur.cta_settings.linkedin_url = linkedin;
+    if (whatsapp) cur.cta_settings.whatsapp_number = whatsapp;
     cur.theme = theme;
-    cur.selected_cv_template = window.selectedTemplateId || 'harvard';
+    cur.selected_cv_template = window.selectedTemplateId || 'corporate_elite';
 
     const saveRes = await fetch('/api/v1/reslink', {
       method: 'POST',
@@ -1308,6 +1310,9 @@ async function loadInitialResLinkProfile() {
     if (res.ok) {
       reslinkProfileState = await res.json();
       if (reslinkProfileState.cta_settings) {
+        if (document.getElementById('reslink-setting-linkedin')) {
+          document.getElementById('reslink-setting-linkedin').value = reslinkProfileState.cta_settings.linkedin_url || '';
+        }
         if (document.getElementById('reslink-setting-calendly')) {
           document.getElementById('reslink-setting-calendly').value = reslinkProfileState.cta_settings.calendly_url || '';
         }
@@ -1529,5 +1534,42 @@ document.addEventListener('DOMContentLoaded', () => {
   // Explicitly Pre-select Template 4: Corporate Elite
   window.selectTemplate('corporate_elite');
   document.getElementById('search-form')?.dispatchEvent(new Event('submit'));
+
+  // Automatic Gumroad Purchase & License Activation from Redirect URL
+  handleGumroadRedirectActivation();
 });
+
+// Automatic Gumroad Redirect Activation (Zero-friction customer onboarding)
+function handleGumroadRedirectActivation() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const purchaseSuccess = urlParams.get('purchase') === 'success' || urlParams.get('payment') === 'success';
+    const rawKey = urlParams.get('license_key') || urlParams.get('license') || urlParams.get('key');
+    const planParam = (urlParams.get('plan') || '').toLowerCase();
+
+    if (purchaseSuccess || rawKey || planParam) {
+      let activatedTier = 'pro';
+      let planName = 'Pro Plan ($19/mo)';
+
+      if (planParam.includes('exec') || planParam.includes('vip') || planParam.includes('lifetime') || (rawKey && rawKey.toUpperCase().includes('EXEC'))) {
+        activatedTier = 'executive';
+        planName = 'Executive VIP Lifetime ($49)';
+      }
+
+      localStorage.setItem('user_subscription_tier', activatedTier);
+      if (rawKey) {
+        localStorage.setItem('gumroad_license_key', rawKey);
+      }
+
+      window.updateTierBadges(activatedTier);
+      showToast(`🎉 Payment Confirmed! Your ${planName} is now active with unlimited access!`);
+
+      // Clean query params from address bar smoothly
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  } catch (e) {
+    console.warn("Notice: Gumroad redirect processing:", e);
+  }
+}
 

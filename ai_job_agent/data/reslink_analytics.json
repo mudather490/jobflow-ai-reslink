@@ -1,11 +1,39 @@
 {
-  "total_views": 43,
-  "unique_visitors": 43,
-  "video_plays": 24,
+  "total_views": 45,
+  "unique_visitors": 45,
+  "video_plays": 26,
   "cv_downloads": 17,
   "calendly_clicks": 17,
   "average_watch_seconds": 4244.5,
   "recent_events": [
+    {
+      "event": "video_play",
+      "timestamp": "2026-08-17 00:35:15",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-17 00:34:55",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "video_play",
+      "timestamp": "2026-08-17 00:25:20",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-17 00:25:13",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "calendly_click",
       "timestamp": "2026-08-16 23:44:07",
@@ -325,34 +353,6 @@
       "event": "video_play",
       "timestamp": "2026-08-16 00:02:12",
       "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:02:12",
-      "referrer": "linkedin.com",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_leave",
-      "timestamp": "2026-08-16 00:00:50",
-      "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_leave",
-      "timestamp": "2026-08-16 00:00:48",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
-      "timestamp": "2026-08-15 04:12:35",
-      "referrer": "http://127.0.0.1:8000/reslink",
       "device": "desktop",
       "city": "Global Recruiter View"
     }

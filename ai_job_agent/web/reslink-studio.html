@@ -1774,6 +1774,15 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadStudioProfile();
       loadCompanyResLinks();
+
+      // Check Gumroad Redirect Activation
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('purchase') === 'success' || urlParams.get('plan')) {
+          showToast("👑 Welcome VIP Member! Executive ResLink Studio & Teleprompter Unlocked!");
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } catch (e) {}
     });
   </script>
 </body>
