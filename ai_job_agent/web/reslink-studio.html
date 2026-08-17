@@ -713,144 +713,124 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- STEP 4: Share Link & Real-Time Interactive Analytics -->
+    <!-- STEP 4: Unified Recruiter Hub & Real-Time Analytics -->
     <!-- ============================================================ -->
     <div class="step-pane" id="pane-step-4">
-      <!-- Share Link Card -->
-      <section class="studio-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 22px;">🚀</span>
-            <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0;">
-              Share ResLink with Recruiters on LinkedIn
-            </h2>
-          </div>
-          <button type="button" class="btn btn-primary" style="font-size: 12.5px; padding: 6px 14px;" onclick="copyLinkedInPitchNote()">
-            📋 Copy LinkedIn Outreach Note
-          </button>
-        </div>
-
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
-          Share your unique ResLink directly in your LinkedIn connection requests, InMail, or cover letters:
-        </p>
-
-        <div class="share-url-box">
-          <div class="share-url-text" id="share-url-display">http://127.0.0.1:8000/p/alex-rivera</div>
-          <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-left: 10px;" onclick="copyResLinkUrl()">
-            🔗 Copy Link
-          </button>
-        </div>
-
-        <!-- Recruiter Outreach Note Preview -->
-        <div style="margin-top: 14px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-glass); border-radius: 12px; padding: 14px;">
-          <div style="font-size: 11px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 6px;">
-            Personalized LinkedIn DM Message:
-          </div>
-          <div id="studio-outreach-note-preview" style="font-size: 13px; color: #CBD5E1; line-height: 1.6; white-space: pre-wrap;"></div>
-        </div>
-      </section>
-
-      <!-- Company-Tailored ResLinks & Recruiter Applications Tracker -->
-      <section class="studio-card" style="margin-top: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+      <section class="studio-card" style="padding: 24px;">
+        <!-- 1. Header with Title & Quick Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
-              <span>🏢</span> Company-Tailored ResLinks & Recruiter Tracker
+            <h2 style="font-size: 20px; font-weight: 800; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span>📊</span> Recruiter Intelligence & Live Outreach Hub
             </h2>
-            <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px;">
-              View and manage customized video pitches, dedicated URLs, and live recruiter engagement status for each company you apply to.
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
+              Real-time telemetry, direct outreach links, and company-tailored recruiter tracking in one unified place.
             </p>
           </div>
-          <button type="button" class="btn btn-primary" style="font-size: 12.5px; padding: 7px 16px; display: inline-flex; align-items: center; gap: 6px;" onclick="openAddCompanyModal()">
-            <span>➕</span> Create Tailored ResLink for Company
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn btn-secondary" style="font-size: 11.5px; padding: 6px 12px;" onclick="simulateRecruiterVisit()">
+              🧪 Test Live Visit
+            </button>
+            <button type="button" class="btn btn-primary" style="font-size: 11.5px; padding: 6px 12px;" onclick="loadStudioAnalytics()">
+              🔄 Refresh
+            </button>
+            <a href="/p/mudather-mohammed" target="_blank" class="btn btn-emerald" style="font-size: 11.5px; padding: 6px 14px; text-decoration: none;">
+              👁️ Open Live Pitch
+            </a>
+          </div>
+        </div>
+
+        <!-- 2. High-Impact 5-Stat Metric Bar -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin-bottom: 18px;">
+          <div class="stat-card" style="padding: 12px 14px; text-align: center; border-radius: 12px;">
+            <div style="font-size: 22px; font-weight: 800; color: #38BDF8;" id="studio-stat-views">0</div>
+            <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; margin-top: 2px;">Total Page Views</div>
+          </div>
+          <div class="stat-card" style="padding: 12px 14px; text-align: center; border-radius: 12px;">
+            <div style="font-size: 22px; font-weight: 800; color: #34D399;" id="studio-stat-unique">0</div>
+            <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; margin-top: 2px;">Unique Recruiters</div>
+          </div>
+          <div class="stat-card" style="padding: 12px 14px; text-align: center; border-radius: 12px;">
+            <div style="font-size: 22px; font-weight: 800; color: #F59E0B;" id="studio-stat-plays">0</div>
+            <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; margin-top: 2px;">Pitches Watched</div>
+          </div>
+          <div class="stat-card" style="padding: 12px 14px; text-align: center; border-radius: 12px;">
+            <div style="font-size: 22px; font-weight: 800; color: #A855F7;" id="studio-stat-downloads">0</div>
+            <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; margin-top: 2px;">CV Downloads</div>
+          </div>
+          <div class="stat-card" style="padding: 12px 14px; text-align: center; border-radius: 12px;">
+            <div style="font-size: 22px; font-weight: 800; color: #EC4899;" id="studio-stat-watch">0s</div>
+            <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; margin-top: 2px;">Avg. Attention</div>
+          </div>
+        </div>
+
+        <!-- 3. Clean, Compact Share Bar (No Noise / No Long Text Blocks) -->
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(15, 23, 42, 0.75); border: 1px solid var(--border-glass); border-radius: 12px; padding: 10px 14px; margin-bottom: 22px; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 260px;">
+            <span style="font-size: 13.5px; font-weight: 700; color: var(--accent-cyan); white-space: nowrap;">🚀 Primary ResLink:</span>
+            <div style="font-family: var(--font-mono); font-size: 12px; color: #E2E8F0; background: rgba(0,0,0,0.35); padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;" id="share-url-display">
+              http://127.0.0.1:8000/p/mudather-mohammed
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-secondary" style="font-size: 11.5px; padding: 6px 12px;" onclick="copyResLinkUrl()">
+              🔗 Copy Link
+            </button>
+            <button type="button" class="btn btn-primary" style="font-size: 11.5px; padding: 6px 14px;" onclick="copyLinkedInPitchNote()">
+              📋 Copy LinkedIn Pitch
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Company-Tailored Applications & Recruiter Tracker Table -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div style="font-size: 15px; font-weight: 800; color: #FFF; display: flex; align-items: center; gap: 6px;">
+            <span>🏢</span> Company-Tailored ResLinks & Recruiter Tracker
+          </div>
+          <button type="button" class="btn btn-primary" style="font-size: 11.5px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px;" onclick="openAddCompanyModal()">
+            <span>➕</span> Add Tailored Company Link
           </button>
         </div>
 
-        <!-- Company ResLink Applications Table -->
-        <div style="overflow-x: auto; border: 1px solid var(--border-glass); border-radius: 12px; background: rgba(5, 8, 20, 0.6);">
+        <div style="overflow-x: auto; border: 1px solid var(--border-glass); border-radius: 12px; background: rgba(5, 8, 20, 0.6); margin-bottom: 22px;">
           <table class="activity-table" style="width: 100%; border-collapse: collapse;">
             <thead>
-              <tr style="background: rgba(15, 23, 42, 0.85); text-align: left; font-size: 11.5px; color: var(--text-dim); text-transform: uppercase;">
-                <th style="padding: 12px 14px;">Target Company & Role</th>
-                <th style="padding: 12px 14px;">Senior Recruiter Lead</th>
-                <th style="padding: 12px 14px;">Tailored ResLink Pitch</th>
-                <th style="padding: 12px 14px;">Attached CV Template</th>
-                <th style="padding: 12px 14px;">Recruiter Engagement Status</th>
-                <th style="padding: 12px 14px; text-align: right;">Actions</th>
+              <tr style="background: rgba(15, 23, 42, 0.85); text-align: left; font-size: 11px; color: var(--text-dim); text-transform: uppercase;">
+                <th style="padding: 10px 12px;">Company & Role</th>
+                <th style="padding: 10px 12px;">Senior Contact</th>
+                <th style="padding: 10px 12px;">Dedicated ResLink</th>
+                <th style="padding: 10px 12px;">Resume (PDF)</th>
+                <th style="padding: 10px 12px;">Recruiter Status</th>
+                <th style="padding: 10px 12px; text-align: right;">Actions</th>
               </tr>
             </thead>
             <tbody id="studio-companies-tbody">
               <tr>
-                <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 20px;">
-                  Loading company-tailored ResLinks...
+                <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 18px;">
+                  Loading company links...
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-      </section>
 
-      <!-- Real-Time Recruiter Engagement Insights -->
-      <section class="studio-card" style="margin-top: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
-          <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
-              <span>📊</span> Global Recruiter Traffic Telemetry
-            </h2>
-            <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
-              Live tracking showing how many recruiters visited, watched your video, and downloaded your CV across all ResLinks.
-            </p>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <button type="button" class="btn btn-secondary" style="font-size: 11.5px; padding: 4px 10px;" onclick="simulateRecruiterVisit()">
-              🧪 Test Live Visit
-            </button>
-            <button type="button" class="btn btn-primary" style="font-size: 11.5px; padding: 4px 10px;" onclick="loadStudioAnalytics()">
-              🔄 Refresh Live Data
-            </button>
-          </div>
+        <!-- 5. Real-Time Recruiter Event Stream -->
+        <div style="font-size: 14px; font-weight: 800; color: #FFF; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <span>⚡</span> Live Recruiter Activity Stream
         </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
-          <div class="stat-card" style="padding: 14px; text-align: center;">
-            <div style="font-size: 24px; font-weight: 800; color: #38BDF8;" id="studio-stat-views">0</div>
-            <div style="font-size: 11.5px; color: var(--text-dim);">Total Page Views</div>
-          </div>
-          <div class="stat-card" style="padding: 14px; text-align: center;">
-            <div style="font-size: 24px; font-weight: 800; color: #34D399;" id="studio-stat-unique">0</div>
-            <div style="font-size: 11.5px; color: var(--text-dim);">Unique Recruiters</div>
-          </div>
-          <div class="stat-card" style="padding: 14px; text-align: center;">
-            <div style="font-size: 24px; font-weight: 800; color: #F59E0B;" id="studio-stat-plays">0</div>
-            <div style="font-size: 11.5px; color: var(--text-dim);">Video Pitches Watched</div>
-          </div>
-          <div class="stat-card" style="padding: 14px; text-align: center;">
-            <div style="font-size: 24px; font-weight: 800; color: #A855F7;" id="studio-stat-downloads">0</div>
-            <div style="font-size: 11.5px; color: var(--text-dim);">CVs Downloaded</div>
-          </div>
-          <div class="stat-card" style="padding: 14px; text-align: center;">
-            <div style="font-size: 24px; font-weight: 800; color: #EC4899;" id="studio-stat-watch">0s</div>
-            <div style="font-size: 11.5px; color: var(--text-dim);">Avg. Time on Page</div>
-          </div>
-        </div>
-
-        <!-- Real-Time Activity Event Stream Table -->
-        <h3 style="font-size: 14px; font-weight: 800; color: #FFF; margin-bottom: 8px;">
-          ⚡ Live Recruiter Event Log:
-        </h3>
-        <div style="overflow-x: auto; max-height: 250px;">
-          <table class="activity-table">
+        <div style="overflow-x: auto; max-height: 180px; border: 1px solid var(--border-glass); border-radius: 12px; background: rgba(5, 8, 20, 0.4); margin-bottom: 18px;">
+          <table class="activity-table" style="width: 100%; border-collapse: collapse;">
             <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Action / Event</th>
-                <th>Device</th>
-                <th>Referrer</th>
+              <tr style="background: rgba(15, 23, 42, 0.85); text-align: left; font-size: 11px; color: var(--text-dim); text-transform: uppercase;">
+                <th style="padding: 8px 12px;">Timestamp</th>
+                <th style="padding: 8px 12px;">Action / Event</th>
+                <th style="padding: 8px 12px;">Device</th>
+                <th style="padding: 8px 12px;">Referrer</th>
               </tr>
             </thead>
             <tbody id="studio-activity-tbody">
               <tr>
-                <td colspan="4" style="text-align: center; color: var(--text-dim); padding: 20px;">
+                <td colspan="4" style="text-align: center; color: var(--text-dim); padding: 16px;">
                   No visits recorded yet. Share your ResLink to start tracking!
                 </td>
               </tr>
@@ -858,12 +838,13 @@
           </table>
         </div>
 
-        <div class="step-actions">
+        <!-- Step Navigation Footer -->
+        <div class="step-actions" style="margin-top: 16px;">
           <button type="button" class="btn btn-secondary" onclick="goToStep(3)">
             ← Back to CV Template
           </button>
           <a href="/p/mudather-mohammed" target="_blank" class="btn btn-primary">
-            Open Live Recruiter View 👁️
+            Open Full Recruiter View 👁️
           </a>
         </div>
       </section>
@@ -1517,8 +1498,15 @@
     }
 
     function copyLinkedInPitchNote() {
-      const note = document.getElementById('studio-outreach-note-preview').innerText;
-      navigator.clipboard.writeText(note).then(() => showToast("✓ LinkedIn Outreach Note copied!"));
+      const p = currentResLinkProfile;
+      const name = p?.full_name || 'Mudather Mohammed';
+      const role = p?.target_job_title || 'Junior AI Engineer / ML Infrastructure';
+      const company = p?.target_company || 'your team';
+      const url = `${window.location.origin}/p/${p?.slug || 'mudather-mohammed'}`;
+
+      const note = `Hi Hiring Team,\n\nI came across the ${role} opening at ${company} and was very impressed by your mission. Rather than just submitting a flat resume, I put together a 60-second video pitch and interactive project showcase tailored for your requirements:\n\n👉 ${url}\n\nIt covers my direct experience in Python, PyTorch, LLM agents, FastAPI, and machine learning systems. Would love to connect and discuss how I can contribute to ${company}!\n\nBest regards,\n${name}`;
+
+      navigator.clipboard.writeText(note).then(() => showToast("✓ Short LinkedIn Outreach Note copied to clipboard!"));
     }
 
     async function loadStudioAnalytics() {
