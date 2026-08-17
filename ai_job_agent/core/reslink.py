@@ -378,3 +378,141 @@ class ResLinkManager:
             print(f"[Warning] Failed to persist analytics: {e}")
 
         return analytics
+
+    @classmethod
+    def load_company_reslinks(cls) -> List[Dict[str, Any]]:
+        company_path = DATA_DIR / "company_reslinks.json"
+        if company_path.exists():
+            try:
+                with open(company_path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"[Warning] Failed to load company reslinks: {e}")
+        
+        # Default seeded company links for real-time tracking
+        default_companies = [
+            {
+                "id": "amazon-ai",
+                "company_name": "Amazon",
+                "target_role": "Junior AI Engineer / ML Infrastructure",
+                "recruiter_name": "David Miller (Tech Talent Lead)",
+                "recruiter_channel": "LinkedIn InMail",
+                "template_id": "corporate_elite",
+                "template_label": "Corporate Elite",
+                "custom_param": "Amazon",
+                "reslink_url": "/p/mudather-mohammed?company=Amazon",
+                "status": "Viewed by Recruiter (3m ago)",
+                "status_code": "viewed",
+                "video_watched_pct": 100,
+                "cv_downloaded": True,
+                "notes": "Focused on distributed ML models, FastAPI pipelines, and cloud engineering.",
+                "created_at": "2026-08-16T18:30:00Z"
+            },
+            {
+                "id": "openai-ml",
+                "company_name": "OpenAI",
+                "target_role": "Machine Learning Engineer",
+                "recruiter_name": "Sarah Jenkins (AI Hiring Lead)",
+                "recruiter_channel": "LinkedIn Connection",
+                "template_id": "tech_specialist",
+                "template_label": "Tech Specialist",
+                "custom_param": "OpenAI",
+                "reslink_url": "/p/mudather-mohammed?company=OpenAI",
+                "status": "CV Downloaded (18m ago)",
+                "status_code": "downloaded",
+                "video_watched_pct": 94,
+                "cv_downloaded": True,
+                "notes": "Emphasized neural network architecture from scratch and LLM agent orchestration.",
+                "created_at": "2026-08-16T19:00:00Z"
+            },
+            {
+                "id": "google-ai",
+                "company_name": "Google",
+                "target_role": "AI Research / ML Systems Engineer",
+                "recruiter_name": "Marcus Vance (Senior Technical Recruiter)",
+                "recruiter_channel": "Direct Application",
+                "template_id": "harvard_consulting",
+                "template_label": "Harvard Consulting",
+                "custom_param": "Google",
+                "reslink_url": "/p/mudather-mohammed?company=Google",
+                "status": "Interview Scheduled 🤝",
+                "status_code": "interview",
+                "video_watched_pct": 100,
+                "cv_downloaded": True,
+                "notes": "Highlighted mathematical foundations, PyTorch, Scikit-learn, and high-performance algorithms.",
+                "created_at": "2026-08-16T20:15:00Z"
+            },
+            {
+                "id": "scaleai-ml",
+                "company_name": "Scale AI",
+                "target_role": "Junior Machine Learning Engineer",
+                "recruiter_name": "Elena Rostova (Head of AI Talent)",
+                "recruiter_channel": "LinkedIn InMail",
+                "template_id": "corporate_elite",
+                "template_label": "Corporate Elite",
+                "custom_param": "ScaleAI",
+                "reslink_url": "/p/mudather-mohammed?company=ScaleAI",
+                "status": "Video Watched 🎥 (88%)",
+                "status_code": "watched",
+                "video_watched_pct": 88,
+                "cv_downloaded": False,
+                "notes": "Tailored data annotation pipelines and RLHF evaluation workflows.",
+                "created_at": "2026-08-16T21:40:00Z"
+            }
+        ]
+        cls.save_company_reslinks(default_companies)
+        return default_companies
+
+    @classmethod
+    def save_company_reslinks(cls, items: List[Dict[str, Any]]) -> bool:
+        company_path = DATA_DIR / "company_reslinks.json"
+        try:
+            with open(company_path, "w", encoding="utf-8") as f:
+                json.dump(items, f, indent=2)
+            return True
+        except Exception as e:
+            print(f"[Warning] Failed to persist company reslinks: {e}")
+            return False
+
+    @classmethod
+    def add_or_update_company_reslink(cls, data: Dict[str, Any]) -> Dict[str, Any]:
+        companies = cls.load_company_reslinks()
+        cid = data.get("id") or re.sub(r'[^a-zA-Z0-9-]', '', (data.get("company_name", "company") + "-" + data.get("target_role", "role")).lower().replace(' ', '-'))
+        data["id"] = cid
+        
+        template_map = {
+            "corporate_elite": "Corporate Elite",
+            "harvard_consulting": "Harvard Consulting",
+            "tech_specialist": "Tech Specialist",
+            "modern": "Modern Executive"
+        }
+        data["template_label"] = template_map.get(data.get("template_id", "corporate_elite"), "Corporate Elite")
+        
+        clean_company = re.sub(r'[^a-zA-Z0-9]', '', data.get("company_name", "General"))
+        data["custom_param"] = clean_company
+        data["reslink_url"] = f"/p/mudather-mohammed?company={clean_company}"
+        
+        if "status" not in data:
+            data["status"] = "Link Generated & Ready"
+            data["status_code"] = "ready"
+        if "created_at" not in data:
+            data["created_at"] = datetime.now().isoformat()
+
+        # Update if existing, otherwise append
+        idx = next((i for i, c in enumerate(companies) if c["id"] == cid), None)
+        if idx is not None:
+            companies[idx].update(data)
+        else:
+            companies.insert(0, data)
+
+        cls.save_company_reslinks(companies)
+        return data
+
+    @classmethod
+    def delete_company_reslink(cls, company_id: str) -> bool:
+        companies = cls.load_company_reslinks()
+        filtered = [c for c in companies if c["id"] != company_id]
+        if len(filtered) != len(companies):
+            cls.save_company_reslinks(filtered)
+            return True
+        return False

@@ -400,6 +400,11 @@
       <span style="font-size: 12px; color: var(--text-dim);">Candidate Verified Profile</span>
     </nav>
 
+    <!-- Company-Tailored Banner (Shown if ?company=XYZ is passed) -->
+    <div id="company-tailored-banner" style="display: none; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; margin-bottom: 18px; border-radius: 12px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #38BDF8; font-size: 13.5px; font-weight: 700; text-align: center;">
+      <span>🏢</span> <span id="company-banner-text">Tailored Video Pitch & Verified Resume for Amazon Hiring Team</span>
+    </div>
+
     <!-- Minimalist Candidate Profile Header -->
     <header class="profile-hero">
       <div class="hero-top">
@@ -595,19 +600,35 @@
         if (p.cta_settings.calendly_url) {
           document.getElementById('cta-calendly-btn').href = p.cta_settings.calendly_url;
         }
+      // Check Company Query Parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const companyParam = urlParams.get('company') || urlParams.get('c');
+      if (companyParam) {
+        const companyBanner = document.getElementById('company-tailored-banner');
+        const companyText = document.getElementById('company-banner-text');
+        if (companyBanner && companyText) {
+          companyBanner.style.display = 'flex';
+          companyText.innerHTML = `Personalized Pitch & Verified Portfolio for <strong>${companyParam}</strong> Engineering & Talent Team`;
+        }
+        document.title = `${p.full_name || 'Mudather Mohammed'} • Tailored for ${companyParam}`;
       }
     }
 
     async function trackCVDownload() {
       showToast("📥 Downloading verified PDF resume...");
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct';
         await fetch('/api/v1/reslink/track-view', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             slug: reslinkProfile?.slug || 'mudather-mohammed',
             event_type: 'cv_download',
-            metadata: { template: reslinkProfile?.selected_cv_template || 'corporate_elite' }
+            metadata: { 
+              template: reslinkProfile?.selected_cv_template || 'corporate_elite',
+              company: companyParam
+            }
           })
         });
       } catch (e) {}
@@ -615,13 +636,15 @@
 
     async function trackBookingClick() {
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct';
         await fetch('/api/v1/reslink/track-view', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             slug: reslinkProfile?.slug || 'mudather-mohammed',
             event_type: 'calendly_click',
-            metadata: {}
+            metadata: { company: companyParam }
           })
         });
       } catch (e) {}
@@ -630,13 +653,15 @@
     // Video play event tracking
     document.getElementById('reslink-video-player')?.addEventListener('play', () => {
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct';
         fetch('/api/v1/reslink/track-view', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             slug: reslinkProfile?.slug || 'mudather-mohammed',
             event_type: 'video_play',
-            metadata: {}
+            metadata: { company: companyParam }
           })
         });
       } catch (e) {}
@@ -646,13 +671,19 @@
       loadResLinkProfile();
       // Track page view telemetry
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct';
         fetch('/api/v1/reslink/track-view', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             slug: 'mudather-mohammed',
             event_type: 'page_view',
-            metadata: { user_agent: navigator.userAgent }
+            metadata: { 
+              user_agent: navigator.userAgent,
+              company: companyParam,
+              referrer: document.referrer || 'Direct Link'
+            }
           })
         });
       } catch (e) {}

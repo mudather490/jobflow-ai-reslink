@@ -1293,6 +1293,54 @@ async def get_reslink_analytics_endpoint():
     return analytics.model_dump()
 
 
+@app.get("/api/v1/reslink/companies")
+async def get_company_reslinks_endpoint():
+    companies = ResLinkManager.load_company_reslinks()
+    return {"status": "success", "companies": companies}
+
+
+@app.post("/api/v1/reslink/companies")
+async def create_or_update_company_reslink_endpoint(request: Request):
+    try:
+        body = await request.json()
+        saved = ResLinkManager.add_or_update_company_reslink(body)
+        return {"status": "success", "company": saved}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/api/v1/reslink/companies/{company_id}")
+async def delete_company_reslink_endpoint(company_id: str):
+    success = ResLinkManager.delete_company_reslink(company_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Company ResLink not found")
+    return {"status": "success", "message": f"Company ResLink {company_id} deleted."}
+
+
+@app.patch("/api/v1/reslink/companies/{company_id}/status")
+async def update_company_status_endpoint(company_id: str, request: Request):
+    try:
+        body = await request.json()
+        new_status = body.get("status", "Viewed by Recruiter")
+        new_code = body.get("status_code", "viewed")
+        
+        companies = ResLinkManager.load_company_reslinks()
+        for c in companies:
+            if c["id"] == company_id:
+                c["status"] = new_status
+                c["status_code"] = new_code
+                if "video_watched_pct" in body:
+                    c["video_watched_pct"] = body["video_watched_pct"]
+                if "cv_downloaded" in body:
+                    c["cv_downloaded"] = body["cv_downloaded"]
+                ResLinkManager.save_company_reslinks(companies)
+                return {"status": "success", "company": c}
+                
+        raise HTTPException(status_code=404, detail="Company not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)

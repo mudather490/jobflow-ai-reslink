@@ -1,11 +1,25 @@
 {
-  "total_views": 42,
-  "unique_visitors": 42,
+  "total_views": 43,
+  "unique_visitors": 43,
   "video_plays": 24,
   "cv_downloads": 17,
-  "calendly_clicks": 16,
+  "calendly_clicks": 17,
   "average_watch_seconds": 4244.5,
   "recent_events": [
+    {
+      "event": "calendly_click",
+      "timestamp": "2026-08-16 23:44:07",
+      "referrer": "direct",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-16 23:43:42",
+      "referrer": "direct",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "page_leave",
       "timestamp": "2026-08-16 04:47:57",
@@ -338,20 +352,6 @@
     {
       "event": "video_play",
       "timestamp": "2026-08-15 04:12:35",
-      "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-15 04:12:23",
-      "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_leave",
-      "timestamp": "2026-08-15 04:09:27",
       "referrer": "http://127.0.0.1:8000/reslink",
       "device": "desktop",
       "city": "Global Recruiter View"

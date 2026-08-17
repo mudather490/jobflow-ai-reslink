@@ -750,15 +750,55 @@
         </div>
       </section>
 
+      <!-- Company-Tailored ResLinks & Recruiter Applications Tracker -->
+      <section class="studio-card" style="margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span>🏢</span> Company-Tailored ResLinks & Recruiter Tracker
+            </h2>
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px;">
+              View and manage customized video pitches, dedicated URLs, and live recruiter engagement status for each company you apply to.
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary" style="font-size: 12.5px; padding: 7px 16px; display: inline-flex; align-items: center; gap: 6px;" onclick="openAddCompanyModal()">
+            <span>➕</span> Create Tailored ResLink for Company
+          </button>
+        </div>
+
+        <!-- Company ResLink Applications Table -->
+        <div style="overflow-x: auto; border: 1px solid var(--border-glass); border-radius: 12px; background: rgba(5, 8, 20, 0.6);">
+          <table class="activity-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: rgba(15, 23, 42, 0.85); text-align: left; font-size: 11.5px; color: var(--text-dim); text-transform: uppercase;">
+                <th style="padding: 12px 14px;">Target Company & Role</th>
+                <th style="padding: 12px 14px;">Senior Recruiter Lead</th>
+                <th style="padding: 12px 14px;">Tailored ResLink Pitch</th>
+                <th style="padding: 12px 14px;">Attached CV Template</th>
+                <th style="padding: 12px 14px;">Recruiter Engagement Status</th>
+                <th style="padding: 12px 14px; text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studio-companies-tbody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 20px;">
+                  Loading company-tailored ResLinks...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- Real-Time Recruiter Engagement Insights -->
-      <section class="studio-card">
+      <section class="studio-card" style="margin-top: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
           <div>
             <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0; display: flex; align-items: center; gap: 8px;">
-              <span>📊</span> Real-Time Recruiter Engagement Insights
+              <span>📊</span> Global Recruiter Traffic Telemetry
             </h2>
             <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
-              Live tracking showing how many recruiters visited, watched your video, and downloaded your CV.
+              Live tracking showing how many recruiters visited, watched your video, and downloaded your CV across all ResLinks.
             </p>
           </div>
           <div style="display: flex; gap: 8px;">
@@ -822,11 +862,63 @@
           <button type="button" class="btn btn-secondary" onclick="goToStep(3)">
             ← Back to CV Template
           </button>
-          <a href="/p/alex-rivera" target="_blank" class="btn btn-primary">
+          <a href="/p/mudather-mohammed" target="_blank" class="btn btn-primary">
             Open Live Recruiter View 👁️
           </a>
         </div>
       </section>
+    </div>
+  </div>
+
+  <!-- Modal: Add New Company-Tailored ResLink -->
+  <div class="auth-modal-backdrop" id="company-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;" onclick="if(event.target === this) closeCompanyModal()">
+    <div class="auth-modal-dialog" style="max-width: 540px; width: 90%; background: #0b1120; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; padding: 24px; color: #FFF; box-shadow: 0 25px 60px rgba(0,0,0,0.8);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0;">🏢 Create Company-Tailored ResLink</h3>
+        <button type="button" class="auth-modal-close" onclick="closeCompanyModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;">✕</button>
+      </div>
+
+      <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px;">
+        Generate a unique personalized video pitch link, tailored LinkedIn note, and designated ATS resume template for this employer.
+      </p>
+
+      <form id="company-reslink-form" onsubmit="handleSaveCompanyResLink(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="input-group">
+          <label class="input-label" style="color: #38BDF8; font-size: 12px; font-weight: 700;">🏢 Company Name</label>
+          <input type="text" id="modal-company-name" class="input-field" placeholder="e.g. Amazon, Google, OpenAI, Meta, Scale AI" required>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" style="color: var(--accent-cyan); font-size: 12px; font-weight: 700;">🎯 Target Job Title</label>
+          <input type="text" id="modal-target-role" class="input-field" placeholder="e.g. Junior AI Engineer / ML Infrastructure" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="input-group">
+            <label class="input-label" style="color: #34D399; font-size: 12px; font-weight: 700;">👤 Senior Recruiter Lead</label>
+            <input type="text" id="modal-recruiter-name" class="input-field" placeholder="e.g. Sarah Jenkins (Tech Lead)" value="Hiring Lead">
+          </div>
+          <div class="input-group">
+            <label class="input-label" style="color: #F59E0B; font-size: 12px; font-weight: 700;">🎨 Attached CV Template</label>
+            <select id="modal-template-select" class="select-field">
+              <option value="corporate_elite" selected>👑 Corporate Elite</option>
+              <option value="tech_specialist">⚡ Tech Specialist</option>
+              <option value="harvard_consulting">🏛️ Harvard Consulting</option>
+              <option value="modern">💎 Modern Executive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" style="color: #CBD5E1; font-size: 12px; font-weight: 700;">📌 Key Pitch Focus / Notes</label>
+          <input type="text" id="modal-company-notes" class="input-field" placeholder="e.g. Highlight PyTorch, LLM agents, FastAPI and distributed ML">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="closeCompanyModal()" style="font-size: 13px; padding: 8px 16px;">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="font-size: 13px; padding: 8px 20px; font-weight: 800;">✨ Save & Generate ResLink</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1472,6 +1564,199 @@
       } catch (e) {
         console.error("Error loading analytics:", e);
       }
+
+      // Also reload company-tailored reslinks
+      await loadCompanyResLinks();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Company-Tailored ResLinks & Recruiter Management Functions
+    // ─────────────────────────────────────────────────────────────
+    let companyResLinksList = [];
+
+    async function loadCompanyResLinks() {
+      try {
+        const r = await fetch('/api/v1/reslink/companies');
+        if (r.ok) {
+          const data = await r.json();
+          companyResLinksList = data.companies || [];
+          renderCompanyResLinksTable(companyResLinksList);
+        }
+      } catch (err) {
+        console.error("Error loading company ResLinks:", err);
+      }
+    }
+
+    function renderCompanyResLinksTable(companies) {
+      const tbody = document.getElementById('studio-companies-tbody');
+      if (!tbody) return;
+
+      if (!companies || companies.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 24px;">
+              No company-tailored ResLinks created yet. Click '+ Create Tailored ResLink for Company' to add your first one!
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const origin = window.location.origin;
+      tbody.innerHTML = companies.map(c => {
+        const fullUrl = `${origin}/p/mudather-mohammed?company=${encodeURIComponent(c.custom_param || c.company_name)}`;
+        
+        let statusBadge = `<span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3);">${c.status || 'Ready'}</span>`;
+        if (c.status_code === 'viewed') {
+          statusBadge = `<span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: rgba(52, 211, 153, 0.15); color: #34D399; border: 1px solid rgba(52, 211, 153, 0.3);">🟢 ${c.status}</span>`;
+        } else if (c.status_code === 'downloaded') {
+          statusBadge = `<span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: rgba(168, 85, 247, 0.15); color: #A855F7; border: 1px solid rgba(168, 85, 247, 0.3);">📄 ${c.status}</span>`;
+        } else if (c.status_code === 'interview') {
+          statusBadge = `<span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3);">🤝 ${c.status}</span>`;
+        } else if (c.status_code === 'watched') {
+          statusBadge = `<span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: rgba(236, 72, 153, 0.15); color: #EC4899; border: 1px solid rgba(236, 72, 153, 0.3);">🎥 ${c.status}</span>`;
+        }
+
+        const templateId = c.template_id || 'corporate_elite';
+        const templateLabel = c.template_label || 'Corporate Elite';
+        const downloadPdfUrl = `/api/v1/resume/download-pdf?template_id=${templateId}`;
+
+        return `
+          <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+            <!-- 1. Company & Target Role -->
+            <td style="padding: 12px 14px;">
+              <div style="font-weight: 800; color: #FFF; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+                <span style="color: var(--accent-cyan);">🏢</span> ${c.company_name}
+              </div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                🎯 ${c.target_role}
+              </div>
+            </td>
+
+            <!-- 2. Senior Recruiter Lead -->
+            <td style="padding: 12px 14px;">
+              <div style="font-size: 12.5px; font-weight: 600; color: #E2E8F0;">
+                👤 ${c.recruiter_name || 'Hiring Lead'}
+              </div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">
+                ${c.recruiter_channel || 'LinkedIn InMail'}
+              </div>
+            </td>
+
+            <!-- 3. Tailored ResLink Pitch Link -->
+            <td style="padding: 12px 14px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <a href="${fullUrl}" target="_blank" style="font-family: var(--font-mono); font-size: 11.5px; color: #38BDF8; text-decoration: none; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  ${fullUrl.replace(/^https?:\/\//, '')}
+                </a>
+                <button type="button" class="btn btn-secondary" style="padding: 2px 7px; font-size: 10.5px;" onclick="copyCompanyResLink('${fullUrl}')" title="Copy Link">
+                  🔗
+                </button>
+              </div>
+            </td>
+
+            <!-- 4. Attached CV Template (View & Download) -->
+            <td style="padding: 12px 14px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 11px; font-weight: 700; color: #F59E0B; background: rgba(245, 158, 11, 0.1); padding: 2px 6px; border-radius: 4px;">
+                  ${templateLabel}
+                </span>
+                <a href="${downloadPdfUrl}" target="_blank" class="btn btn-secondary" style="padding: 2px 7px; font-size: 10.5px; text-decoration: none;" title="Download PDF Resume">
+                  📥 PDF
+                </a>
+              </div>
+            </td>
+
+            <!-- 5. Recruiter Status -->
+            <td style="padding: 12px 14px;">
+              ${statusBadge}
+            </td>
+
+            <!-- 6. Actions -->
+            <td style="padding: 12px 14px; text-align: right;">
+              <div style="display: inline-flex; gap: 5px;">
+                <button type="button" class="btn btn-primary" style="padding: 3px 8px; font-size: 11px;" onclick="copyCompanyLinkedInNote('${c.company_name}', '${c.target_role}', '${c.recruiter_name}', '${fullUrl}')" title="Copy Tailored LinkedIn DM">
+                  📋 Note
+                </button>
+                <a href="${fullUrl}" target="_blank" class="btn btn-secondary" style="padding: 3px 8px; font-size: 11px; text-decoration: none;" title="Open Candidate Pitch">
+                  👁️
+                </a>
+                <button type="button" class="btn btn-secondary" style="padding: 3px 6px; font-size: 11px; color: #EF4444;" onclick="deleteCompanyResLink('${c.id}')" title="Delete">
+                  ✕
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openAddCompanyModal() {
+      const modal = document.getElementById('company-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeCompanyModal() {
+      const modal = document.getElementById('company-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function handleSaveCompanyResLink(e) {
+      e.preventDefault();
+      const companyName = document.getElementById('modal-company-name').value.trim();
+      const targetRole = document.getElementById('modal-target-role').value.trim();
+      const recruiterName = document.getElementById('modal-recruiter-name').value.trim() || 'Hiring Lead';
+      const templateId = document.getElementById('modal-template-select').value;
+      const notes = document.getElementById('modal-company-notes').value.trim();
+
+      if (!companyName || !targetRole) return;
+
+      try {
+        const r = await fetch('/api/v1/reslink/companies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            company_name: companyName,
+            target_role: targetRole,
+            recruiter_name: recruiterName,
+            template_id: templateId,
+            notes: notes
+          })
+        });
+
+        if (r.ok) {
+          showToast(`✓ Tailored ResLink for ${companyName} created!`);
+          closeCompanyModal();
+          document.getElementById('company-reslink-form').reset();
+          await loadCompanyResLinks();
+        } else {
+          showToast("Failed to create company ResLink.");
+        }
+      } catch (err) {
+        showToast(`Error: ${err.message}`);
+      }
+    }
+
+    function copyCompanyResLink(url) {
+      navigator.clipboard.writeText(url).then(() => showToast("✓ Tailored Company ResLink copied to clipboard!"));
+    }
+
+    function copyCompanyLinkedInNote(companyName, targetRole, recruiterName, url) {
+      const note = `Hi ${recruiterName || 'Hiring Lead'},\n\nI came across the ${targetRole || 'Junior AI Engineer'} opening at ${companyName} and was very impressed by your team's mission. Rather than just submitting a flat resume, I put together a 60-second video pitch and interactive project showcase tailored for ${companyName}:\n\n👉 ${url}\n\nIt highlights my direct experience in Python, PyTorch, LLM agents, FastAPI, and machine learning systems. I'd love to connect and discuss how I can add immediate value to ${companyName}!\n\nBest regards,\nMudather Mohammed`;
+      navigator.clipboard.writeText(note).then(() => showToast(`✓ Tailored LinkedIn note for ${companyName} copied!`));
+    }
+
+    async function deleteCompanyResLink(id) {
+      if (!confirm("Are you sure you want to remove this company-tailored ResLink?")) return;
+      try {
+        const r = await fetch(`/api/v1/reslink/companies/${id}`, { method: 'DELETE' });
+        if (r.ok) {
+          showToast("✓ Company ResLink removed.");
+          await loadCompanyResLinks();
+        }
+      } catch (err) {
+        showToast("Error deleting company ResLink.");
+      }
     }
 
     async function simulateRecruiterVisit() {
@@ -1482,7 +1767,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            slug: currentResLinkProfile?.slug || 'alex-rivera',
+            slug: currentResLinkProfile?.slug || 'mudather-mohammed',
             event_type: randomEvent,
             metadata: {
               referrer: 'https://linkedin.com/jobs/view',
@@ -1498,7 +1783,10 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', loadStudioProfile);
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStudioProfile();
+      loadCompanyResLinks();
+    });
   </script>
 </body>
 </html>
