@@ -1412,8 +1412,9 @@
       // Education - strictly from user profile
       let education = r.education || [];
 
-      // Additional Background
+      // Additional Background & Target Role
       let additional = r.additional_background || "";
+      let targetRole = r.target_role || p.target_job_title || "";
 
       // ── Render Template HTML Safely ──
       let html = '';
@@ -1623,6 +1624,16 @@
         `;
       }
 
+      function renderTargetRoleBlock() {
+        if (!targetRole) return '';
+        return `
+          <section class="resume-sec">
+            <h2 class="resume-sec-title">Target Role</h2>
+            <p class="resume-paragraph"><strong>${escapeHtml(targetRole)}</strong></p>
+          </section>
+        `;
+      }
+
       // Template Flow Order Alignment
       if (currentTemplate === 'tech_specialist') {
         html += renderSummaryBlock();
@@ -1631,6 +1642,7 @@
         html += renderExperienceBlock();
         html += renderEducationAndCertsBlock();
         html += renderAdditionalBackgroundBlock();
+        html += renderTargetRoleBlock();
       } else if (currentTemplate === 'harvard_consulting') {
         html += renderSummaryBlock();
         html += renderExperienceBlock();
@@ -1638,6 +1650,7 @@
         html += renderSkillsBlock();
         html += renderProjectsBlock();
         html += renderAdditionalBackgroundBlock();
+        html += renderTargetRoleBlock();
       } else if (currentTemplate === 'corporate_elite') {
         html += renderSummaryBlock();
         html += renderSkillsBlock();
@@ -1645,6 +1658,7 @@
         html += renderProjectsBlock();
         html += renderEducationAndCertsBlock();
         html += renderAdditionalBackgroundBlock();
+        html += renderTargetRoleBlock();
       } else { // modern
         html += renderSummaryBlock();
         html += renderSkillsBlock();
@@ -1652,6 +1666,7 @@
         html += renderExperienceBlock();
         html += renderEducationAndCertsBlock();
         html += renderAdditionalBackgroundBlock();
+        html += renderTargetRoleBlock();
       }
 
       sheet.innerHTML = html;

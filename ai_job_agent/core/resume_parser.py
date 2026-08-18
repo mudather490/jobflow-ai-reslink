@@ -342,78 +342,96 @@ class ResumeParser:
         projects_list: List[Project] = []
         if "PROJECTS" in sections_dict:
             raw_proj_text = sections_dict["PROJECTS"]
-            
-            # Normalize bullet markers
             raw_proj_text = re.sub(r'[\u2022\u25cf\u25cb\u25aa\u25a0]', '•', raw_proj_text)
             
-            # Split projects: each project starts with a bullet followed by project name (e.g. "IntentFlow", "Neural Network", "House Price", "FinanceTracker" or Capitalized Title with — or :)
-            # Avoid splitting on sub-bullets inside descriptions (like "• TensorFlow • PyTorch :" if preceded by NumPy)
-            p_blocks = re.split(r'(?i)(?:^|\n)\s*•\s*(?=[A-Z][\w\s\-]{2,35}(?:—|:))', raw_proj_text)
-            if len(p_blocks) <= 1:
-                p_blocks = [b for b in raw_proj_text.split("•") if b.strip()]
-
-            for p_raw in p_blocks:
-                p_block = p_raw.strip().lstrip("• ")
-                if not p_block or len(p_block) < 5:
-                    continue
-
-                # Extract repository link
-                repo = None
-                repo_m = re.search(r'(https?://github\.com/[^\s\)]+)', p_block)
-                if repo_m:
-                    repo = repo_m.group(1).rstrip(". )")
-                    p_block = p_block.replace(repo_m.group(0), "").strip()
-
-                # Extract technologies
-                techs = []
-                tech_m = re.search(r'(?:Technologies|Tech Stack|Tech)\s*[:—]\s*([^•\n\.]+)', p_block, re.I)
-                if tech_m:
-                    techs = [t.strip() for t in tech_m.group(1).split(",") if t.strip()]
-                    p_block = p_block[:tech_m.start()] + p_block[tech_m.end():]
-
-                p_block = re.sub(r'Repository\s*:\s*', '', p_block, flags=re.I).strip()
+            p_lines = [l.strip() for l in raw_proj_text.strip().split('\n') if l.strip()]
+            current_proj = None
+            
+            proj_title_patterns = [
+                r'^(IntentFlow|Neural Network|House Price|FinanceTracker|Real-Time|AI Agent|Autonomous|E-Commerce|Portfolio|Chatbot|Lead Discovery|Machine Learning|Deep Learning|NLP|Computer Vision)',
+                r'^[A-Z][\w\s\-]{2,45}(?:—|:)(?!\s*(?:Completed|In Progress|Python|SQL|FastAPI|PostgreSQL))'
+            ]
+            
+            for line in p_lines:
+                is_new_proj = False
+                for pat in proj_title_patterns:
+                    if re.search(pat, line, re.I) and not line.lower().startswith(('built', 'implemented', 'applied', 'designed', 'technologies:', 'tech:', 'repository:', 'repo:', '•', '-', '*', 'experience includes', 'experience:', 'ai agent project:')):
+                        is_new_proj = True
+                        break
                 
-                # Split header and description
-                p_lines = [l.strip() for l in p_block.split("\n") if l.strip()]
-                if not p_lines:
-                    continue
-
-                header_line = p_lines[0]
-                p_name = header_line
-                p_subtitle = None
-
-                if "—" in header_line:
-                    parts = header_line.split("—", 1)
-                    p_name = parts[0].strip(" •—:")
-                    p_subtitle = parts[1].strip(" •—:")
-                elif ":" in header_line:
-                    parts = header_line.split(":", 1)
-                    p_name = parts[0].strip(" •—:")
-                    p_subtitle = parts[1].strip(" •—:")
-
-                p_bullets = []
-                # Parse all remaining text in block for bullets or sentences
-                content_text = " ".join(p_lines[1:]) if len(p_lines) > 1 else ""
-                if not content_text and ":" in header_line and len(p_lines) == 1:
-                    # If whole project was on one line
-                    parts = header_line.split(":", 1)
-                    p_name = parts[0].strip(" •—:")
-                    content_text = parts[1].strip()
-
-                if content_text:
-                    sub_b = [b.strip() for b in re.split(r'•|\.\s+(?=[A-Z])', content_text) if b.strip()]
-                    for b_item in sub_b:
-                        b_clean = b_item.strip(" •.")
-                        if len(b_clean) > 4 and not b_clean.lower().startswith("technologies:"):
-                            p_bullets.append(b_clean if b_clean.endswith('.') else b_clean + '.')
-
-                projects_list.append(Project(
-                    name=p_name,
-                    subtitle=p_subtitle,
-                    bullets=p_bullets,
-                    technologies=techs,
-                    repository=repo
-                ))
+                if is_new_proj:
+                    if current_proj:
+                        projects_list.append(Project(**current_proj))
+                    
+                    repo = None
+                    repo_m = re.search(r'(https?://github\.com/[^\s\)]+)', line)
+                    if repo_m:
+                        repo = repo_m.group(1).rstrip('. )')
+                        line = line.replace(repo_m.group(0), '').strip()
+                        
+                    p_name = line.strip(' •—:')
+                    p_subtitle = None
+                    p_desc = None
+                    
+                    # Clean title and subtitle
+                    if '—' in line:
+                        parts = line.split('—', 1)
+                        p_name = parts[0].strip(' •—:')
+                        rest = parts[1].strip(' •—:')
+                        if ':' in rest:
+                            sub_parts = rest.split(':', 1)
+                            p_subtitle = sub_parts[0].strip(' •—:')
+                            if len(sub_parts[1].strip()) > 5:
+                                p_desc = sub_parts[1].strip()
+                        else:
+                            p_subtitle = rest
+                    elif ':' in line:
+                        parts = line.split(':', 1)
+                        p_name = parts[0].strip(' •—:')
+                        rest = parts[1].strip(' •—:')
+                        if len(rest) > 0:
+                            if len(rest) > 50 and not any(k in rest for k in ['NumPy', 'Python', 'FastAPI', 'PyTorch', 'TensorFlow']):
+                                p_desc = rest
+                            else:
+                                p_subtitle = rest.strip(' :•')
+                    
+                    if p_name.lower().endswith((': numpy', ' numpy', '— numpy', '- numpy')):
+                        p_name = re.sub(r'(?i)[:—\-]\s*numpy.*$', '', p_name).strip()
+                        p_subtitle = 'NumPy • TensorFlow • PyTorch'
+                    
+                    current_proj = {
+                        'name': p_name,
+                        'subtitle': p_subtitle,
+                        'description': p_desc,
+                        'technologies': [],
+                        'repository': repo,
+                        'bullets': []
+                    }
+                else:
+                    if not current_proj:
+                        continue
+                    
+                    repo_m = re.search(r'(https?://github\.com/[^\s\)]+)', line)
+                    if repo_m:
+                        current_proj['repository'] = repo_m.group(1).rstrip('. )')
+                        continue
+                    
+                    tech_m = re.search(r'(?:Technologies|Tech Stack|Tech)\s*[:—]\s*([^•\n]+)', line, re.I)
+                    if tech_m:
+                        current_proj['technologies'] = [t.strip().rstrip('.') for t in tech_m.group(1).split(',') if t.strip()]
+                        continue
+                    
+                    if line.lower().startswith('ai agent project:'):
+                        if not current_proj['subtitle']:
+                            current_proj['subtitle'] = 'AI Agent Project'
+                        continue
+                    
+                    clean_l = line.lstrip('•-* ').strip()
+                    if clean_l and not clean_l.lower().startswith(('repository:', 'repo:')):
+                        current_proj['bullets'].append(clean_l if clean_l.endswith(('.', ':', ';', '!')) else clean_l + '.')
+            
+            if current_proj:
+                projects_list.append(Project(**current_proj))
 
         # D. Experience
         experience_list: List[WorkExperience] = []
