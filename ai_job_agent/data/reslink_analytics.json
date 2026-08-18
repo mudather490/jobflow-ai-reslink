@@ -1,11 +1,74 @@
 {
-  "total_views": 64,
-  "unique_visitors": 64,
+  "total_views": 73,
+  "unique_visitors": 73,
   "video_plays": 26,
   "cv_downloads": 18,
   "calendly_clicks": 17,
   "average_watch_seconds": 4244.5,
   "recent_events": [
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:23:08",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:23:08",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:23:08",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:23:08",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:23:08",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:23:07",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:23:06",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:23:05",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:23:01",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "page_view",
       "timestamp": "2026-08-18 04:09:11",
@@ -290,69 +353,6 @@
       "event": "page_view",
       "timestamp": "2026-08-16 03:22:22",
       "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 03:09:01",
-      "referrer": "http://127.0.0.1:8000/app",
-      "device": "mobile",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 03:08:25",
-      "referrer": "http://127.0.0.1:8000/app",
-      "device": "mobile",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_leave",
-      "timestamp": "2026-08-16 00:37:15",
-      "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:34:08",
-      "referrer": "https://linkedin.com/in/alex",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "calendly_click",
-      "timestamp": "2026-08-16 00:34:08",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "cv_download",
-      "timestamp": "2026-08-16 00:34:08",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
-      "timestamp": "2026-08-16 00:34:08",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:34:08",
-      "referrer": "linkedin.com",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:26:43",
-      "referrer": "https://linkedin.com/in/alex",
       "device": "desktop",
       "city": "Global Recruiter View"
     }
