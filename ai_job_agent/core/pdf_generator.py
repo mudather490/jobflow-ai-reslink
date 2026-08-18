@@ -534,6 +534,8 @@ class ResumeDocumentGenerator:
                     yr_str = f" | {edu.year}" if edu.year else ""
                     deg_str = f" — {edu.degree}" if edu.degree and edu.degree != "Degree" else ""
                     elements.append(Paragraph(f"• <b>{edu.institution}{deg_str}</b>{yr_str}", bullet_style))
+                    if edu.details:
+                        elements.append(Paragraph(edu.details, sub_bullet_style))
                 elements.append(Spacer(1, 3))
 
         def add_pdf_certs():

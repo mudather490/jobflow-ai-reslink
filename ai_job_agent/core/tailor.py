@@ -68,28 +68,25 @@ class ResumeTailor:
         self, profile: UserProfile, job: JobDetails, match_report: MatchReport
     ) -> UserProfile:
         """
-        Produces a complete tailored UserProfile customized for the target job.
+        Produces a tailored UserProfile for an active application while 100% preserving
+        authentic candidate experience, credentials, and identity.
         """
         tailored = profile.model_copy(deep=True)
 
-        # 1. Update Headline
-        tailored.headline = f"{job.title} Candidate | {', '.join(match_report.matched_skills[:3])}"
+        # 1. Maintain authentic Headline
+        if not tailored.headline or tailored.headline in ["Candidate", "Professional Profile"]:
+            tailored.headline = f"{job.title} | {', '.join(match_report.matched_skills[:3])}"
 
-        # 2. Tailor Summary
-        tailored.summary = self.tailor_summary(tailored, job, match_report)
+        # 2. Prioritize authentic matching skills
+        if match_report.matched_skills:
+            matched_set = set(match_report.matched_skills)
+            other_skills = [s for s in tailored.skills if s not in matched_set]
+            tailored.skills = [s for s in match_report.matched_skills if s in tailored.skills] + other_skills
 
-        # 3. Prioritize Skills
-        matched_set = set(match_report.matched_skills)
-        other_skills = [s for s in tailored.skills if s not in matched_set]
-        tailored.skills = match_report.matched_skills + other_skills
-
-        # 4. Tailor Experience bullets
-        tailored.experience = self.tailor_experience_bullets(
-            tailored.experience, match_report.matched_skills
-        )
-
-        # 5. Tailor Target Role
-        comp_str = f" at {job.company}" if job.company and job.company.lower() != "company" else ""
-        tailored.target_role = f"Remote {job.title}{comp_str}"
+        # 3. Order authentic Experience bullets by keyword relevance
+        if match_report.matched_skills:
+            tailored.experience = self.tailor_experience_bullets(
+                tailored.experience, match_report.matched_skills
+            )
 
         return tailored

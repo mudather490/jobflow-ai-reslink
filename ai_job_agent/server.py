@@ -322,12 +322,11 @@ async def upload_resume(file: UploadFile = File(...), user_email: Optional[str] 
         print(f"Failed to parse resume: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to parse resume.")
 
-    if active_job:
-        active_match = matcher.evaluate_match(active_profile, active_job)
-        tailored = tailor.tailor_profile(active_profile, active_job, active_match)
-        active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
-            tailored, active_job.title, active_job.company, original_filename=active_resume_filename
-        )
+    active_job = None
+    active_match = None
+    active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
+        active_profile, "", "", original_filename=active_resume_filename
+    )
 
     return {
         "status": "success",
@@ -757,27 +756,23 @@ async def get_templates():
 @app.get("/api/v1/resume/download/pdf")
 @app.get("/api/v1/resume/download-pdf")
 async def download_pdf(template_id: Optional[str] = None):
-    global active_pdf_path, active_profile, active_job, active_match, active_resume_filename, active_template
+    global active_pdf_path, active_profile, active_resume_filename, active_template
     
     target_tmpl = template_id or active_template or "modern"
     safe_template_id = SecurityShield.sanitize_string(target_tmpl, "Template ID") or "modern"
     if not active_profile:
-        # Load baseline candidate profile
         active_profile = parser.extract_from_text(DEFAULT_RESUME_TEXT)
         active_resume_filename = "Alex_Rivera_Resume.pdf"
         
-    title = active_job.title if active_job else "Senior AI Engineer"
-    comp = active_job.company if active_job else "Target Employer"
-    prof = tailor.tailor_profile(active_profile, active_job, active_match) if (active_job and active_match) else active_profile
     _, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
-        prof, title, comp, original_filename=active_resume_filename, template_id=safe_template_id
+        active_profile, "", "", original_filename=active_resume_filename, template_id=safe_template_id
     )
 
     if not active_pdf_path or not Path(active_pdf_path).exists():
         raise HTTPException(status_code=500, detail="Failed to generate PDF")
     
     # Clean recruiter-friendly filename
-    cand_name = (getattr(prof, 'full_name', None) or getattr(prof, 'name', 'Candidate')).replace(' ', '_')
+    cand_name = (getattr(active_profile, 'full_name', None) or getattr(active_profile, 'name', 'Candidate')).replace(' ', '_')
     cand_name = re.sub(r'[^\w\-]', '', cand_name).strip('_') or 'Candidate'
     safe_path = SecurityShield.sanitize_filepath(Path(active_pdf_path).name, OUTPUT_DIR)
     return FileResponse(
@@ -791,7 +786,7 @@ async def download_pdf(template_id: Optional[str] = None):
 @app.get("/api/v1/resume/download/docx")
 @app.get("/api/v1/resume/download-docx")
 async def download_docx(template_id: Optional[str] = None):
-    global active_docx_path, active_profile, active_job, active_match, active_resume_filename, active_template
+    global active_docx_path, active_profile, active_resume_filename, active_template
     
     target_tmpl = template_id or active_template or "modern"
     safe_template_id = SecurityShield.sanitize_string(target_tmpl, "Template ID") or "modern"
@@ -799,18 +794,15 @@ async def download_docx(template_id: Optional[str] = None):
         active_profile = parser.extract_from_text(DEFAULT_RESUME_TEXT)
         active_resume_filename = "Alex_Rivera_Resume.pdf"
         
-    title = active_job.title if active_job else "Senior AI Engineer"
-    comp = active_job.company if active_job else "Target Employer"
-    prof = tailor.tailor_profile(active_profile, active_job, active_match) if (active_job and active_match) else active_profile
     active_docx_path, _ = ResumeDocumentGenerator.export_tailored_documents(
-        prof, title, comp, original_filename=active_resume_filename, template_id=safe_template_id
+        active_profile, "", "", original_filename=active_resume_filename, template_id=safe_template_id
     )
 
     if not active_docx_path or not Path(active_docx_path).exists():
         raise HTTPException(status_code=500, detail="Failed to generate DOCX")
     
     # Clean recruiter-friendly filename
-    cand_name = (getattr(prof, 'full_name', None) or getattr(prof, 'name', 'Candidate')).replace(' ', '_')
+    cand_name = (getattr(active_profile, 'full_name', None) or getattr(active_profile, 'name', 'Candidate')).replace(' ', '_')
     cand_name = re.sub(r'[^\w\-]', '', cand_name).strip('_') or 'Candidate'
     safe_path = SecurityShield.sanitize_filepath(Path(active_docx_path).name, OUTPUT_DIR)
     return FileResponse(
