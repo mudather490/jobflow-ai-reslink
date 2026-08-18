@@ -14,6 +14,50 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// ─── Global Toast Notification System ───
+function showToast(msg, duration = 3500) {
+  if (!msg) return;
+  let toast = document.getElementById('app-global-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-global-toast';
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: rgba(15, 23, 42, 0.96);
+      color: #F8FAFC;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.2);
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 13.5px;
+      font-weight: 600;
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      backdrop-filter: blur(12px);
+    `;
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = String(msg);
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateY(0)';
+
+  if (window._toastTimeout) clearTimeout(window._toastTimeout);
+  window._toastTimeout = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(16px)';
+  }, duration);
+}
+window.showToast = showToast;
+
 // Persistent Candidate Quick Profile for 1-Click Auto Applications
 function getSavedCandidateProfile() {
   try {
