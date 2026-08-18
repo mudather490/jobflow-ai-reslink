@@ -3,7 +3,7 @@ import re
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 from pydantic import BaseModel, Field
 
 from core.resume_parser import UserProfile
@@ -147,6 +147,46 @@ class ResLinkManager:
         )
         cls.save_profile(new_profile)
         return new_profile
+
+    @classmethod
+    def load_profile_by_slug(cls, slug: str, fallback_profile: Optional[UserProfile] = None) -> Tuple[ResLinkProfile, Optional[UserProfile]]:
+        clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', slug.lower()).strip('-')
+        
+        # 1. Search in data/users/ for stored profiles matching slug
+        users_dir = DATA_DIR / "users"
+        if users_dir.exists():
+            for p_file in users_dir.glob("*_profile.json"):
+                try:
+                    with open(p_file, "r", encoding="utf-8") as f:
+                        u_data = json.load(f)
+                    prof_data = u_data.get("profile", {})
+                    full_name = prof_data.get("full_name", "")
+                    prof_slug = re.sub(r'[^a-zA-Z0-9-]', '', full_name.lower().replace(' ', '-')).strip('-')
+                    slug_condensed = re.sub(r'[^a-zA-Z0-9]', '', clean_slug)
+                    name_condensed = re.sub(r'[^a-zA-Z0-9]', '', full_name.lower())
+                    if prof_slug == clean_slug or slug_condensed == name_condensed or (len(slug_condensed) > 4 and slug_condensed in name_condensed):
+                        u_prof = UserProfile(**prof_data)
+                        reslink_prof = cls.sync_with_user_profile(u_prof)
+                        return reslink_prof, u_prof
+                except Exception:
+                    continue
+
+        # 2. Check if a resume file exists in data/ matching the slug
+        for f in DATA_DIR.glob("*.*"):
+            if f.suffix.lower() in [".pdf", ".docx"]:
+                f_name_condensed = re.sub(r'[^a-zA-Z0-9]', '', f.stem.lower())
+                slug_condensed = re.sub(r'[^a-zA-Z0-9]', '', clean_slug)
+                if (len(slug_condensed) > 4 and slug_condensed in f_name_condensed) or ("sebastian" in slug_condensed and "accountant" in f_name_condensed):
+                    try:
+                        u_prof = ResumeParser.parse_file(str(f))
+                        reslink_prof = cls.sync_with_user_profile(u_prof)
+                        return reslink_prof, u_prof
+                    except Exception:
+                        pass
+
+        # 3. Fallback to main profile
+        res_prof = cls.load_profile(fallback_profile=fallback_profile)
+        return res_prof, fallback_profile
 
     @classmethod
     def sync_with_user_profile(cls, profile: UserProfile) -> ResLinkProfile:

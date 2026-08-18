@@ -1257,9 +1257,15 @@
     // ── 5. Data Fetching & Sync ──
     async function loadCandidateProfileData() {
       try {
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        const currentSlug = (pathSegments.length > 0 && pathSegments[0] === 'p') ? pathSegments[1] : ((pathSegments.length > 1 && pathSegments[0] === 'reslink') ? pathSegments[1] : '');
+        
+        const reslinkUrl = currentSlug ? `/api/v1/reslink?slug=${encodeURIComponent(currentSlug)}` : '/api/v1/reslink';
+        const resumeUrl = currentSlug ? `/api/v1/resume/current?slug=${encodeURIComponent(currentSlug)}` : '/api/v1/resume/current';
+
         const [reslinkRes, resumeRes] = await Promise.all([
-          fetch('/api/v1/reslink').catch(() => null),
-          fetch('/api/v1/resume/current').catch(() => null)
+          fetch(reslinkUrl).catch(() => null),
+          fetch(resumeUrl).catch(() => null)
         ]);
 
         if (reslinkRes && reslinkRes.ok) {

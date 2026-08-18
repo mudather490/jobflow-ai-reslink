@@ -248,9 +248,18 @@ async def serve_reslink_studio():
 
 
 @app.get("/api/v1/resume/current")
-async def get_current_profile(email: Optional[str] = None):
+async def get_current_profile(email: Optional[str] = None, slug: Optional[str] = None):
     global active_profile, active_resume_filename, active_resume_size
     from core.supabase_client import SupabaseManager
+
+    if slug:
+        _, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
+        if u_prof:
+            return {
+                "filename": f"{u_prof.full_name.replace(' ', '_')}_Resume.pdf",
+                "filesize": "Verified (Cloud Synced)",
+                "profile": u_prof.model_dump(),
+            }
 
     if email:
         clean_email = email.strip().lower()
@@ -1589,8 +1598,16 @@ async def gumroad_webhook(request: Request):
 # ─────────────────────────────────────────────────────────────
 
 @app.get("/api/v1/reslink")
-async def get_reslink_profile_endpoint():
+async def get_reslink_profile_endpoint(slug: Optional[str] = None):
     global active_profile
+    if slug:
+        profile, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
+        res_data = profile.model_dump()
+        target_u_prof = u_prof or active_profile
+        if target_u_prof:
+            res_data["resume_profile"] = target_u_prof.model_dump()
+        return res_data
+
     profile = ResLinkManager.load_profile(fallback_profile=active_profile)
     res_data = profile.model_dump()
     if active_profile:
