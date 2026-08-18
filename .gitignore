@@ -9,6 +9,10 @@ venv/
 .venv/
 ENV/
 
+# Antigravity & AI Agent Internal Workspaces
+.agents/
+.gemini/
+
 # Environment Variables & Secrets
 .env
 .env.*

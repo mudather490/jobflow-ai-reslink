@@ -67,7 +67,7 @@ Visit:
 
 1. Create a project on [Supabase](https://supabase.com).
 2. Go to **SQL Editor** in your Supabase Dashboard.
-3. Open [`ai_job_agent/supabase_schema.sql`](file:///c:/Users/MudaX/Documents/antigravity/quirky-pascal/ai_job_agent/supabase_schema.sql), copy its content, paste it into the editor, and click **Run**.
+3. Open [`ai_job_agent/supabase/schema.sql`](file:///c:/Users/MudaX/Documents/antigravity/quirky-pascal/ai_job_agent/supabase/schema.sql), copy its content, paste it into the editor, and click **Run**.
 4. Set your environment variables in `.env`:
    ```env
    SUPABASE_URL=https://your-project.supabase.co
