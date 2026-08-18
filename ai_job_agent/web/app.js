@@ -179,18 +179,33 @@ async function loadInitialProfile() {
 }
 
 function renderActiveFileCard(filename, filesize, profile) {
-  if (filename) document.getElementById('file-display-name').innerText = filename;
-  if (filesize) document.getElementById('file-size-display').innerText = filesize;
-  if (profile.full_name) document.getElementById('candidate-name-display').innerText = profile.full_name;
-  document.getElementById('skills-count').innerText = profile.skills.length;
+  if (!profile) return;
+  const fileDisplay = document.getElementById('file-display-name');
+  if (fileDisplay && filename) fileDisplay.innerText = filename;
+
+  const sizeDisplay = document.getElementById('file-size-display');
+  if (sizeDisplay && filesize) sizeDisplay.innerText = filesize;
+
+  const nameDisplay = document.getElementById('candidate-name-display');
+  if (nameDisplay && profile.full_name) nameDisplay.innerText = profile.full_name;
+
+  const skillsList = Array.isArray(profile.skills) ? profile.skills : [];
+  const skillsCount = document.getElementById('skills-count');
+  if (skillsCount) skillsCount.innerText = skillsList.length;
   
   const cloud = document.getElementById('profile-skills-cloud');
-  cloud.innerHTML = profile.skills.map(s => `
-    <span class="skill-chip chip-match" style="display: inline-flex; align-items: center; gap: 4px;">
-      ${escapeHtml(s)}
-      <span class="skill-remove-btn" onclick="removeSkill('${escapeHtml(s).replace(/'/g, "\\'")}', event)" title="Remove ${escapeHtml(s)}">&times;</span>
-    </span>
-  `).join('');
+  if (cloud) {
+    if (skillsList.length === 0) {
+      cloud.innerHTML = '<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">No specific skills isolated yet. Add your skills below or re-upload.</span>';
+    } else {
+      cloud.innerHTML = skillsList.map(s => `
+        <span class="skill-chip chip-match" style="display: inline-flex; align-items: center; gap: 4px;">
+          ${escapeHtml(s)}
+          <span class="skill-remove-btn" onclick="removeSkill('${escapeHtml(s).replace(/'/g, "\\'")}', event)" title="Remove ${escapeHtml(s)}">&times;</span>
+        </span>
+      `).join('');
+    }
+  }
 }
 
 // Interactive Skill Management: Add & Remove
@@ -279,6 +294,14 @@ dropzone?.addEventListener('drop', async (e) => {
 });
 
 async function handleFileUpload(file) {
+  if (!file) return;
+
+  const statusBadge = document.getElementById('resume-status-badge');
+  if (statusBadge) {
+    statusBadge.innerText = '⏳ INGESTING & PARSING...';
+    statusBadge.style.color = 'var(--accent-cyan)';
+  }
+
   const formData = new FormData();
   formData.append('file', file);
 
@@ -293,33 +316,42 @@ async function handleFileUpload(file) {
     formData.append('user_email', userEmail);
   }
 
-  const statusBadge = document.getElementById('resume-status-badge');
-  statusBadge.innerText = '⏳ INGESTING & PARSING...';
-  statusBadge.style.color = 'var(--accent-cyan)';
-
   try {
     const res = await fetch('/api/v1/resume/upload', {
       method: 'POST',
       body: formData,
     });
-    if (!res.ok) throw new Error("Upload failed");
+    
+    if (!res.ok) {
+      let errMsg = "Upload failed";
+      try {
+        const errJson = await res.json();
+        errMsg = errJson.detail || errJson.message || errJson.error || errMsg;
+      } catch (e) {}
+      throw new Error(errMsg);
+    }
 
     const data = await res.json();
     currentProfile = data.profile;
     renderActiveFileCard(data.filename, data.filesize, currentProfile);
 
-    statusBadge.innerText = '✓ UPLOADED & READY';
-    statusBadge.style.color = '#34D399';
+    if (statusBadge) {
+      statusBadge.innerText = '✓ UPLOADED & READY';
+      statusBadge.style.color = '#34D399';
+    }
 
-    showToast("💾 Resume Uploaded & Saved Permanently to Your Supabase Profile!");
+    showToast("💾 Resume Uploaded & Parsed Successfully!");
 
     if (selectedJob) {
       selectJob(selectedJob);
     }
   } catch (err) {
-    alert("Error uploading resume: " + err.message);
-    statusBadge.innerText = '✗ UPLOAD ERROR';
-    statusBadge.style.color = 'var(--accent-rose)';
+    console.error("Resume upload error:", err);
+    if (statusBadge) {
+      statusBadge.innerText = '✗ UPLOAD ERROR';
+      statusBadge.style.color = 'var(--accent-rose)';
+    }
+    showToast(`❌ Upload Error: ${err.message}`, 5000);
   }
 }
 
