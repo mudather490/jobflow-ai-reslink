@@ -56,7 +56,11 @@ window.selectTemplate = function(templateId) {
   const normId = (templateId === 'harvard_consulting' ? 'harvard' : (templateId === 'tech_specialist' ? 'tech' : (templateId === 'corporate_elite' ? 'minimal' : templateId))) || 'modern';
   
   const currentTier = (localStorage.getItem('user_subscription_tier') || 'free').toLowerCase();
-  if (currentTier === 'free' || currentTier === 'starter') {
+  let user = null;
+  try { user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null'); } catch(e) {}
+  const isOwner = (currentTier === 'owner' || (user && user.email && user.email.toLowerCase() === 'mudatherkbyer@gmail.com'));
+
+  if (!isOwner && (currentTier === 'free' || currentTier === 'starter')) {
     if (normId !== 'modern') {
       showToast("🔒 Premium Template: Upgrade to Pro or Executive to unlock all ATS templates!");
       openModal('modal-pricing');
@@ -64,15 +68,15 @@ window.selectTemplate = function(templateId) {
     }
   }
 
-  window.selectedTemplateId = normId;
-  localStorage.setItem('selected_resume_template', normId);
+  window.selectedTemplateId = templateId || normId;
+  localStorage.setItem('selected_resume_template', templateId || normId);
 
   // Sync with server and ResLink profile
   try {
     fetch('/api/v1/templates/active', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ template_id: normId })
+      body: JSON.stringify({ template_id: templateId || normId })
     });
   } catch (e) {
     console.warn("Failed to sync active template with server:", e);
@@ -82,7 +86,7 @@ window.selectTemplate = function(templateId) {
   const btns = document.querySelectorAll('.template-btn');
   btns.forEach(b => {
     const bid = b.dataset.templateId;
-    if (bid === normId || bid === templateId || b.id === `btn-tmpl-${normId}` || b.id === `btn-tmpl-${templateId}`) {
+    if (bid === templateId || bid === normId || b.id === `btn-tmpl-${normId}` || b.id === `btn-tmpl-${templateId}`) {
       b.classList.add('active');
     } else {
       b.classList.remove('active');
@@ -92,15 +96,15 @@ window.selectTemplate = function(templateId) {
   // Update active badge label
   const badge = document.getElementById('active-template-badge');
   if (badge) {
-    badge.innerText = templateNames[normId] || 'Modern Executive';
+    badge.innerText = templateNames[templateId] || templateNames[normId] || 'Modern Executive';
   }
 
   // Update download button label indicators
   const pdfLbl = document.getElementById('lbl-pdf-template');
-  if (pdfLbl) pdfLbl.innerText = templateShortNames[normId] || 'Modern';
+  if (pdfLbl) pdfLbl.innerText = templateShortNames[templateId] || templateShortNames[normId] || 'Modern';
 
   const docxLbl = document.getElementById('lbl-docx-template');
-  if (docxLbl) docxLbl.innerText = templateShortNames[normId] || 'Modern';
+  if (docxLbl) docxLbl.innerText = templateShortNames[templateId] || templateShortNames[normId] || 'Modern';
 };
 
 // Modal Controls
