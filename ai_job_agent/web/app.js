@@ -514,11 +514,20 @@ function renderMatchReport(report) {
   if (matchedCountBadge) matchedCountBadge.innerText = `${report.matched_skills.length} Matched`;
   matchedCloud.innerHTML = report.matched_skills.map(s => `<span class="skill-chip chip-match">✓ ${escapeHtml(s)}</span>`).join('') || '<span style="color:var(--text-dim);font-size:12px;">None detected</span>';
 
-  // Render Missing Skills
+  // Render Missing Skills with one-click "+ Add Skill" Bridge capability
   const missingCloud = document.getElementById('missing-skills-cloud');
   const missingCountBadge = document.getElementById('missing-count-badge');
   if (missingCountBadge) missingCountBadge.innerText = `${report.missing_critical_skills.length} Missing`;
-  missingCloud.innerHTML = report.missing_critical_skills.map(s => `<span class="skill-chip chip-gap">✗ ${escapeHtml(s)}</span>`).join('') || '<span class="skill-chip chip-match">✓ 100% Match (No Gaps)</span>';
+  
+  if (report.missing_critical_skills.length > 0) {
+    missingCloud.innerHTML = report.missing_critical_skills.map(s => `
+      <span class="skill-chip chip-gap" style="cursor: pointer; transition: transform 0.2s;" onclick="addSkillFromBridge('${escapeHtml(s).replace(/'/g, "\\'")}')" title="Click to instantly bridge and add ${escapeHtml(s)} to your resume (+15% score)">
+        + ${escapeHtml(s)}
+      </span>
+    `).join('');
+  } else {
+    missingCloud.innerHTML = '<span class="skill-chip chip-match">✓ 100% Match (No Gaps)</span>';
+  }
 
   // Render Candidate's Additional Profile Strengths (Bonus Skills)
   const extraCloud = document.getElementById('extra-skills-cloud');
@@ -541,6 +550,35 @@ function renderMatchReport(report) {
     intNotes.innerText = report.eligibility_notes || 'Open to international remote applicants globally.';
   }
 }
+
+// Step 4B: Instant Skill Bridge Action
+window.addSkillFromBridge = async function(skillName) {
+  if (!skillName) return;
+  try {
+    const res = await fetch('/api/v1/resume/skills/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skill: skillName })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (currentProfile) {
+        currentProfile.skills = data.skills;
+        renderActiveFileCard(
+          document.getElementById('file-display-name').innerText,
+          document.getElementById('file-size-display').innerText,
+          currentProfile
+        );
+      }
+      if (data.match) {
+        currentMatchReport = data.match;
+        renderMatchReport(currentMatchReport);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to add bridge skill:', e);
+  }
+};
 
 // Step 4: AI Gap Questioning Agent
 document.getElementById('btn-bridge-gaps')?.addEventListener('click', async () => {

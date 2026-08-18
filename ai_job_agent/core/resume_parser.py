@@ -165,8 +165,8 @@ class ResumeParser:
     @staticmethod
     def normalize_text_spacing(text: str) -> str:
         """
-        Cleans spacing and kerning anomalies from Canva, Figma, InDesign, LaTeX, and Word PDFs.
-        Preserves true word boundaries while collapsing space-separated letter glyphs.
+        Cleans spacing anomalies from PDF extraction (letter-spacing/kerning, double spaces, page numbers).
+        Accurately reconstructs words and word boundaries for Canva, Figma, LaTeX, Word, and standard PDFs.
         """
         lines = text.split("\n")
         cleaned_lines = []
@@ -175,33 +175,33 @@ class ResumeParser:
             if not l.strip():
                 continue
             
-            # Step 1: Split on 2 or more spaces (or tabs) to preserve genuine word boundaries
-            word_chunks = [w for w in re.split(r'\s{2,}|\t+', l) if w.strip()]
-            reconstructed_words = []
-            for chunk in word_chunks:
-                # Check for spaced characters within word chunk (e.g. 'S E B A S T I A N' or 'P r o f e s s i o n a l')
-                tokens = chunk.split(' ')
-                single_count = sum(1 for t in tokens if len(t) == 1)
-                if len(tokens) > 1 and (single_count / len(tokens)) > 0.4:
-                    cleaned_word = ''.join(tokens)
-                else:
-                    cleaned_word = chunk
-                reconstructed_words.append(cleaned_word)
+            # Check if this line is letter-spaced / kerned (e.g. "S E B A S T I A N  B E N N E T T")
+            tokens = [t for t in l.split(" ") if t != ""]
+            single_chars = [t for t in tokens if len(t) == 1]
+            
+            if len(tokens) >= 3 and (len(single_chars) / len(tokens)) > 0.40:
+                # In kerned lines, word boundaries are separated by 2 or more spaces
+                word_chunks = re.split(r'\s{2,}', l.strip())
+                de_kerned_words = []
+                for chunk in word_chunks:
+                    # Remove single spaces between single characters
+                    dk = re.sub(r'(?<=\S)\s(?=\S)', '', chunk)
+                    if dk.strip():
+                        de_kerned_words.append(dk.strip())
+                cleaned = " ".join(de_kerned_words)
                 
-            clean_line = ' '.join(reconstructed_words).strip()
+                # Separate concatenated phone, email, and street address if merged
+                cleaned = re.sub(r'(\+\d[\d\-]+)([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})', r'\1 \2', cleaned)
+                cleaned = re.sub(r'([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(\d{1,4}\s+[A-Za-z]+)', r'\1 \2', cleaned)
+            else:
+                # Normal line: collapse multiple spaces/tabs into single space
+                cleaned = re.sub(r'[ \t]{2,}', ' ', l.strip())
             
-            # Step 2: Clean digit & symbol spacing
-            clean_line = re.sub(r'(\d)\s+(\d)', r'\1\2', clean_line)
-            clean_line = re.sub(r'(\d)\s+(\d)', r'\1\2', clean_line)
-            clean_line = re.sub(r'\+\s*(\d)', r'+\1', clean_line)
-            clean_line = re.sub(r'(\w)\s+@\s+(\w)', r'\1@\2', clean_line)
-            clean_line = re.sub(r'(\w)\s+\.\s+(\w)', r'\1.\2', clean_line)
-            
-            # Step 3: Strip trailing solitary page numbers
-            if re.match(r'^\d+$', clean_line.strip()) and len(clean_line.strip()) <= 2:
+            # Filter isolated standalone page numbers e.g. "1" or "Page 1"
+            if re.match(r'^(?:Page\s+)?\d+$', cleaned, re.I):
                 continue
                 
-            cleaned_lines.append(clean_line)
+            cleaned_lines.append(cleaned)
             
         return "\n".join(cleaned_lines)
 
@@ -216,15 +216,60 @@ class ResumeParser:
         if not lines:
             return UserProfile(full_name="Candidate Name")
 
-        # 1. Universal Section Boundary Identification
+        # 1. Candidate Name & Headline Extraction
+        full_name = lines[0].strip()
+        headline = None
+        if len(lines) > 1:
+            cand_head = lines[1].strip()
+            if not any(k in cand_head.lower() for k in ["@", "http", "+1", "+44", "phone", "email", "linkedin", "github"]):
+                headline = cand_head
+
+        # 2. Contact Information Extraction
+        email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", text)
+        phone_match = re.search(r"(\+?\d{1,3}[-.\s]*)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}", text)
+        linkedin_match = re.search(r"(?:https?://)?(?:www\.)?(linkedin\.com/in/[\w\-]+)", text)
+        github_match = re.search(r"(?:https?://)?(?:www\.)?(github\.com/[\w\-]+)", text)
+
+        phone_val = phone_match.group(0).strip() if phone_match else None
+
+        # Location extraction (isolate street address / city from contact line)
+        location_val = None
+        for line in lines[:10]:
+            if "@" in line or (phone_val and phone_val in line):
+                rem = line
+                if email_match: rem = rem.replace(email_match.group(0), "")
+                if phone_val: rem = rem.replace(phone_val, "")
+                rem = re.sub(r'(?i)\b(?:email|phone|linkedin|github|contact|tel|mobile)\b\s*[:—]?', '', rem)
+                loc_cand = rem.strip(" ,|•-\t+")
+                if len(loc_cand) > 3 and not any(k in loc_cand.lower() for k in ["education", "experience", "skills", "about me", "summary"]):
+                    location_val = loc_cand
+                    break
+        
+        if not location_val:
+            loc_m = re.search(r"(?:\d+\s+[A-Za-z0-9\s\.]+(?:St\.|Street|Ave\.|Avenue|Rd\.|Road|Blvd\.|Way|Lane|Dr\.|Drive)[,\s]+[A-Za-z\s]+|[A-Z][a-zA-Z\s]+,\s*[A-Z]{2}\b|[A-Z][a-zA-Z\s]+,\s*[A-Z][a-zA-Z\s]+)", text)
+            if loc_m:
+                cand_l = loc_m.group(0).strip(" ,+")
+                if not any(k in cand_l.lower() for k in ["university", "college", "school", "ltd", "inc", "corp", "company", "salford", "borcelle", "email", "phone"]):
+                    location_val = cand_l
+
+        contact = ContactInfo(
+            email=email_match.group(0) if email_match else None,
+            phone=phone_val,
+            location=location_val,
+            linkedin=linkedin_match.group(1) if linkedin_match else None,
+            github=github_match.group(1) if github_match else None,
+        )
+
+        # 3. Universal Section Boundary Identification (Semantic Section Synonyms)
         section_patterns = [
-            ("CERTIFICATIONS", r"(?i)(?:\b|\n)(?:Training\s+(?:and|&)\s+Certifications|Certifications\s+(?:and|&)\s+Training|Certifications|Licenses\s+&\s+Certifications|Courses)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("SKILLS", r"(?i)(?:\b|\n)(?:TECHNICAL\s+SKILLS|Technical\s+Skills|Skills\s+&\s+Tools|Core\s+Competencies|Areas\s+of\s+Expertise|SKILLS|Skills)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("PROJECTS", r"(?i)(?:\b|\n)(?:Practical\s+Projects|Featured\s+Projects|Key\s+Projects|Personal\s+Projects|Selected\s+Projects|Projects)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("EXPERIENCE", r"(?i)(?:\b|\n)(?:Professional\s+Experience|Work\s+Experience|WORK\s+EXPERIENCE|Experience\s+History|Employment\s+History|Experience)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("ADDITIONAL_BACKGROUND", r"(?i)(?:\b|\n)(?:ADDITIONAL\s+BACKGROUND|Additional\s+Background|Background|Personal\s+Background)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("TARGET_ROLE", r"(?i)(?:\b|\n)(?:TARGET\s+ROLE|Target\s+Role|Desired\s+Role|Target\s+Position)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("EDUCATION", r"(?i)(?:\b|\n)(?:EDUCATION|Education|Academic\s+Background|Degrees|University)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("CERTIFICATIONS", r"(?i)(?:\b|\n)(?:Training\s+(?:and|&)\s+Certifications|Certifications\s+(?:and|&)\s+Training|Professional\s+Certifications|Certifications|Licenses\s+(?:and|&)\s+Certifications|Licenses\s+&\s+Certifications|Certificates|Accreditations|Credentials|Professional\s+Development|Courses|Training\s+Programs)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("SKILLS", r"(?i)(?:\b|\n)(?:TECHNICAL\s+SKILLS|Technical\s+Skills|Core\s+Competencies|Skills\s+(?:and|&)\s+Tools|Skills\s+&\s+Tools|Key\s+Skills|Areas\s+of\s+Expertise|Technical\s+Proficiencies|Domain\s+Expertise|Technologies|Tech\s+Stack|Tools\s+(?:and|&)\s+Technologies|Tools\s+&\s+Technologies|SKILLS|Skills)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("PROJECTS", r"(?i)(?:\b|\n)(?:Practical\s+Projects|Featured\s+Projects|Key\s+Projects|Selected\s+Projects|Personal\s+Projects|Academic\s+Projects|Technical\s+Projects|Engineering\s+Projects|Portfolio\s+Projects|Independent\s+Projects|PROJECTS|Projects)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("EXPERIENCE", r"(?i)(?:\b|\n)(?:Professional\s+Experience|Work\s+Experience|WORK\s+EXPERIENCE|Employment\s+History|Work\s+History|Career\s+History|Professional\s+Background|Relevant\s+Experience|EXPERIENCE|Experience)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("EDUCATION", r"(?i)(?:\b|\n)(?:EDUCATION|Education|Academic\s+Background|Academic\s+History|Educational\s+Background|Degrees\s+(?:and|&)\s+Education|Degrees\s+&\s+Education|University\s+Education|Education\s+and\s+Qualifications|Qualifications|University)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("ADDITIONAL_BACKGROUND", r"(?i)(?:\b|\n)(?:ADDITIONAL\s+BACKGROUND|Additional\s+Background|Personal\s+Background|Background|Other\s+Experience|Additional\s+Information)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("TARGET_ROLE", r"(?i)(?:\b|\n)(?:TARGET\s+ROLE|Target\s+Role|Desired\s+Role|Target\s+Position|Desired\s+Position|Career\s+Objective|Objective)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("SUMMARY", r"(?i)(?:\b|\n)(?:ABOUT\s+ME|About\s+Me|PROFESSIONAL\s+SUMMARY|Professional\s+Summary|EXECUTIVE\s+SUMMARY|Executive\s+Summary|CAREER\s+SUMMARY|Career\s+Summary|SUMMARY|Summary|PROFILE|Profile|Professional\s+Profile|About)\s*(?:[:—•\n]|\s+•|\s*$)"),
         ]
 
         matches = []
@@ -237,104 +282,38 @@ class ResumeParser:
         filtered_matches = []
         last_end = -1
         for start, end, sec_name in matches:
-            if start < 40:  # Skip headers appearing in first 40 chars
-                continue
             if start >= last_end:
                 filtered_matches.append((start, end, sec_name))
                 last_end = end
 
         sections_dict: Dict[str, str] = {}
-        header_text = text[:filtered_matches[0][0]].strip() if filtered_matches else text
+        if filtered_matches:
+            # If the first section is after summary/header
+            first_sec_start = filtered_matches[0][0]
+            if first_sec_start > 0 and filtered_matches[0][2] != "SUMMARY":
+                header_and_summary = text[:first_sec_start].strip()
+                sum_lines = []
+                for l in header_and_summary.split("\n"):
+                    l_clean = l.strip()
+                    if not l_clean:
+                        continue
+                    if any(k in l_clean.lower() for k in ["email", "@", "linkedin", "github", "phone", "+1", "+44", "anywhere st"]):
+                        continue
+                    if l_clean == full_name or l_clean == headline:
+                        continue
+                    sum_lines.append(l_clean)
+                if sum_lines:
+                    sections_dict["SUMMARY"] = " ".join(sum_lines)
 
-        for i, (start, end, sec_name) in enumerate(filtered_matches):
-            sec_content_start = end
-            sec_content_end = filtered_matches[i + 1][0] if i + 1 < len(filtered_matches) else len(text)
-            sections_dict[sec_name] = text[sec_content_start:sec_content_end].strip()
+            for i, (start, end, sec_name) in enumerate(filtered_matches):
+                sec_content_start = end
+                sec_content_end = filtered_matches[i + 1][0] if i + 1 < len(filtered_matches) else len(text)
+                sec_raw = text[sec_content_start:sec_content_end].strip()
+                sections_dict[sec_name] = sec_raw
+        else:
+            sections_dict["SUMMARY"] = text
 
-        # 2. Candidate Name & Headline Extraction
-        h_lines = [l.strip() for l in header_text.split("\n") if l.strip()]
-        full_name = h_lines[0] if h_lines else "Candidate Name"
-        headline = None
-        if len(h_lines) > 1 and not any(k in h_lines[1].lower() for k in ["@", "http", "+", "about", "summary", "phone", "email"]):
-            headline = h_lines[1]
-
-        # 3. Contact Information Extraction
-        email = None
-        phone = None
-        location = None
-        linkedin = None
-        github = None
-
-        # Phone extraction
-        ph_m = re.search(r'(\+?\s*\d[\d\s\-]{6,}\d)', header_text)
-        if ph_m and len(re.sub(r'\s+', '', ph_m.group(1))) >= 8:
-            phone = re.sub(r'\s+', '', ph_m.group(1))
-
-        # Email extraction with letter-spacing tolerance
-        at_pos = header_text.find('@')
-        if at_pos != -1:
-            before_at = header_text[:at_pos]
-            after_at = header_text[at_pos+1:]
-            u_toks = before_at.split()
-            if u_toks:
-                raw_user = u_toks[-1]
-                em_user = re.sub(r'^\+?[\d\-]+', '', raw_user)
-            else:
-                em_user = ''
-            domain_m = re.search(r'^\s*((?:[a-zA-Z0-9-]\s*)+\.\s*(?:c\s*o\s*m|o\s*r\s*g|n\s*e\s*t|e\s*d\s*u|i\s*o|c\s*o|s\s*i\s*t\s*e|[a-zA-Z]\s*[a-zA-Z]))', after_at)
-            if domain_m:
-                em_domain = re.sub(r'\s+', '', domain_m.group(1))
-                if em_user:
-                    email = f"{em_user}@{em_domain}"
-                after_em = after_at[domain_m.end():]
-                loc_chunks = [c for c in re.split(r'\s{2,}', after_em.split('\n')[0]) if c.strip()]
-                loc_words = []
-                for chunk in loc_chunks:
-                    toks = chunk.split()
-                    if toks:
-                        loc_words.append(' '.join(toks))
-                if loc_words:
-                    location = ' '.join(loc_words).strip(' ,|•—')
-
-        if not email:
-            em_m = re.search(r"[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}", text)
-            if em_m:
-                email = em_m.group(0)
-
-        if not phone:
-            ph_m2 = re.search(r"(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}", text)
-            if ph_m2:
-                phone = ph_m2.group(0)
-
-        li_m = re.search(r"(?:https?://)?(?:www\.)?(linkedin\.com/in/[\w\-]+)", text)
-        if li_m:
-            linkedin = li_m.group(1)
-
-        gh_m = re.search(r"(?:https?://)?(?:www\.)?(github\.com/[\w\-]+)", text)
-        if gh_m:
-            github = gh_m.group(1)
-
-        contact = ContactInfo(
-            email=email,
-            phone=phone,
-            location=location,
-            linkedin=linkedin,
-            github=github,
-        )
-
-        # 4. Summary Extraction
-        sum_lines = []
-        for l in h_lines:
-            if l == full_name or l == headline:
-                continue
-            if any(k in l.lower() for k in ["@", "http", "+", "linkedin", "github", "phone", "email"]):
-                continue
-            if re.match(r'^(about\s+me|summary|profile|professional\s+summary|objective|about)$', l, re.I):
-                continue
-            sum_lines.append(l)
-        summary = " ".join(sum_lines) if sum_lines else None
-
-        # 5. Parse Specific Section Components
+        # 4. Parse Specific Section Components
 
         # A. Certifications & Training
         certifications_list: List[Certification] = []
@@ -375,28 +354,29 @@ class ResumeParser:
                         details=details_part
                     ))
 
-        # B. Skills (Categorized & Flat)
+        # B. Skills (Categorized & Flat, with Deduplication)
         categorized_skills: Dict[str, List[str]] = {}
         skills_list: List[str] = []
         if "SKILLS" in sections_dict:
             raw_skills_text = sections_dict["SKILLS"]
-            skill_chunks = [s.strip(" •\t-,") for s in raw_skills_text.split("\n") if s.strip()]
+            skill_chunks = [s.strip() for s in re.split(r'•|\n', raw_skills_text) if s.strip()]
             for schunk in skill_chunks:
-                if ":" in schunk and len(schunk.split(":")[0]) < 35:
+                if ":" in schunk:
                     cat, sks = schunk.split(":", 1)
                     cat_clean = cat.strip(" •—:")
-                    tokens = [t.strip(" •-,") for t in re.split(r'[,|;]', sks) if t.strip()]
+                    tokens = [t.strip() for t in re.split(r'[,|;]|\s{2,}', sks) if t.strip()]
                     clean_tokens = []
                     for t in tokens:
                         t_clean = re.sub(r'^\W+|\W+$', '', t).strip()
                         if t_clean and len(t_clean) > 1 and not t_clean.lower().startswith(("in progress", "completed")):
-                            clean_tokens.append(t_clean)
+                            if t_clean not in clean_tokens:
+                                clean_tokens.append(t_clean)
                             if t_clean not in skills_list:
                                 skills_list.append(t_clean)
-                    if clean_tokens:
+                    if clean_tokens and len(cat_clean) < 35:
                         categorized_skills[cat_clean] = clean_tokens
                 else:
-                    tokens = [t.strip(" •-,") for t in re.split(r'[,|;]', schunk) if t.strip()]
+                    tokens = [t.strip() for t in re.split(r'[,|;]|\s{2,}', schunk) if t.strip()]
                     for t in tokens:
                         t_clean = re.sub(r'^\W+|\W+$', '', t).strip()
                         if t_clean and len(t_clean) > 1 and t_clean not in skills_list:
@@ -497,119 +477,150 @@ class ResumeParser:
             if current_proj:
                 projects_list.append(Project(**current_proj))
 
-        # D. Experience
+        # D. Work Experience (Multi-Job & Single-Job Support)
         experience_list: List[WorkExperience] = []
         if "EXPERIENCE" in sections_dict:
             raw_exp_text = sections_dict["EXPERIENCE"]
-            lines_x = [l.strip() for l in raw_exp_text.split('\n') if l.strip()]
+            exp_lines = [l.strip() for l in raw_exp_text.split("\n") if l.strip()]
+            company_header_pat = r'^([A-Za-z0-9\s&,\.\-]+?)\s*(?:\||—|-|\()\s*((?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|Present|Current|\d{4})|\d{4})'
             
-            comp_lines = [l for l in lines_x if re.search(r'\|\s*\d{4}', l) or re.search(r'\b(salford|google|microsoft|amazon|apple|meta|inc|llc|ltd|corp|co\.)\b', l, re.I)]
-            role_lines = [l for l in lines_x if l not in comp_lines and len(l) < 55 and any(k in l.lower() for k in ['accountant', 'engineer', 'developer', 'manager', 'specialist', 'consultant', 'analyst', 'director', 'lead', 'officer', 'designer', 'architect'])]
-            desc_lines = [l for l in lines_x if l not in comp_lines and l not in role_lines]
-
-            if comp_lines and role_lines and len(comp_lines) <= len(role_lines) * 2:
-                for i, comp_raw in enumerate(comp_lines):
-                    comp_name = comp_raw
-                    dur = None
-                    if '|' in comp_raw:
-                        parts = comp_raw.split('|', 1)
-                        comp_name = parts[0].strip()
-                        dur = parts[1].strip()
-                    elif '—' in comp_raw:
-                        parts = comp_raw.split('—', 1)
-                        comp_name = parts[0].strip()
-                        dur = parts[1].strip()
-                    elif '-' in comp_raw and re.search(r'\d{4}', comp_raw):
-                        m = re.search(r'(\d{4}\s*[-–—]\s*(?:\d{4}|present|current))', comp_raw, re.I)
-                        if m:
-                            dur = m.group(1).strip()
-                            comp_name = comp_raw.replace(m.group(0), '').strip(' ,|—–-')
-
-                    r_title = role_lines[i] if i < len(role_lines) else (role_lines[0] if role_lines else "Professional")
-                    desc = desc_lines[i] if i < len(desc_lines) else None
-                    bullets = [b.strip(' •-') for b in desc.split('•') if b.strip()] if (desc and '•' in desc) else ([] if not desc else [desc])
-
+            headers = []
+            roles = []
+            descriptions = []
+            
+            for l in exp_lines:
+                m = re.search(company_header_pat, l)
+                if m:
+                    headers.append((m.group(1).strip(" •|—:-"), m.group(2).strip(" ()")))
+                elif len(l) < 40 and not l.startswith("•") and not l.lower().startswith("lorem") and not l.lower().startswith("experience includes") and not l.lower().startswith("building") and not l.lower().startswith("developing"):
+                    roles.append(l.strip(" •:"))
+                else:
+                    clean_b = l.lstrip("•-* ").strip()
+                    if clean_b and not clean_b.lower().startswith("experience includes:"):
+                        descriptions.append(clean_b)
+            
+            if headers and (len(headers) == len(roles) or len(headers) == len(descriptions)):
+                # Clustered / Layer-ordered Canva layout
+                for i, (comp, dur) in enumerate(headers):
+                    r_title = roles[i] if i < len(roles) else "Professional Role"
+                    b_list = [descriptions[i]] if i < len(descriptions) else []
                     experience_list.append(WorkExperience(
-                        company=comp_name,
+                        company=comp,
                         role=r_title,
-                        duration=dur or "Recent",
-                        summary=desc if len(bullets) <= 1 else None,
-                        bullets=bullets if len(bullets) > 1 else []
+                        duration=dur,
+                        bullets=b_list
                     ))
+            elif headers:
+                # Standard chronological top-to-bottom layout
+                current_exp = None
+                for line in exp_lines:
+                    m = re.search(company_header_pat, line)
+                    if m:
+                        if current_exp:
+                            experience_list.append(WorkExperience(**current_exp))
+                        current_exp = {
+                            "company": m.group(1).strip(" •|—:-"),
+                            "role": "Professional Role",
+                            "duration": m.group(2).strip(" ()"),
+                            "subtitle": None,
+                            "summary": None,
+                            "bullets": []
+                        }
+                    elif current_exp is not None:
+                        if current_exp["role"] == "Professional Role" and len(line) < 40 and not line.startswith("•") and not line.lower().startswith("lorem"):
+                            current_exp["role"] = line.strip(" •:")
+                        else:
+                            clean_b = line.lstrip("•-* ").strip()
+                            if clean_b and not clean_b.lower().startswith("experience includes:"):
+                                current_exp["bullets"].append(clean_b)
+                if current_exp:
+                    experience_list.append(WorkExperience(**current_exp))
             else:
-                role = "Freelance Software & AI Developer"
-                company = "Independent / Freelance"
-                subtitle = "AI & Software Engineering"
-                summary_x = None
-                bullets_x = []
-
-                for chunk in lines_x:
-                    ch_low = chunk.lower()
+                # Single-company / Freelance format
+                current_exp = {
+                    "company": "Independent / Freelance",
+                    "role": "Software & AI Developer",
+                    "duration": "Recent",
+                    "subtitle": None,
+                    "summary": None,
+                    "bullets": []
+                }
+                for line in exp_lines:
+                    ch_low = line.lower()
                     if "experience includes" in ch_low:
                         continue
-                    if any(k in ch_low for k in ["freelance software", "software engineer", "ai developer", "machine learning engineer"]):
-                        role = chunk.strip(" .:")
-                    elif "ai & software engineering" in ch_low or "software engineering" in ch_low:
-                        subtitle = chunk.strip(" :.")
-                    elif len(chunk) > 45 and not bullets_x and not chunk.startswith("Building"):
-                        summary_x = chunk.strip()
-                    elif len(chunk) > 5:
-                        bullets_x.append(chunk.strip(" •"))
+                    elif any(k in ch_low for k in ["freelance software", "software developer", "software engineer", "ai developer", "accountant"]):
+                        current_exp["role"] = line.strip(" .:")
+                    elif "ai & software engineering" in ch_low:
+                        current_exp["subtitle"] = line.strip(" :.")
+                    elif len(line) > 5:
+                        current_exp["bullets"].append(line.lstrip(" •-*").strip())
+                if current_exp["bullets"] or current_exp["role"]:
+                    experience_list.append(WorkExperience(**current_exp))
 
-                experience_list.append(WorkExperience(
-                    role=role,
-                    company=company,
-                    duration="Recent",
-                    subtitle=subtitle,
-                    summary=summary_x,
-                    bullets=bullets_x
-                ))
-
-        # E. Education
+        # E. Education (Multi-Degree & Single-Degree Support)
         education_list: List[Education] = []
         if "EDUCATION" in sections_dict:
             raw_edu_text = sections_dict["EDUCATION"]
-            lines_e = [l.strip() for l in raw_edu_text.split('\n') if l.strip()]
-
-            inst_lines = [l for l in lines_e if re.search(r'\|\s*\d{4}', l) or re.search(r'\b(university|college|institute|school|academy|polytechnic)\b', l, re.I)]
-            deg_lines = [l for l in lines_e if l not in inst_lines and len(l) < 55 and not re.search(r'^(lorem|description|coursework|gpa|honors)', l, re.I)]
-            desc_lines = [l for l in lines_e if l not in inst_lines and l not in deg_lines]
-
-            if inst_lines and deg_lines and len(inst_lines) <= len(deg_lines) * 2:
-                for i, inst_raw in enumerate(inst_lines):
-                    inst_name = inst_raw
-                    yr = None
-                    if '|' in inst_raw:
-                        parts = inst_raw.split('|', 1)
-                        inst_name = parts[0].strip()
-                        yr = parts[1].strip()
-                    elif '—' in inst_raw:
-                        parts = inst_raw.split('—', 1)
-                        inst_name = parts[0].strip()
-                        yr = parts[1].strip()
-                    elif '-' in inst_raw and re.search(r'\d{4}', inst_raw):
-                        m = re.search(r'(\d{4}\s*[-–—]\s*(?:\d{4}|present|current))', inst_raw, re.I)
-                        if m:
-                            yr = m.group(1).strip()
-                            inst_name = inst_raw.replace(m.group(0), '').strip(' ,|—–-')
-
-                    deg = deg_lines[i] if i < len(deg_lines) else (deg_lines[0] if deg_lines else "Degree")
-                    desc = desc_lines[i] if i < len(desc_lines) else None
-
+            edu_lines = [l.strip() for l in raw_edu_text.split("\n") if l.strip()]
+            edu_header_pat = r'^([A-Za-z0-9\s&,\.\-]+?(?:University|College|Institute|School|Academy|[A-Z][a-z]+))\s*(?:\||—|-|\()\s*((?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|Present|Current|\d{4})|\d{4})'
+            
+            headers = []
+            degrees = []
+            descriptions = []
+            
+            for l in edu_lines:
+                m = re.search(edu_header_pat, l)
+                if m:
+                    headers.append((m.group(1).strip(" •|—:-"), m.group(2).strip(" ()")))
+                elif len(l) < 45 and not l.startswith("•") and not l.lower().startswith("lorem"):
+                    degrees.append(l.strip(" •:"))
+                else:
+                    descriptions.append(l.lstrip("•-* ").strip())
+                    
+            if headers and (len(headers) == len(degrees) or len(headers) == len(descriptions)):
+                # Clustered / Layer-ordered Canva layout
+                for i, (inst, yr) in enumerate(headers):
+                    deg = degrees[i] if i < len(degrees) else "Degree"
+                    det = descriptions[i] if i < len(descriptions) else None
                     education_list.append(Education(
-                        institution=inst_name,
+                        institution=inst,
                         degree=deg,
                         year=yr,
-                        details=desc
+                        details=det
                     ))
+            elif headers:
+                current_edu = None
+                for line in edu_lines:
+                    m = re.search(edu_header_pat, line)
+                    if m:
+                        if current_edu:
+                            education_list.append(Education(**current_edu))
+                        current_edu = {
+                            "institution": m.group(1).strip(" •|—:-"),
+                            "degree": "Degree",
+                            "year": m.group(2).strip(" ()"),
+                            "details": None
+                        }
+                    elif current_edu is not None:
+                        if current_edu["degree"] == "Degree" and len(line) < 45 and not line.startswith("•") and not line.lower().startswith("lorem"):
+                            current_edu["degree"] = line.strip(" •:")
+                        else:
+                            clean_det = line.lstrip("•-* ").strip()
+                            if clean_det:
+                                current_edu["details"] = (current_edu["details"] + " " + clean_det) if current_edu["details"] else clean_det
+                if current_edu:
+                    education_list.append(Education(**current_edu))
             else:
-                for el in lines_e:
-                    el_clean = el.strip(" •\t")
-                    if el_clean and len(el_clean) > 3:
-                        education_list.append(Education(
-                            institution=el_clean,
-                            degree="Degree"
-                        ))
+                for line in edu_lines:
+                    parts = re.split(r'[—|–|-]', line)
+                    if len(parts) >= 2:
+                        deg = parts[0].strip(" •")
+                        inst = parts[1].strip(" •")
+                        yr = parts[2].strip(" •") if len(parts) > 2 else None
+                        education_list.append(Education(institution=inst, degree=deg, year=yr))
+                    else:
+                        education_list.append(Education(institution=line.strip(" •"), degree="Degree"))
 
         # F. Additional Background & Target Role
         additional_background = sections_dict.get("ADDITIONAL_BACKGROUND", "").strip(" :—\n") or None
@@ -619,7 +630,7 @@ class ResumeParser:
             full_name=full_name,
             headline=headline or "Professional Profile",
             contact=contact,
-            summary=summary,
+            summary=sections_dict.get("SUMMARY"),
             skills=skills_list,
             categorized_skills=categorized_skills,
             experience=experience_list,
