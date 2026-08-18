@@ -6,6 +6,14 @@ let currentMatchReport = null;
 let currentOffset = 0;
 let autoApplyTargetJob = null;
 
+// ─── XSS Protection: HTML Entity Encoder ───
+function escapeHtml(str) {
+  if (!str || typeof str !== 'string') return str || '';
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
 // Persistent Candidate Quick Profile for 1-Click Auto Applications
 function getSavedCandidateProfile() {
   try {
@@ -113,14 +121,53 @@ document.getElementById('btn-settings-modal')?.addEventListener('click', async (
   openModal('modal-settings');
 });
 
-// Step 1: Initialize Base Resume
+// Step 1: Initialize Base Resume & Cross-Device Cloud Sync
 async function loadInitialProfile() {
+  let userEmail = '';
   try {
-    const res = await fetch('/api/v1/resume/current');
-    if (res.ok) {
-      const data = await res.json();
-      currentProfile = data.profile;
-      renderActiveFileCard(data.filename, data.filesize, currentProfile);
+    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
+    if (user && user.email) userEmail = user.email.trim().toLowerCase();
+    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
+  } catch (e) {}
+
+  try {
+    // 1. Sync full user session bundle from Supabase
+    if (userEmail) {
+      const syncRes = await fetch(`/api/v1/user/sync?email=${encodeURIComponent(userEmail)}`);
+      if (syncRes.ok) {
+        const syncJson = await syncRes.json();
+        const syncData = syncJson.data || {};
+        
+        if (syncData.profile) {
+          currentProfile = syncData.profile;
+          renderActiveFileCard(syncData.resume_filename || 'Cloud_Synced_Resume.pdf', 'Verified (Cloud)', currentProfile);
+        }
+        
+        if (syncData.notifications) {
+          const ns = syncData.notifications;
+          if (document.getElementById('setting-email') && ns.email) document.getElementById('setting-email').value = ns.email;
+          if (document.getElementById('setting-whatsapp') && ns.whatsapp) document.getElementById('setting-whatsapp').value = ns.whatsapp;
+          if (document.getElementById('setting-telegram') && ns.telegram) document.getElementById('setting-telegram').value = ns.telegram;
+          if (document.getElementById('bar-email') && ns.email) document.getElementById('bar-email').innerText = ns.email;
+          if (document.getElementById('bar-whatsapp') && ns.whatsapp) document.getElementById('bar-whatsapp').innerText = ns.whatsapp;
+          if (document.getElementById('bar-telegram') && ns.telegram) document.getElementById('bar-telegram').innerText = ns.telegram.startsWith('@') ? ns.telegram : '@' + ns.telegram;
+        }
+
+        if (syncData.candidate_quick_profile) {
+          saveCandidateProfile(syncData.candidate_quick_profile);
+        }
+      }
+    }
+
+    // 2. Fetch active resume from server if currentProfile not loaded yet
+    if (!currentProfile) {
+      const url = userEmail ? `/api/v1/resume/current?email=${encodeURIComponent(userEmail)}` : '/api/v1/resume/current';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        currentProfile = data.profile;
+        renderActiveFileCard(data.filename, data.filesize, currentProfile);
+      }
     }
   } catch (err) {
     console.error("Failed to load profile:", err);
@@ -136,8 +183,8 @@ function renderActiveFileCard(filename, filesize, profile) {
   const cloud = document.getElementById('profile-skills-cloud');
   cloud.innerHTML = profile.skills.map(s => `
     <span class="skill-chip chip-match" style="display: inline-flex; align-items: center; gap: 4px;">
-      ${s}
-      <span class="skill-remove-btn" onclick="removeSkill('${s.replace(/'/g, "\\'")}', event)" title="Remove ${s}">&times;</span>
+      ${escapeHtml(s)}
+      <span class="skill-remove-btn" onclick="removeSkill('${escapeHtml(s).replace(/'/g, "\\'")}', event)" title="Remove ${escapeHtml(s)}">&times;</span>
     </span>
   `).join('');
 }
@@ -231,6 +278,17 @@ async function handleFileUpload(file) {
   const formData = new FormData();
   formData.append('file', file);
 
+  let userEmail = '';
+  try {
+    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
+    if (user && user.email) userEmail = user.email.trim().toLowerCase();
+    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
+  } catch (e) {}
+
+  if (userEmail) {
+    formData.append('user_email', userEmail);
+  }
+
   const statusBadge = document.getElementById('resume-status-badge');
   statusBadge.innerText = '⏳ INGESTING & PARSING...';
   statusBadge.style.color = 'var(--accent-cyan)';
@@ -248,6 +306,8 @@ async function handleFileUpload(file) {
 
     statusBadge.innerText = '✓ UPLOADED & READY';
     statusBadge.style.color = '#34D399';
+
+    showToast("💾 Resume Uploaded & Saved Permanently to Your Supabase Profile!");
 
     if (selectedJob) {
       selectJob(selectedJob);
@@ -387,20 +447,20 @@ function renderJobsList(jobs) {
     <div class="job-card ${idx === 0 ? 'active' : ''}" data-index="${idx}" onclick="onJobCardClick(${idx})">
       <div class="job-header">
         <div>
-          <div class="job-title">${job.title}</div>
-          <div class="job-company">${job.company}</div>
+          <div class="job-title">${escapeHtml(job.title)}</div>
+          <div class="job-company">${escapeHtml(job.company)}</div>
         </div>
-        <span class="nav-badge" style="border-color: rgba(56, 189, 248, 0.3); color: var(--accent-cyan);">${job.posted_date}</span>
+        <span class="nav-badge" style="border-color: rgba(56, 189, 248, 0.3); color: var(--accent-cyan);">${escapeHtml(job.posted_date)}</span>
       </div>
       <div style="display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 6px 0; align-items: center;">
-        <span class="${getWorkplaceBadgeClass(job.workplace_type)}">${job.workplace_badge || '🏡 Remote Only'}</span>
-        <span class="badge-employment">${job.employment_badge || '💼 Full-Time'}</span>
-        <span class="${getBadgeClass(job.remote_scope)}">${job.international_badge || '🌐 Worldwide'}</span>
-        ${job.is_easy_apply ? `<span class="badge-easy-apply">${job.easy_apply_badge || '⚡ Easy Apply'}</span>` : `<span class="badge-employment" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); color: var(--text-dim);">🌐 Direct Apply</span>`}
+        <span class="${getWorkplaceBadgeClass(job.workplace_type)}">${escapeHtml(job.workplace_badge || '🏡 Remote Only')}</span>
+        <span class="badge-employment">${escapeHtml(job.employment_badge || '💼 Full-Time')}</span>
+        <span class="${getBadgeClass(job.remote_scope)}">${escapeHtml(job.international_badge || '🌐 Worldwide')}</span>
+        ${job.is_easy_apply ? `<span class="badge-easy-apply">${escapeHtml(job.easy_apply_badge || '⚡ Easy Apply')}</span>` : `<span class="badge-employment" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); color: var(--text-dim);">🌐 Direct Apply</span>`}
       </div>
       <div class="job-meta" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
         <div>
-          <span>📍 ${job.location}</span>
+          <span>📍 ${escapeHtml(job.location)}</span>
         </div>
         <div>
           <span>🔗 <a href="${job.job_url}" target="_blank" style="color: var(--accent-cyan); font-weight: 600;" onclick="event.stopPropagation()">View on LinkedIn ↗</a></span>
@@ -448,13 +508,13 @@ function renderMatchReport(report) {
   const matchedCloud = document.getElementById('matched-skills-cloud');
   const matchedCountBadge = document.getElementById('matched-count-badge');
   if (matchedCountBadge) matchedCountBadge.innerText = `${report.matched_skills.length} Matched`;
-  matchedCloud.innerHTML = report.matched_skills.map(s => `<span class="skill-chip chip-match">✓ ${s}</span>`).join('') || '<span style="color:var(--text-dim);font-size:12px;">None detected</span>';
+  matchedCloud.innerHTML = report.matched_skills.map(s => `<span class="skill-chip chip-match">✓ ${escapeHtml(s)}</span>`).join('') || '<span style="color:var(--text-dim);font-size:12px;">None detected</span>';
 
   // Render Missing Skills
   const missingCloud = document.getElementById('missing-skills-cloud');
   const missingCountBadge = document.getElementById('missing-count-badge');
   if (missingCountBadge) missingCountBadge.innerText = `${report.missing_critical_skills.length} Missing`;
-  missingCloud.innerHTML = report.missing_critical_skills.map(s => `<span class="skill-chip chip-gap">✗ ${s}</span>`).join('') || '<span class="skill-chip chip-match">✓ 100% Match (No Gaps)</span>';
+  missingCloud.innerHTML = report.missing_critical_skills.map(s => `<span class="skill-chip chip-gap">✗ ${escapeHtml(s)}</span>`).join('') || '<span class="skill-chip chip-match">✓ 100% Match (No Gaps)</span>';
 
   // Render Candidate's Additional Profile Strengths (Bonus Skills)
   const extraCloud = document.getElementById('extra-skills-cloud');
@@ -557,8 +617,16 @@ window.questionnaireData = [
 window.activeMissingQuestions = [];
 
 window.loadQuestionnaireBank = async function() {
+  let userEmail = '';
   try {
-    const res = await fetch('/api/v1/questionnaire');
+    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
+    if (user && user.email) userEmail = user.email.trim().toLowerCase();
+    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
+  } catch (e) {}
+
+  try {
+    const url = userEmail ? `/api/v1/questionnaire?email=${encodeURIComponent(userEmail)}` : '/api/v1/questionnaire';
+    const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       if (data.questions && data.questions.length > 0) {
@@ -611,22 +679,30 @@ window.saveAllQuestionnaireAnswers = async function() {
     }
   });
 
+  let userEmail = '';
+  try {
+    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
+    if (user && user.email) userEmail = user.email.trim().toLowerCase();
+    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
+  } catch (e) {}
+
   try {
     if (btn) {
       btn.disabled = true;
-      btn.innerText = "⏳ Saving...";
+      btn.innerText = "⏳ Saving to Supabase...";
     }
     const res = await fetch('/api/v1/questionnaire/save-all', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers: answersPayload })
+      body: JSON.stringify({ answers: answersPayload, user_email: userEmail })
     });
 
     if (res.ok) {
       if (btn) {
-        btn.innerText = "✓ Saved to Memory Bank!";
+        btn.innerText = "✓ Saved & Synced to Cloud!";
         btn.style.background = "#10B981";
       }
+      showToast("💾 Memory Bank Answers Synced to Supabase!");
       // Highlight inputs briefly with green border
       questionIds.forEach(qid => {
         const input = document.getElementById(`qinput-${qid}`);
@@ -830,7 +906,7 @@ document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async
     const data = await res.json();
     if (res.ok) {
       const results = data.results || {};
-      alert(`🚀 Autonomous Batch Auto-Apply Complete!\n\n• Successfully Auto-Applied: ${results.applied_count} Jobs\n• Needs New Answers: ${results.needs_input_count} Jobs\n\nAll tailored PDF application bundles were generated in the ${window.selectedTemplateId.toUpperCase()} template and company records were logged to your Excel Tracker!`);
+      alert(`🚀 Autonomous Batch Auto-Apply Complete!\n\n• Successfully Auto-Applied: ${results.applied_count} Jobs\n• Needs New Answers: ${results.needs_input_count} Jobs\n• Delivery Channels: Email & WhatsApp Confirmations Triggered\n\nAll tailored PDF bundles were generated in the ${window.selectedTemplateId.toUpperCase()} template and company records were logged to your Excel, CSV & PDF Trackers!`);
     } else {
       alert("Batch apply failed: " + (data.detail || "Unknown error"));
     }
@@ -842,7 +918,7 @@ document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async
   }
 });
 
-// Step 9: Download Application History & Company Intelligence as Excel / CSV
+// Step 9: Download Application History & Company Intelligence as Excel / CSV / PDF
 window.downloadApplicationExcel = function() {
   const url = `/api/v1/applications/export-excel?t=${Date.now()}`;
   window.open(url, '_blank');
@@ -852,6 +928,73 @@ window.downloadApplicationCSV = function() {
   const url = `/api/v1/applications/export-csv?t=${Date.now()}`;
   window.open(url, '_blank');
 };
+
+window.downloadApplicationPDF = function() {
+  const url = `/api/v1/applications/export-pdf?t=${Date.now()}`;
+  window.open(url, '_blank');
+};
+
+function runAnimatedAutoApplyProgress(onComplete) {
+  const progressBox = document.getElementById('auto-apply-progress-box');
+  const progressBar = document.getElementById('progress-bar-fill');
+  const percentText = document.getElementById('progress-percent');
+  const titleText = document.getElementById('progress-status-title');
+  const successBox = document.getElementById('auto-apply-success-box');
+  
+  if (successBox) successBox.style.display = 'none';
+  if (progressBox) progressBox.style.display = 'block';
+
+  const steps = [
+    { id: 'pstep-1', percent: '25%', title: 'Step 1: Extracting Job Requirements & Aligning Profile...' },
+    { id: 'pstep-2', percent: '50%', title: 'Step 2: Auto-Filling Screening Dossier from Memory Bank...' },
+    { id: 'pstep-3', percent: '75%', title: 'Step 3: Compiling Custom ATS Resume in High-Res PDF...' },
+    { id: 'pstep-4', percent: '100%', title: 'Step 4: Dispatching Application Package & Triggering Alerts...' }
+  ];
+
+  steps.forEach(s => {
+    const el = document.getElementById(s.id);
+    if (el) {
+      el.style.color = 'var(--text-dim)';
+      const icon = el.querySelector('.pstep-icon');
+      if (icon) icon.innerText = '⏳';
+    }
+  });
+
+  let current = 0;
+  function nextStep() {
+    if (current < steps.length) {
+      const s = steps[current];
+      const el = document.getElementById(s.id);
+      if (el) {
+        el.style.color = '#38BDF8';
+        const icon = el.querySelector('.pstep-icon');
+        if (icon) icon.innerText = '⚡';
+      }
+      if (progressBar) progressBar.style.width = s.percent;
+      if (percentText) percentText.innerText = s.percent;
+      if (titleText) titleText.innerText = s.title;
+
+      setTimeout(() => {
+        if (el) {
+          el.style.color = '#34D399';
+          const icon = el.querySelector('.pstep-icon');
+          if (icon) icon.innerText = '✅';
+        }
+        current++;
+        if (current < steps.length) {
+          nextStep();
+        } else {
+          setTimeout(() => {
+            if (progressBox) progressBox.style.display = 'none';
+            if (onComplete) onComplete();
+          }, 400);
+        }
+      }, 400);
+    }
+  }
+
+  nextStep();
+}
 
 document.getElementById('btn-execute-auto-apply')?.addEventListener('click', async () => {
   if (!autoApplyTargetJob) return;
@@ -872,63 +1015,207 @@ document.getElementById('btn-execute-auto-apply')?.addEventListener('click', asy
 
   const execBtn = document.getElementById('btn-execute-auto-apply');
   execBtn.disabled = true;
-  execBtn.innerText = '⏳ AI Packaging Application...';
+  execBtn.innerText = '⚡ Running Autonomous Agent...';
 
-  try {
-    const res = await fetch('/api/v1/application/auto-apply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        job_id: autoApplyTargetJob.job_id,
-        job_title: autoApplyTargetJob.title,
-        company: autoApplyTargetJob.company,
-        location: autoApplyTargetJob.location,
-        job_url: autoApplyTargetJob.job_url,
-        template_id: window.selectedTemplateId || 'modern',
-        candidate_profile: candidateProfile,
-        dispatch_alerts: true,
-      })
-    });
+  runAnimatedAutoApplyProgress(async () => {
+    try {
+      const res = await fetch('/api/v1/application/auto-apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          job_id: autoApplyTargetJob.job_id,
+          job_title: autoApplyTargetJob.title,
+          company: autoApplyTargetJob.company,
+          location: autoApplyTargetJob.location,
+          job_url: autoApplyTargetJob.job_url,
+          template_id: window.selectedTemplateId || 'modern',
+          candidate_profile: candidateProfile,
+          dispatch_alerts: true,
+        })
+      });
 
-    const data = await res.json();
-    if (res.ok && data.status === 'success') {
-      const successBox = document.getElementById('auto-apply-success-box');
-      successBox.style.display = 'block';
-      document.getElementById('auto-apply-msg').innerText = `Your application for ${autoApplyTargetJob.title} at ${autoApplyTargetJob.company} was assembled with the "${window.selectedTemplateId.toUpperCase()}" CV template. Email & Telegram notifications dispatched!`;
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        const successBox = document.getElementById('auto-apply-success-box');
+        if (successBox) successBox.style.display = 'block';
+        
+        const targetEmail = candidateProfile.email || 'your email';
+        // Show notification delivery results
+        let notifHtml = '';
+        if (data.notification_results) {
+          const nr = data.notification_results;
+          notifHtml = '<div style="margin-top: 8px; font-size: 12px; color: var(--text-dim);">';
+          if (nr.email) notifHtml += `<div>📧 Email: <span style="color: #10B981;">✓ ${nr.email.status || 'Sent'}</span></div>`;
+          if (nr.whatsapp) notifHtml += `<div>📱 WhatsApp: <span style="color: #10B981;">✓ ${nr.whatsapp.status || 'Sent'}</span></div>`;
+          if (nr.telegram) notifHtml += `<div>✈️ Telegram: <span style="color: #10B981;">✓ ${nr.telegram.status || 'Sent'}</span></div>`;
+          notifHtml += '</div>';
+        }
+        
+        document.getElementById('auto-apply-msg').innerHTML = `
+          <div style="padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px;">
+            <div style="color: #10B981; font-weight: 700;">✓ Successfully Auto-Applied to ${escapeHtml(autoApplyTargetJob.company)}</div>
+            ${notifHtml}
+            <div style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap;">
+              <button onclick="window.open('/api/v1/applications/export-excel')" style="padding: 6px 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; color: #10B981; font-size: 11px; cursor: pointer;">📗 Excel Tracker</button>
+              <button onclick="window.open('/api/v1/applications/export-csv')" style="padding: 6px 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; color: #38BDF8; font-size: 11px; cursor: pointer;">📄 CSV</button>
+              <button onclick="window.open('/api/v1/applications/export-pdf')" style="padding: 6px 12px; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 6px; color: #C084FC; font-size: 11px; cursor: pointer;">📕 PDF Report</button>
+            </div>
+          </div>
+        `;
+        
+        const postDownloads = document.getElementById('post-apply-downloads');
+        if (postDownloads) postDownloads.style.display = 'flex';
 
-      const answersContainer = document.getElementById('prefilled-answers-container');
-      const answers = data.prefilled_answers || {};
-      answersContainer.innerHTML = Object.entries(answers).map(([key, val]) => `
-        <div class="prefilled-card">
-          <div class="prefilled-label">${key}</div>
-          <div class="prefilled-val">${val}</div>
-        </div>
-      `).join('');
+        const answersContainer = document.getElementById('prefilled-answers-container');
+        const answers = data.prefilled_answers || {};
+        if (answersContainer) {
+          answersContainer.innerHTML = Object.entries(answers).map(([key, val]) => `
+            <div class="prefilled-card">
+              <div class="prefilled-label">${key}</div>
+              <div class="prefilled-val">${val}</div>
+            </div>
+          `).join('');
+        }
 
-      document.getElementById('btn-auto-download-pdf').onclick = () => {
-        window.open(`/api/v1/resume/download-pdf?template_id=${encodeURIComponent(window.selectedTemplateId || 'modern')}&t=${Date.now()}`, '_blank');
-      };
-      document.getElementById('btn-auto-download-docx').onclick = () => {
-        window.open(`/api/v1/resume/download-docx?template_id=${encodeURIComponent(window.selectedTemplateId || 'modern')}&t=${Date.now()}`, '_blank');
-      };
+        document.getElementById('btn-auto-download-pdf').onclick = () => {
+          window.open(`/api/v1/resume/download-pdf?template_id=${encodeURIComponent(window.selectedTemplateId || 'modern')}&t=${Date.now()}`, '_blank');
+        };
+        document.getElementById('btn-auto-download-docx').onclick = () => {
+          window.open(`/api/v1/resume/download-docx?template_id=${encodeURIComponent(window.selectedTemplateId || 'modern')}&t=${Date.now()}`, '_blank');
+        };
 
-      execBtn.innerText = '✓ Submitted Successfully';
-    } else {
-      alert("Auto apply error: " + (data.message || data.detail || "Unknown error"));
+        execBtn.innerText = '✓ Submitted Successfully';
+        showToast(`✅ Auto-Applied to ${autoApplyTargetJob.company} & Alerts Dispatched!`);
+      } else {
+        alert("Auto apply error: " + (data.message || data.detail || "Unknown error"));
+        execBtn.disabled = false;
+        execBtn.innerText = '⚡ Submit Autonomous Application';
+      }
+    } catch (err) {
+      alert("Application error: " + err.message);
       execBtn.disabled = false;
       execBtn.innerText = '⚡ Submit Autonomous Application';
     }
+  });
+});
+
+document.getElementById('btn-test-notifications')?.addEventListener('click', async () => {
+  const email = document.getElementById('setting-email')?.value.trim();
+  const wa = document.getElementById('setting-whatsapp')?.value.trim();
+  const tg = document.getElementById('setting-telegram')?.value.trim();
+  const msgEl = document.getElementById('settings-save-msg');
+
+  if (msgEl) msgEl.innerHTML = '<span style="color: var(--accent-cyan)">⏳ Dispatching test alert to your configured channels...</span>';
+
+  try {
+    const res = await fetch('/api/v1/notifications/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, whatsapp: wa, telegram: tg, channel: 'all' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      if (msgEl) msgEl.innerHTML = `<span style="color: var(--accent-emerald)">✓ Test alert dispatched to <b>${data.email_sent_to}</b> & WhatsApp <b>${data.whatsapp_sent_to}</b>!</span>`;
+      showToast("🔔 Test notification sent successfully!");
+    } else {
+      if (msgEl) msgEl.innerHTML = `<span style="color: var(--accent-rose)">Alert test notice: ${data.message || 'Check server logs'}</span>`;
+    }
   } catch (err) {
-    alert("Application error: " + err.message);
-    execBtn.disabled = false;
-    execBtn.innerText = '⚡ Submit Autonomous Application';
+    if (msgEl) msgEl.innerHTML = `<span style="color: var(--accent-rose)">Test error: ${err.message}</span>`;
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// Batch Auto-Apply Engine: Apply to ALL Easy Apply Jobs
+// ─────────────────────────────────────────────────────────────
+document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async () => {
+  const batchSize = parseInt(document.getElementById('batch-size-selector')?.value || '50');
+  const btn = document.getElementById('btn-batch-auto-apply');
+  const resultsDiv = document.getElementById('batch-apply-results');
+  const downloadsDiv = document.getElementById('post-apply-downloads');
+  
+  if (!currentJobs || currentJobs.length === 0) {
+    showToast('Please search for jobs first before batch applying.');
+    return;
+  }
+  
+  const easyApplyJobs = currentJobs.filter(j => j.is_easy_apply);
+  if (easyApplyJobs.length === 0) {
+    showToast('No Easy Apply jobs found. Try searching with Easy Apply filter.');
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.innerText = `⚡ Batch Applying to ${Math.min(easyApplyJobs.length, batchSize)} Easy Apply Jobs...`;
+  resultsDiv.style.display = 'block';
+  resultsDiv.innerHTML = '<div style="color: var(--accent-cyan); font-size: 13px;">⏳ Autonomous agent processing batch applications...</div>';
+  
+  // Load candidate profile
+  let candidateProfile = {};
+  try {
+    candidateProfile = JSON.parse(localStorage.getItem('candidate_quick_profile') || '{}');
+  } catch (e) {}
+  
+  try {
+    const res = await fetch('/api/v1/application/batch-apply-easy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        batch_size: batchSize,
+        template_id: window.selectedTemplateId || 'modern',
+        candidate_profile: candidateProfile,
+      })
+    });
+    const data = await res.json();
+    
+    if (data.status === 'success') {
+      const results = data.results || {};
+      const applied = results.applied_count || 0;
+      const pending = results.needs_input_count || 0;
+      
+      resultsDiv.innerHTML = `
+        <div style="padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px;">
+          <div style="color: #10B981; font-weight: 700; font-size: 14px; margin-bottom: 8px;">✓ Batch Auto-Apply Complete</div>
+          <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
+            <div>📊 Applied: <b style="color: #10B981;">${applied}</b> jobs</div>
+            <div>⏳ Pending Answers: <b style="color: #F59E0B;">${pending}</b> jobs</div>
+            <div>📋 Total Easy Apply: <b>${data.total_easy_apply || 0}</b></div>
+          </div>
+        </div>
+      `;
+      
+      // Show tracker download buttons
+      if (downloadsDiv) {
+        downloadsDiv.style.display = 'flex';
+      }
+      
+      showToast(`✅ Batch Applied to ${applied} Easy Apply jobs! Notifications dispatched.`);
+      btn.innerText = `✓ Batch Applied to ${applied} Jobs`;
+      btn.style.borderColor = '#10B981';
+    } else {
+      resultsDiv.innerHTML = `<div style="color: var(--accent-rose); font-size: 13px;">${escapeHtml(data.message || 'Batch apply failed.')}</div>`;
+      btn.disabled = false;
+      btn.innerText = '⚡ Batch Auto-Apply to All Easy Apply Jobs';
+    }
+  } catch (err) {
+    resultsDiv.innerHTML = `<div style="color: var(--accent-rose); font-size: 13px;">Error: ${escapeHtml(err.message)}</div>`;
+    btn.disabled = false;
+    btn.innerText = '⚡ Batch Auto-Apply to All Easy Apply Jobs';
   }
 });
 
 // Step 9: Notification Channels & Alert Settings Controller
 async function loadNotificationSettings() {
+  let userEmail = '';
   try {
-    const res = await fetch('/api/v1/settings/notifications');
+    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
+    if (user && user.email) userEmail = user.email.trim().toLowerCase();
+    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
+  } catch (e) {}
+
+  try {
+    const url = userEmail ? `/api/v1/settings/notifications?email=${encodeURIComponent(userEmail)}` : '/api/v1/settings/notifications';
+    const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       if (document.getElementById('setting-email')) document.getElementById('setting-email').value = data.email || '';
@@ -950,21 +1237,29 @@ document.getElementById('btn-save-settings')?.addEventListener('click', async ()
   const tg = document.getElementById('setting-telegram').value.trim();
   const msgEl = document.getElementById('settings-save-msg');
 
-  msgEl.innerHTML = '<span style="color: var(--accent-cyan)">Saving preferences...</span>';
+  let userEmail = email;
+  try {
+    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
+    if (user && user.email) userEmail = user.email.trim().toLowerCase();
+    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
+  } catch (e) {}
+
+  msgEl.innerHTML = '<span style="color: var(--accent-cyan)">Saving preferences to Supabase...</span>';
 
   try {
     const res = await fetch('/api/v1/settings/notifications', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, whatsapp: wa, telegram: tg })
+      body: JSON.stringify({ email, whatsapp: wa, telegram: tg, user_email: userEmail })
     });
     if (res.ok) {
-      msgEl.innerHTML = '<span style="color: var(--accent-emerald)">✓ Preferences saved successfully!</span>';
+      msgEl.innerHTML = '<span style="color: var(--accent-emerald)">✓ Preferences saved and synced permanently to Supabase!</span>';
       
       if (document.getElementById('bar-email')) document.getElementById('bar-email').innerText = email || 'Not Configured';
       if (document.getElementById('bar-whatsapp')) document.getElementById('bar-whatsapp').innerText = wa || 'Not Configured';
       if (document.getElementById('bar-telegram')) document.getElementById('bar-telegram').innerText = tg ? (tg.startsWith('@') ? tg : '@' + tg) : 'Not Configured';
 
+      showToast("💾 Notification settings saved & synced to Supabase!");
       setTimeout(() => closeModal('modal-settings'), 1200);
     } else {
       msgEl.innerHTML = '<span style="color: var(--accent-rose)">Failed to save preferences.</span>';
@@ -1587,6 +1882,17 @@ async function isolateAndSetUserSession(userPayload) {
   }));
 
   window.updateTierBadges(tier);
+  refreshNavbarAuthState();
+
+  // Restore this user's stored CV, WhatsApp, and Memory Bank from Supabase
+  try {
+    await loadInitialProfile();
+    await loadNotificationSettings();
+    await loadQuestionnaireBank();
+  } catch (err) {
+    console.warn("Notice during user session data hydration:", err);
+  }
+
   return tier;
 }
 
@@ -1660,6 +1966,115 @@ async function syncSupabaseUserSession() {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Authentication & User Profile Modal Handlers
+// ─────────────────────────────────────────────────────────────
+const GOOGLE_CLIENT_ID = "623877995804-94j5uclckk32u7n021f1q54d5k5dcrka.apps.googleusercontent.com";
+
+window.handleGoogleSignIn = function() {
+  const redirectTarget = encodeURIComponent(`${window.location.origin}/app`);
+  const googleAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTarget}`;
+  window.location.href = googleAuthUrl;
+};
+
+window.handleSignOut = function() {
+  localStorage.removeItem('jobflow_auth_user');
+  localStorage.removeItem('user_subscription_tier');
+  localStorage.removeItem('candidate_quick_profile');
+  localStorage.removeItem('gumroad_license_key');
+  localStorage.removeItem('jobflow_free_search_quota');
+  
+  if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
+    try {
+      const client = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
+      client.auth.signOut();
+    } catch (e) {}
+  }
+  
+  window.location.reload();
+};
+
+window.openUserProfileModal = function() {
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
+  } catch (e) {}
+
+  const tier = (localStorage.getItem('user_subscription_tier') || 'free').toLowerCase();
+  const email = user?.email || (tier === 'owner' ? 'mudatherkbyer@gmail.com' : 'Guest User');
+  const name = user?.full_name || (tier === 'owner' ? 'Mudather Mohammed' : (email.includes('@') ? email.split('@')[0] : 'Guest User'));
+  const initial = (name[0] || 'U').toUpperCase();
+
+  const avatarEl = document.getElementById('modal-user-avatar');
+  const nameEl = document.getElementById('modal-user-name');
+  const emailEl = document.getElementById('modal-user-email');
+  const badgeEl = document.getElementById('modal-user-tier-badge');
+
+  if (avatarEl) avatarEl.innerText = initial;
+  if (nameEl) nameEl.innerText = name;
+  if (emailEl) emailEl.innerText = email;
+  
+  if (badgeEl) {
+    if (tier === 'owner') {
+      badgeEl.innerText = '👑 OWNER & ADMIN • LIFETIME ($49)';
+      badgeEl.style.background = 'rgba(0, 240, 255, 0.15)';
+      badgeEl.style.color = '#00F0FF';
+      badgeEl.style.borderColor = 'rgba(0, 240, 255, 0.4)';
+    } else if (tier === 'executive') {
+      badgeEl.innerText = '👑 EXECUTIVE VIP ($49)';
+      badgeEl.style.background = 'rgba(168, 85, 247, 0.15)';
+      badgeEl.style.color = '#C084FC';
+      badgeEl.style.borderColor = 'rgba(168, 85, 247, 0.4)';
+    } else if (tier === 'pro') {
+      badgeEl.innerText = '⚡ PRO MEMBER ($19/mo)';
+      badgeEl.style.background = 'rgba(56, 189, 248, 0.15)';
+      badgeEl.style.color = '#38BDF8';
+      badgeEl.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+    } else {
+      badgeEl.innerText = 'FREE PLAN ($0)';
+      badgeEl.style.background = 'rgba(148, 163, 184, 0.15)';
+      badgeEl.style.color = '#94A3B8';
+      badgeEl.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+    }
+  }
+
+  openModal('modal-user-profile');
+};
+
+function refreshNavbarAuthState() {
+  const loginBtn = document.getElementById('btn-google-login');
+  const profileBtn = document.getElementById('user-profile-btn');
+  const nameEl = document.getElementById('user-display-name');
+  const avatarEl = document.getElementById('user-avatar-initials');
+
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
+  } catch (e) {}
+
+  const tier = (localStorage.getItem('user_subscription_tier') || 'free').toLowerCase();
+
+  if (user && user.email) {
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (profileBtn) {
+      profileBtn.style.display = 'inline-flex';
+      const displayName = user.full_name ? user.full_name.split(' ')[0] : (user.email.split('@')[0]);
+      if (nameEl) nameEl.innerText = displayName;
+      if (avatarEl) avatarEl.innerText = (displayName[0] || 'U').toUpperCase();
+    }
+  } else if (tier === 'owner') {
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (profileBtn) {
+      profileBtn.style.display = 'inline-flex';
+      if (nameEl) nameEl.innerText = 'Mudather';
+      if (avatarEl) avatarEl.innerText = 'M';
+    }
+  } else {
+    if (loginBtn) loginBtn.style.display = 'inline-flex';
+    if (profileBtn) profileBtn.style.display = 'none';
+  }
+}
+
 // Load on start
 document.addEventListener('DOMContentLoaded', () => {
   loadInitialProfile();
@@ -1671,6 +2086,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Tier initialization: Strictly default to 'free'
   const savedTier = localStorage.getItem('user_subscription_tier') || 'free';
   window.updateTierBadges(savedTier);
+  refreshNavbarAuthState();
 
   // Attach direct click listeners to all template buttons
   document.querySelectorAll('.template-btn').forEach(btn => {
@@ -1716,6 +2132,7 @@ function handleGumroadRedirectActivation() {
       }
 
       window.updateTierBadges(activatedTier);
+      refreshNavbarAuthState();
       showToast(`🎉 Payment Confirmed! Your ${planName} is now active with unlimited access!`);
 
       // Clean query params from address bar smoothly

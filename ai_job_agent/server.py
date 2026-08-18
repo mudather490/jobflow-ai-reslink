@@ -59,27 +59,96 @@ async def security_headers_middleware(request: Request, call_next):
     # Inject hardened security headers (OWASP Level 3 Defense)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["X-XSS-Protection"] = "0"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
     response.headers["Permissions-Policy"] = "camera=(self), microphone=(self), geolocation=(), payment=()"
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob: data:; "
+        "default-src 'self' 'unsafe-inline' https: blob: data:; "
         "img-src 'self' https: data: blob:; "
         "media-src 'self' https: blob: data:; "
         "frame-src 'self' https://accounts.google.com https://*.google.com; "
-        "connect-src 'self' https://bijwvvnghhbgudyrecpx.supabase.co https://*.supabase.co https://accounts.google.com https://*.googleapis.com https://api.gumroad.com https:; "
+        "connect-src 'self' https://bijwvvnghhbgudyrecpx.supabase.co https://*.supabase.co https://accounts.google.com https://*.googleapis.com https://api.gumroad.com; "
         "frame-ancestors 'self';"
     )
+    return response
+
+# ─────────────────────────────────────────────────────────────
+# 2. CSRF, SSRF, Backdoor & Request Size Protection Middleware
+# ─────────────────────────────────────────────────────────────
+ALLOWED_ORIGINS = {
+    "https://jobflow-ai-reslink-5tbi.vercel.app",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+}
+
+BLOCKED_PATHS = {
+    "/.env", "/.git", "/.gitignore", "/.htaccess", "/.htpasswd",
+    "/admin", "/wp-admin", "/wp-login.php", "/phpmyadmin",
+    "/config.py", "/config.json", "/secrets", "/.aws",
+    "/server-status", "/server-info", "/.svn", "/.hg",
+}
+
+MAX_BODY_SIZE = 10 * 1024 * 1024  # 10MB
+FILE_UPLOAD_PATHS = {"/api/v1/resume/upload", "/api/v1/reslink/video/upload"}
+
+@app.middleware("http")
+async def csrf_ssrf_backdoor_middleware(request: Request, call_next):
+    path = request.url.path.lower().rstrip("/")
+    
+    # 1. Block known backdoor/sensitive file paths
+    for blocked in BLOCKED_PATHS:
+        if path == blocked or path.startswith(blocked + "/"):
+            return JSONResponse(status_code=404, content={"error": "Not Found"})
+    
+    # 2. CSRF: Validate Origin/Referer for state-changing requests
+    if request.method in ("POST", "PUT", "DELETE", "PATCH") and path.startswith("/api/"):
+        origin = request.headers.get("origin", "")
+        referer = request.headers.get("referer", "")
+        
+        # Allow requests with no origin (same-origin browser, curl, mobile apps)
+        if origin:
+            if origin.rstrip("/") not in ALLOWED_ORIGINS:
+                return JSONResponse(
+                    status_code=403,
+                    content={"error": "CSRF Protection: Origin not allowed."}
+                )
+        elif referer:
+            from urllib.parse import urlparse
+            ref_origin = f"{urlparse(referer).scheme}://{urlparse(referer).netloc}"
+            if ref_origin.rstrip("/") not in ALLOWED_ORIGINS:
+                return JSONResponse(
+                    status_code=403,
+                    content={"error": "CSRF Protection: Referer not allowed."}
+                )
+    
+    # 3. Request body size limit (skip file upload endpoints)
+    if path not in FILE_UPLOAD_PATHS:
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > MAX_BODY_SIZE:
+            return JSONResponse(
+                status_code=413,
+                content={"error": "Request body too large. Maximum 10MB allowed."}
+            )
+    
+    response = await call_next(request)
     return response
 
 # Enable CORS with strict controls
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://jobflow-ai-reslink-5tbi.vercel.app",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3000",
+    ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
 )
 
 # Static directory
@@ -102,6 +171,7 @@ active_job: Optional[JobDetails] = None
 active_match: Optional[MatchReport] = None
 active_pdf_path: Optional[str] = None
 active_docx_path: Optional[str] = None
+currentJobs = []
 
 scraper = LinkedInScraper()
 matcher = JobMatcher()
@@ -152,8 +222,33 @@ async def serve_reslink_studio():
 
 
 @app.get("/api/v1/resume/current")
-async def get_current_profile():
+async def get_current_profile(email: Optional[str] = None):
     global active_profile, active_resume_filename, active_resume_size
+    from core.supabase_client import SupabaseManager
+
+    if email:
+        clean_email = email.strip().lower()
+        # Check Supabase for user's stored CV profile
+        user_cv = SupabaseManager.get_user_profile(clean_email)
+        if user_cv and user_cv.get("profile"):
+            try:
+                active_profile = UserProfile(**user_cv["profile"])
+                active_resume_filename = user_cv.get("filename", "Resume.pdf")
+                active_resume_size = "Verified (Cloud Synced)"
+            except Exception as e:
+                print(f"[Supabase] Error parsing stored user profile: {e}")
+        elif clean_email == SupabaseManager.OWNER_EMAIL:
+            # For owner, check master uploaded CV files
+            owner_cv_path = DATA_DIR / "Mudather_Mohammed_Resume_1_Resume__1_.pdf"
+            if owner_cv_path.exists():
+                try:
+                    active_profile = ResumeParser.parse_file(str(owner_cv_path))
+                    active_resume_filename = owner_cv_path.name
+                    active_resume_size = f"{round(owner_cv_path.stat().st_size / 1024, 1)} KB"
+                    SupabaseManager.save_user_profile(clean_email, active_profile.model_dump(), filename=active_resume_filename)
+                except Exception:
+                    pass
+
     return {
         "filename": active_resume_filename,
         "filesize": active_resume_size,
@@ -162,8 +257,9 @@ async def get_current_profile():
 
 
 @app.post("/api/v1/resume/upload")
-async def upload_resume(file: UploadFile = File(...)):
+async def upload_resume(file: UploadFile = File(...), user_email: Optional[str] = Form(None)):
     global active_profile, active_resume_filename, active_resume_size, active_job, active_match, active_pdf_path, active_docx_path
+    from core.supabase_client import SupabaseManager
 
     # Security checks: File size limit, extension whitelist, and magic bytes header inspection
     content = await file.read()
@@ -185,6 +281,12 @@ async def upload_resume(file: UploadFile = File(...)):
 
     try:
         active_profile = ResumeParser.parse_file(str(save_path))
+        
+        # Persist to Supabase and user cache
+        target_email = user_email or (active_profile.contact.email if active_profile.contact else None)
+        if target_email:
+            SupabaseManager.save_user_profile(target_email, active_profile.model_dump(), filename=active_resume_filename)
+
         # Sync ResLink profile with newly uploaded resume
         try:
             res_prof = ResLinkManager.load_profile(fallback_profile=active_profile)
@@ -202,7 +304,8 @@ async def upload_resume(file: UploadFile = File(...)):
         except Exception as se:
             print(f"[Warning] Failed to sync ResLink on upload: {se}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to parse resume: {str(e)}")
+        print(f"Failed to parse resume: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to parse resume.")
 
     if active_job:
         active_match = matcher.evaluate_match(active_profile, active_job)
@@ -511,6 +614,9 @@ async def search_jobs(
         )
         jobs_dict_list.extend(fallback_batch)
 
+    global currentJobs
+    currentJobs = jobs_dict_list
+
     return {"status": "success", "jobs": jobs_dict_list, "offset": offset, "count": len(jobs_dict_list)}
 
 
@@ -708,10 +814,28 @@ class SaveQuestionnaireRequest(BaseModel):
     question: str
     answer: str
     category: str = "custom"
+    user_email: Optional[str] = None
 
 
 @app.get("/api/v1/questionnaire")
-async def get_questionnaire():
+async def get_questionnaire(email: Optional[str] = None):
+    from core.supabase_client import SupabaseManager
+    if email:
+        clean_email = email.strip().lower()
+        user_bank = SupabaseManager.get_user_memory_bank(clean_email)
+        if user_bank and isinstance(user_bank, list):
+            for q_data in user_bank:
+                if isinstance(q_data, dict) and "id" in q_data and "answer" in q_data:
+                    q_id = q_data["id"]
+                    if q_id in memory_bank.questions:
+                        memory_bank.update_answer(q_id, q_data["answer"])
+                    else:
+                        memory_bank.add_or_update_custom_question(
+                            q_data.get("question", q_id),
+                            q_data.get("answer", ""),
+                            category=q_data.get("category", "custom")
+                        )
+
     return {
         "status": "success",
         "questions": memory_bank.get_all(),
@@ -721,6 +845,7 @@ async def get_questionnaire():
 
 @app.post("/api/v1/questionnaire/save")
 async def save_questionnaire_answer(req: SaveQuestionnaireRequest):
+    from core.supabase_client import SupabaseManager
     safe_q = SecurityShield.sanitize_string(req.question, "Question Text")
     safe_a = SecurityShield.sanitize_string(req.answer, "Answer Value")
     safe_cat = SecurityShield.sanitize_string(req.category, "Category") or "custom"
@@ -731,6 +856,9 @@ async def save_questionnaire_answer(req: SaveQuestionnaireRequest):
     else:
         entry = memory_bank.add_or_update_custom_question(safe_q, safe_a, category=safe_cat)
 
+    if req.user_email:
+        SupabaseManager.save_user_memory_bank(req.user_email, memory_bank.get_all())
+
     return {
         "status": "success",
         "message": "Answer permanently saved to Auto-Apply Memory Bank",
@@ -740,10 +868,12 @@ async def save_questionnaire_answer(req: SaveQuestionnaireRequest):
 
 class SaveAllQuestionnaireRequest(BaseModel):
     answers: Dict[str, str]
+    user_email: Optional[str] = None
 
 
 @app.post("/api/v1/questionnaire/save-all")
 async def save_all_questionnaire_endpoint(req: SaveAllQuestionnaireRequest):
+    from core.supabase_client import SupabaseManager
     updated_count = 0
     for q_id, val in req.answers.items():
         safe_id = SecurityShield.sanitize_string(q_id, "Question ID")
@@ -751,6 +881,10 @@ async def save_all_questionnaire_endpoint(req: SaveAllQuestionnaireRequest):
         if safe_id in memory_bank.questions:
             memory_bank.update_answer(safe_id, safe_val)
             updated_count += 1
+    
+    if req.user_email:
+        SupabaseManager.save_user_memory_bank(req.user_email, memory_bank.get_all())
+
     return {
         "status": "success",
         "message": f"Successfully updated {updated_count} answers in Memory Bank!",
@@ -878,13 +1012,32 @@ async def auto_apply_endpoint(req: AutoApplyRequest):
 
     notif_results = {}
     if req.dispatch_alerts:
+        # Load user's saved notification channels from Supabase
+        try:
+            from core.supabase_client import SupabaseManager
+            user_email = req.candidate_profile.email if req.candidate_profile else None
+            if user_email:
+                saved_notif = SupabaseManager.get_user_notifications(user_email)
+                if saved_notif and isinstance(saved_notif, dict):
+                    if saved_notif.get("email"): notifier.recipient_email = saved_notif["email"]
+                    if saved_notif.get("whatsapp"): notifier.whatsapp_phone = saved_notif["whatsapp"]
+                    if saved_notif.get("telegram"): notifier.telegram_chat_id = saved_notif["telegram"]
+        except Exception as e:
+            print(f"[Notification Sync] Warning: {e}")
+        
+        # Determine which channels the user has configured
+        active_channels = []
+        if notifier.recipient_email: active_channels.append("email")
+        if notifier.whatsapp_phone: active_channels.append("whatsapp")
+        if notifier.telegram_chat_id: active_channels.append("telegram")
+        
         notif_results = notifier.dispatch_all(
             job_title=active_job.title,
             company=active_job.company,
             match_score=active_match.match_score,
             job_url=active_job.job_url,
             pdf_path=active_pdf_path,
-            channels=["email", "whatsapp", "telegram"],
+            channels=active_channels or ["email"],
         )
 
     return {
@@ -915,7 +1068,7 @@ async def batch_apply_endpoint(req: BatchApplyRequest):
     safe_template_id = SecurityShield.sanitize_string(req.template_id, "Template ID") or "modern"
     jobs_to_process: List[JobDetails] = []
 
-    for jid in req.job_ids[:15]: # safety cap of 15 jobs per batch
+    for jid in req.job_ids[:100]: # safety cap of 100 jobs per batch
         safe_jid = SecurityShield.sanitize_string(jid, "Job ID")
         j_detail = scraper.get_job_details(safe_jid)
         if not j_detail:
@@ -954,6 +1107,66 @@ async def batch_apply_endpoint(req: BatchApplyRequest):
         "status": "success",
         "message": f"Batch application processed: {batch_result['applied_count']} auto-applied successfully, {batch_result['needs_input_count']} pending new answers.",
         "results": batch_result,
+    }
+
+
+@app.post("/api/v1/application/batch-apply-easy")
+async def batch_apply_easy_endpoint(request: Request):
+    """Batch auto-apply to all Easy Apply jobs from current search results."""
+    global active_profile, active_match, active_pdf_path, active_docx_path, notifier, currentJobs
+    
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    
+    batch_size = min(int(body.get("batch_size", 50)), 100)
+    template_id = SecurityShield.sanitize_string(body.get("template_id", "modern"), "Template ID")
+    candidate_data = body.get("candidate_profile", {})
+    
+    # Filter current jobs to Easy Apply only
+    easy_apply_jobs = [j for j in currentJobs if isinstance(j, dict) and j.get('is_easy_apply', False)][:batch_size]
+    if not easy_apply_jobs and currentJobs and hasattr(currentJobs[0], 'is_easy_apply'):
+        easy_apply_jobs = [j for j in currentJobs if getattr(j, 'is_easy_apply', False)][:batch_size]
+
+    if not easy_apply_jobs:
+        return {"status": "error", "message": "No Easy Apply jobs found in current search results. Please search for jobs first."}
+    
+    candidate = CandidateQuickProfile(**candidate_data) if candidate_data else None
+    
+    # Load user notification settings
+    user_email = candidate.email if candidate else None
+    if user_email:
+        try:
+            from core.supabase_client import SupabaseManager
+            saved_notif = SupabaseManager.get_user_notifications(user_email)
+            if saved_notif and isinstance(saved_notif, dict):
+                if saved_notif.get("email"): notifier.recipient_email = saved_notif["email"]
+                if saved_notif.get("whatsapp"): notifier.whatsapp_phone = saved_notif["whatsapp"]
+                if saved_notif.get("telegram"): notifier.telegram_chat_id = saved_notif["telegram"]
+        except Exception:
+            pass
+    
+    active_channels = []
+    if notifier.recipient_email: active_channels.append("email")
+    if notifier.whatsapp_phone: active_channels.append("whatsapp")
+    if notifier.telegram_chat_id: active_channels.append("telegram")
+    
+    batch_result = JobApplier.batch_auto_apply(
+        jobs=easy_apply_jobs,
+        profile=active_profile,
+        candidate_info=candidate,
+        template_id=template_id,
+        memory_bank=memory_bank,
+        notifier=notifier,
+        channels=active_channels or ["email"],
+    )
+    
+    return {
+        "status": "success",
+        "message": f"Batch Easy Apply completed: {batch_result['applied_count']}/{len(easy_apply_jobs)} jobs auto-applied.",
+        "total_easy_apply": len(easy_apply_jobs),
+        "results": batch_result
     }
 
 
@@ -1036,6 +1249,83 @@ async def export_applications_csv():
     )
 
 
+@app.get("/api/v1/applications/export-pdf")
+async def export_applications_pdf():
+    history = JobApplier.load_history()
+    if not history:
+        sample_record = {
+            "application_id": "AUTO-APP-INIT",
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "job_title": "Senior AI / Machine Learning Engineer",
+            "company": "Anthropic AI",
+            "location": "Worldwide Remote",
+            "status": "Applied",
+            "ats_match_score": 96.5,
+            "template_used": "modern",
+            "job_url": "https://www.linkedin.com/jobs",
+            "prefilled_answers": {
+                "Key Matching Skills": "Python, PyTorch, FastAPI, AI Agents, LangGraph"
+            }
+        }
+        history = [sample_record]
+
+    pdf_file = CompanyIntelligenceExcelExporter.export_to_pdf(history)
+    safe_path = SecurityShield.validate_safe_path(pdf_file, OUTPUT_DIR)
+    if not safe_path or not safe_path.exists():
+        raise HTTPException(status_code=500, detail="Failed to generate PDF tracker")
+
+    return FileResponse(
+        path=str(safe_path),
+        media_type="application/pdf",
+        filename="Company_Applications_Tracker.pdf",
+        headers={"Content-Disposition": "attachment; filename=Company_Applications_Tracker.pdf"}
+    )
+
+
+class TestNotificationRequest(BaseModel):
+    channel: str = "all"  # email, whatsapp, telegram, all
+    email: Optional[str] = None
+    whatsapp: Optional[str] = None
+    telegram: Optional[str] = None
+
+
+@app.post("/api/v1/notifications/test")
+async def send_test_notification_endpoint(req: TestNotificationRequest):
+    global notifier, active_profile
+
+    # Sanitize inputs
+    target_email = req.email or notifier.recipient_email or (active_profile.contact.email if active_profile else "mudatherkbyer@gmail.com")
+    target_wa = req.whatsapp or notifier.whatsapp_phone or (active_profile.contact.phone if active_profile else "+15553456789")
+    target_tg = req.telegram or notifier.telegram_chat_id or "alex_telegram"
+
+    if target_email:
+        target_email = SecurityShield.sanitize_string(target_email, "Email")
+    if target_wa:
+        target_wa = SecurityShield.sanitize_string(target_wa, "WhatsApp")
+    if target_tg:
+        target_tg = SecurityShield.sanitize_string(target_tg, "Telegram")
+
+    channels = [req.channel] if req.channel in ["email", "whatsapp", "telegram"] else ["email", "whatsapp", "telegram"]
+    
+    test_results = notifier.dispatch_all(
+        job_title="Lead AI Architect & Machine Learning Engineer",
+        company="OpenAI / Google DeepMind Partner",
+        match_score=98.5,
+        job_url="https://www.linkedin.com/jobs/view/ai-architect",
+        pdf_path=active_pdf_path,
+        channels=channels
+    )
+
+    return {
+        "status": "success",
+        "message": f"Test alert dispatched to configured channels: {', '.join(channels)}",
+        "results": test_results,
+        "email_sent_to": target_email,
+        "whatsapp_sent_to": target_wa,
+        "telegram_sent_to": target_tg
+    }
+
+
 class ApplyRequest(BaseModel):
     email_enabled: bool = True
     whatsapp_enabled: bool = True
@@ -1087,14 +1377,28 @@ class NotificationSettingsRequest(BaseModel):
     email: Optional[str] = None
     whatsapp: Optional[str] = None
     telegram: Optional[str] = None
+    user_email: Optional[str] = None
 
 
 @app.get("/api/v1/settings/notifications")
-async def get_notification_settings():
+async def get_notification_settings(email: Optional[str] = None):
     global active_profile, notifier
+    from core.supabase_client import SupabaseManager
+
+    if email:
+        clean_email = email.strip().lower()
+        saved = SupabaseManager.get_user_notifications(clean_email)
+        if saved and isinstance(saved, dict):
+            return {
+                "email": saved.get("email") or notifier.recipient_email or "",
+                "whatsapp": saved.get("whatsapp") or notifier.whatsapp_phone or "",
+                "telegram": saved.get("telegram") or notifier.telegram_chat_id or "",
+                "gumroad_status": "Active (Global MoR Connected via PayPal)",
+            }
+
     return {
-        "email": notifier.recipient_email or (active_profile.contact.email if active_profile else "alex.rivera@email.com"),
-        "whatsapp": notifier.whatsapp_phone or (active_profile.contact.phone if active_profile else "+15553456789"),
+        "email": notifier.recipient_email or (active_profile.contact.email if active_profile and active_profile.contact else "mudatherkbyer@gmail.com"),
+        "whatsapp": notifier.whatsapp_phone or (active_profile.contact.phone if active_profile and active_profile.contact else "+15553456789"),
         "telegram": notifier.telegram_chat_id or "alex_telegram",
         "gumroad_status": "Active (Global MoR Connected via PayPal)",
     }
@@ -1103,7 +1407,10 @@ async def get_notification_settings():
 @app.post("/api/v1/settings/notifications")
 async def update_notification_settings(req: NotificationSettingsRequest):
     global notifier, active_profile
+    from core.supabase_client import SupabaseManager
     try:
+        target_user = (req.user_email or req.email or "").strip().lower()
+
         # Save valid values
         if req.email:
             notifier.recipient_email = req.email
@@ -1115,11 +1422,17 @@ async def update_notification_settings(req: NotificationSettingsRequest):
                 active_profile.contact.phone = req.whatsapp
         if req.telegram:
             notifier.telegram_chat_id = req.telegram
-            # ContactInfo doesn't have telegram, handled by notifier
+
+        if target_user:
+            SupabaseManager.save_user_notifications(target_user, {
+                "email": notifier.recipient_email,
+                "whatsapp": notifier.whatsapp_phone,
+                "telegram": notifier.telegram_chat_id,
+            })
 
         return {
             "status": "success",
-            "message": "Notification preferences updated successfully.",
+            "message": "Notification preferences updated successfully and synced to Supabase.",
             "settings": {
                 "email": notifier.recipient_email,
                 "whatsapp": notifier.whatsapp_phone,
@@ -1130,7 +1443,33 @@ async def update_notification_settings(req: NotificationSettingsRequest):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+        return JSONResponse(status_code=500, content={"status": "error", "message": "An internal error occurred while updating settings."})
+
+
+@app.get("/api/v1/user/sync")
+@app.post("/api/v1/user/sync")
+async def sync_user_data_endpoint(request: Request, email: Optional[str] = None):
+    """
+    Complete Cross-Device Session Restorer:
+    Fetches and returns user's stored resume profile, contact numbers, notification preferences,
+    and questionnaire memory bank directly from Supabase / User Cache.
+    """
+    from core.supabase_client import SupabaseManager
+    req_email = email
+    if not req_email and request.method == "POST":
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                req_email = body.get("email")
+        except Exception:
+            pass
+
+    clean_email = (req_email or "").strip().lower()
+    if not clean_email:
+        return {"status": "unauthenticated", "data": {}}
+
+    sync_bundle = SupabaseManager.sync_all_user_data(clean_email)
+    return {"status": "success", "data": sync_bundle}
 
 
 class UserStatusRequest(BaseModel):
@@ -1348,7 +1687,8 @@ async def track_reslink_view(request: Request):
             
         return {"status": "success", "analytics": analytics.model_dump()}
     except Exception as e:
-        return {"status": "ok", "error": str(e)}
+        print(f"Error tracking view: {e}")
+        return {"status": "ok", "error": "An error occurred while tracking event."}
 
 
 @app.get("/api/v1/reslink/analytics")
@@ -1370,7 +1710,8 @@ async def create_or_update_company_reslink_endpoint(request: Request):
         saved = ResLinkManager.add_or_update_company_reslink(body)
         return {"status": "success", "company": saved}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        print(f"Error creating company reslink: {e}")
+        raise HTTPException(status_code=400, detail="Failed to create or update company reslink.")
 
 
 @app.delete("/api/v1/reslink/companies/{company_id}")
@@ -1402,7 +1743,8 @@ async def update_company_status_endpoint(company_id: str, request: Request):
                 
         raise HTTPException(status_code=404, detail="Company not found")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        print(f"Error updating company status: {e}")
+        raise HTTPException(status_code=400, detail="Failed to update company status.")
 
 
 if __name__ == "__main__":

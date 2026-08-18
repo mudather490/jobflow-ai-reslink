@@ -170,6 +170,346 @@ class SupabaseAdapter:
         return "free"
 
 
+    # ─────────────────────────────────────────────────────────────
+    # User Profile, Resume & Settings Persistent Synchronization
+    # ─────────────────────────────────────────────────────────────
+    @classmethod
+    def _get_local_user_cache_path(cls, email: str) -> Path:
+        from config import DATA_DIR
+        clean = (email or "anonymous").strip().lower().replace("@", "_at_").replace(".", "_")
+        users_dir = DATA_DIR / "users"
+        users_dir.mkdir(parents=True, exist_ok=True)
+        return users_dir / f"{clean}_profile.json"
+
+    @classmethod
+    def save_user_profile(cls, email: str, profile_dict: Dict[str, Any], filename: str = "") -> bool:
+        """
+        Saves candidate resume profile, parsed sections, and filename in Supabase and local cache.
+        """
+        if not email:
+            return False
+        clean_email = email.strip().lower()
+        client = cls.get_client()
+
+        payload = {
+            "email": clean_email,
+            "full_name": profile_dict.get("full_name", "Candidate"),
+            "headline": profile_dict.get("headline", ""),
+            "phone_number": profile_dict.get("contact", {}).get("phone") or "",
+            "location": profile_dict.get("contact", {}).get("location") or "",
+            "linkedin": profile_dict.get("contact", {}).get("linkedin") or "",
+            "github": profile_dict.get("contact", {}).get("github") or "",
+            "summary": profile_dict.get("summary", ""),
+            "skills": profile_dict.get("skills", []),
+            "experience": [e if isinstance(e, dict) else (e.model_dump() if hasattr(e, "model_dump") else dict(e)) for e in profile_dict.get("experience", [])],
+            "projects": [p if isinstance(p, dict) else (p.model_dump() if hasattr(p, "model_dump") else dict(p)) for p in profile_dict.get("projects", [])],
+            "education": [ed if isinstance(ed, dict) else (ed.model_dump() if hasattr(ed, "model_dump") else dict(ed)) for ed in profile_dict.get("education", [])],
+            "certifications": [c if isinstance(c, dict) else (c.model_dump() if hasattr(c, "model_dump") else dict(c)) for c in profile_dict.get("certifications", [])],
+            "additional_background": profile_dict.get("additional_background", ""),
+            "target_role": profile_dict.get("target_role", ""),
+            "resume_profile": profile_dict,
+            "updated_at": "now()"
+        }
+        if filename:
+            payload["resume_filename"] = filename
+
+        # 1. Update local cache
+        try:
+            cache_file = cls._get_local_user_cache_path(clean_email)
+            cached_data = {}
+            if cache_file.exists():
+                import json
+                try:
+                    with open(cache_file, "r", encoding="utf-8") as f:
+                        cached_data = json.load(f)
+                except Exception:
+                    pass
+            cached_data["profile"] = profile_dict
+            if filename:
+                cached_data["filename"] = filename
+            with open(cache_file, "w", encoding="utf-8") as f:
+                import json
+                json.dump(cached_data, f, indent=2)
+        except Exception as e:
+            print(f"[Local Cache] Failed to cache profile for {clean_email}: {e}")
+
+        # 2. Update Supabase
+        if client:
+            try:
+                client.table("profiles").upsert(payload, on_conflict="email").execute()
+                print(f"[Supabase] Persisted resume profile for user: {clean_email}")
+                return True
+            except Exception as e:
+                print(f"[Supabase] Error saving profile: {e}")
+
+        return True
+
+    @classmethod
+    def get_user_profile(cls, email: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves user's resume profile from Supabase or local cache.
+        """
+        if not email:
+            return None
+        clean_email = email.strip().lower()
+        client = cls.get_client()
+
+        # 1. Try Supabase first
+        if client:
+            try:
+                res = client.table("profiles").select("resume_profile, resume_filename, full_name, headline, phone_number, location, linkedin, github, summary, skills, experience, projects, education, certifications, additional_background, target_role").eq("email", clean_email).limit(1).execute()
+                if res.data and len(res.data) > 0:
+                    row = res.data[0]
+                    profile = row.get("resume_profile")
+                    if profile and isinstance(profile, dict) and profile.get("full_name"):
+                        return {
+                            "profile": profile,
+                            "filename": row.get("resume_filename", "Resume.pdf")
+                        }
+            except Exception as e:
+                print(f"[Supabase] Error fetching user profile: {e}")
+
+        # 2. Fallback to local cache
+        cache_file = cls._get_local_user_cache_path(clean_email)
+        if cache_file.exists():
+            import json
+            try:
+                with open(cache_file, "r", encoding="utf-8") as f:
+                    cached_data = json.load(f)
+                    if cached_data.get("profile"):
+                        return {
+                            "profile": cached_data["profile"],
+                            "filename": cached_data.get("filename", "Resume.pdf")
+                        }
+            except Exception:
+                pass
+
+        return None
+
+    @classmethod
+    def save_user_notifications(cls, email: str, notif_dict: Dict[str, Any]) -> bool:
+        if not email:
+            return False
+        clean_email = email.strip().lower()
+        client = cls.get_client()
+
+        # Cache locally
+        try:
+            cache_file = cls._get_local_user_cache_path(clean_email)
+            cached_data = {}
+            if cache_file.exists():
+                import json
+                try:
+                    with open(cache_file, "r", encoding="utf-8") as f:
+                        cached_data = json.load(f)
+                except Exception:
+                    pass
+            cached_data["notifications"] = notif_dict
+            with open(cache_file, "w", encoding="utf-8") as f:
+                import json
+                json.dump(cached_data, f, indent=2)
+        except Exception:
+            pass
+
+        if client:
+            try:
+                payload = {
+                    "email": clean_email,
+                    "notification_settings": notif_dict,
+                    "updated_at": "now()"
+                }
+                client.table("profiles").upsert(payload, on_conflict="email").execute()
+                return True
+            except Exception as e:
+                print(f"[Supabase] Error saving notifications: {e}")
+        return True
+
+    @classmethod
+    def get_user_notifications(cls, email: str) -> Optional[Dict[str, Any]]:
+        if not email:
+            return None
+        clean_email = email.strip().lower()
+        client = cls.get_client()
+
+        if client:
+            try:
+                res = client.table("profiles").select("notification_settings").eq("email", clean_email).limit(1).execute()
+                if res.data and len(res.data) > 0:
+                    ns = res.data[0].get("notification_settings")
+                    if ns and isinstance(ns, dict):
+                        return ns
+            except Exception:
+                pass
+
+        cache_file = cls._get_local_user_cache_path(clean_email)
+        if cache_file.exists():
+            import json
+            try:
+                with open(cache_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    return data.get("notifications")
+            except Exception:
+                pass
+        return None
+
+    @classmethod
+    def save_user_memory_bank(cls, email: str, bank_list: List[Dict[str, Any]]) -> bool:
+        if not email:
+            return False
+        clean_email = email.strip().lower()
+        client = cls.get_client()
+
+        try:
+            cache_file = cls._get_local_user_cache_path(clean_email)
+            cached_data = {}
+            if cache_file.exists():
+                import json
+                try:
+                    with open(cache_file, "r", encoding="utf-8") as f:
+                        cached_data = json.load(f)
+                except Exception:
+                    pass
+            cached_data["memory_bank"] = bank_list
+            with open(cache_file, "w", encoding="utf-8") as f:
+                import json
+                json.dump(cached_data, f, indent=2)
+        except Exception:
+            pass
+
+        if client:
+            try:
+                payload = {
+                    "email": clean_email,
+                    "memory_bank": bank_list,
+                    "updated_at": "now()"
+                }
+                client.table("profiles").upsert(payload, on_conflict="email").execute()
+                return True
+            except Exception as e:
+                print(f"[Supabase] Error saving memory bank: {e}")
+        return True
+
+    @classmethod
+    def get_user_memory_bank(cls, email: str) -> Optional[List[Dict[str, Any]]]:
+        if not email:
+            return None
+        clean_email = email.strip().lower()
+        client = cls.get_client()
+
+        if client:
+            try:
+                res = client.table("profiles").select("memory_bank").eq("email", clean_email).limit(1).execute()
+                if res.data and len(res.data) > 0:
+                    mb = res.data[0].get("memory_bank")
+                    if mb and isinstance(mb, list) and len(mb) > 0:
+                        return mb
+            except Exception:
+                pass
+
+        cache_file = cls._get_local_user_cache_path(clean_email)
+        if cache_file.exists():
+            import json
+            try:
+                with open(cache_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    return data.get("memory_bank")
+            except Exception:
+                pass
+        return None
+
+    @classmethod
+    def save_user_quick_profile(cls, email: str, quick_profile: Dict[str, Any]) -> bool:
+        if not email:
+            return False
+        clean_email = email.strip().lower()
+        client = cls.get_client()
+
+        try:
+            cache_file = cls._get_local_user_cache_path(clean_email)
+            cached_data = {}
+            if cache_file.exists():
+                import json
+                try:
+                    with open(cache_file, "r", encoding="utf-8") as f:
+                        cached_data = json.load(f)
+                except Exception:
+                    pass
+            cached_data["candidate_quick_profile"] = quick_profile
+            with open(cache_file, "w", encoding="utf-8") as f:
+                import json
+                json.dump(cached_data, f, indent=2)
+        except Exception:
+            pass
+
+        if client:
+            try:
+                payload = {
+                    "email": clean_email,
+                    "candidate_quick_profile": quick_profile,
+                    "updated_at": "now()"
+                }
+                client.table("profiles").upsert(payload, on_conflict="email").execute()
+                return True
+            except Exception as e:
+                print(f"[Supabase] Error saving quick profile: {e}")
+        return True
+
+    @classmethod
+    def get_user_quick_profile(cls, email: str) -> Optional[Dict[str, Any]]:
+        if not email:
+            return None
+        clean_email = email.strip().lower()
+        client = cls.get_client()
+
+        if client:
+            try:
+                res = client.table("profiles").select("candidate_quick_profile").eq("email", clean_email).limit(1).execute()
+                if res.data and len(res.data) > 0:
+                    qp = res.data[0].get("candidate_quick_profile")
+                    if qp and isinstance(qp, dict):
+                        return qp
+            except Exception:
+                pass
+
+        cache_file = cls._get_local_user_cache_path(clean_email)
+        if cache_file.exists():
+            import json
+            try:
+                with open(cache_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    return data.get("candidate_quick_profile")
+            except Exception:
+                pass
+        return None
+
+    @classmethod
+    def sync_all_user_data(cls, email: str) -> Dict[str, Any]:
+        """
+        Gathers all user-specific data (profile, notifications, memory bank, quick profile)
+        to restore a complete user session across devices instantly.
+        """
+        clean_email = (email or "").strip().lower()
+        if not clean_email:
+            return {}
+
+        tier = cls.get_user_tier(clean_email)
+        profile_bundle = cls.get_user_profile(clean_email)
+        notifications = cls.get_user_notifications(clean_email)
+        memory_bank = cls.get_user_memory_bank(clean_email)
+        quick_profile = cls.get_user_quick_profile(clean_email)
+
+        return {
+            "email": clean_email,
+            "tier": tier,
+            "is_owner": clean_email == cls.OWNER_EMAIL,
+            "profile": profile_bundle.get("profile") if profile_bundle else None,
+            "resume_filename": profile_bundle.get("filename") if profile_bundle else None,
+            "notifications": notifications,
+            "memory_bank": memory_bank,
+            "candidate_quick_profile": quick_profile
+        }
+
+
 # Class alias for cross-compatibility
 class SupabaseManager(SupabaseAdapter):
     pass

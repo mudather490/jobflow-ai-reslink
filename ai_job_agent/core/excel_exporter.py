@@ -239,3 +239,136 @@ class CompanyIntelligenceExcelExporter:
                 ])
 
         return out_file
+
+    @classmethod
+    def export_to_pdf(
+        cls,
+        applications: List[Dict[str, Any]],
+        output_path: Optional[Path] = None
+    ) -> Path:
+        """
+        Builds an executive PDF Application Tracker & Company Dossier using ReportLab.
+        """
+        out_file = output_path or (OUTPUT_DIR / "Company_Applications_Tracker.pdf")
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+
+        from reportlab.lib.pagesizes import letter, landscape
+        from reportlab.lib import colors
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+        doc = SimpleDocTemplate(
+            str(out_file),
+            pagesize=landscape(letter),
+            rightMargin=24,
+            leftMargin=24,
+            topMargin=24,
+            bottomMargin=24
+        )
+
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'DocTitle',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=16,
+            leading=20,
+            textColor=colors.HexColor('#0F172A')
+        )
+        subtitle_style = ParagraphStyle(
+            'DocSub',
+            parent=styles['Normal'],
+            fontName='Helvetica',
+            fontSize=9,
+            leading=12,
+            textColor=colors.HexColor('#64748B')
+        )
+        th_style = ParagraphStyle(
+            'TH',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=8.5,
+            leading=11,
+            textColor=colors.white
+        )
+        tb_style = ParagraphStyle(
+            'TB',
+            parent=styles['Normal'],
+            fontName='Helvetica',
+            fontSize=8,
+            leading=10,
+            textColor=colors.HexColor('#1E293B')
+        )
+        tb_bold = ParagraphStyle(
+            'TBBold',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=8,
+            leading=10,
+            textColor=colors.HexColor('#0F172A')
+        )
+
+        story = []
+
+        # Header Title
+        story.append(Paragraph("🎯 JobFlow.ai — Autonomous Application Intelligence Tracker", title_style))
+        story.append(Paragraph(f"Generated on {datetime.now().strftime('%B %d, %Y at %I:%M %p')} • Total Applications Logged: {len(applications)}", subtitle_style))
+        story.append(Spacer(1, 10))
+
+        # Table data
+        headers = [
+            Paragraph("<b>Company</b>", th_style),
+            Paragraph("<b>Role / Job Title</b>", th_style),
+            Paragraph("<b>Location / Country</b>", th_style),
+            Paragraph("<b>Timestamp</b>", th_style),
+            Paragraph("<b>Status</b>", th_style),
+            Paragraph("<b>ATS Match</b>", th_style),
+            Paragraph("<b>Template</b>", th_style),
+            Paragraph("<b>Key Matched Skills</b>", th_style)
+        ]
+        table_data = [headers]
+
+        for app in applications:
+            comp = app.get("company", "Company")
+            title = app.get("job_title", "Position")
+            loc = app.get("location", "Worldwide Remote")
+            ts = app.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M"))
+            status = app.get("status", "Applied").title()
+            score = f"{app.get('ats_match_score', 95.0)}%"
+            tmpl = app.get("template_used", "modern").replace("_", " ").title()
+            prefilled = app.get("prefilled_answers", {})
+            skills = prefilled.get("Key Matching Skills", "Python, AI Agents, FastAPI")
+            if isinstance(skills, list):
+                skills = ", ".join(skills[:4])
+            elif len(skills) > 45:
+                skills = skills[:42] + "..."
+
+            row = [
+                Paragraph(comp, tb_bold),
+                Paragraph(title, tb_style),
+                Paragraph(loc, tb_style),
+                Paragraph(ts, tb_style),
+                Paragraph(f"<font color='#059669'><b>{status}</b></font>", tb_style),
+                Paragraph(f"<font color='#2563EB'><b>{score}</b></font>", tb_style),
+                Paragraph(tmpl, tb_style),
+                Paragraph(skills, tb_style)
+            ]
+            table_data.append(row)
+
+        col_widths = [90, 130, 105, 85, 65, 55, 75, 140]
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0F172A')),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('TOPPADDING', (0, 0), (-1, 0), 6),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')]),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+            ('TOPPADDING', (0, 1), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 5),
+        ]))
+
+        story.append(table)
+        doc.build(story)
+        return out_file
