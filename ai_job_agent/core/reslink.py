@@ -13,45 +13,35 @@ from core.security_shield import SecurityShield
 
 class RecruiterCTASettings(BaseModel):
     calendly_url: Optional[str] = "https://calendly.com"
-    whatsapp_number: Optional[str] = "+211920123456"
-    telegram_username: Optional[str] = "@career_agent"
-    direct_email: Optional[str] = "alex.rivera@example.com"
-    linkedin_url: Optional[str] = "https://linkedin.com"
-    github_url: Optional[str] = "https://github.com"
-    portfolio_url: Optional[str] = "https://portfolio.dev"
+    whatsapp_number: Optional[str] = ""
+    telegram_username: Optional[str] = ""
+    direct_email: Optional[str] = ""
+    linkedin_url: Optional[str] = ""
+    github_url: Optional[str] = ""
+    portfolio_url: Optional[str] = ""
     enable_booking: bool = True
     enable_cv_download: bool = True
 
 
 class ResLinkProfile(BaseModel):
-    slug: str = "alex-rivera"
-    full_name: str = "Alex Rivera"
-    tagline: str = "Senior AI Engineer & LLM Systems Specialist"
-    location: str = "Juba, South Sudan (Worldwide Remote)"
-    summary_bio: str = "Passionate AI Engineer with 4+ years of experience architecting high-throughput LLM pipelines, autonomous multi-agent systems, and scalable full-stack applications."
+    slug: str = "candidate-profile"
+    full_name: str = "Candidate Profile"
+    tagline: str = "Engineering Specialist"
+    location: str = ""
+    summary_bio: str = ""
     video_url: str = ""
     video_duration: float = 60.0
     theme: str = "glassmorphic_dark"  # glassmorphic_dark, executive_slate, minimalist_light, cyber_neon
-    selected_cv_template: str = "harvard"  # modern, harvard, tech, minimal
-    target_job_title: str = "Senior AI Engineer"
+    selected_cv_template: str = "corporate_elite"  # modern, harvard, tech, corporate_elite
+    target_job_title: str = "AI & Software Engineering Specialist"
     target_company: str = "Global Tech Employers"
     senior_contact: Optional[str] = "Hiring Team"
-    pitch_script: str = (
-        "Hi there! I'm Alex Rivera, a Senior AI Engineer specializing in autonomous multi-agent systems and high-scale LLM pipelines. "
-        "Over the past 4 years, I have architected production AI applications that reduced inference latency by 45% and scaled to millions of queries. "
-        "I thrive in worldwide remote environments and deliver immediate impact in Python, PyTorch, FastAPI, and modern cloud infrastructures. "
-        "Feel free to explore my interactive experience below, download my tailored resume, or schedule a quick intro call directly. Looking forward to connecting!"
-    )
-    linkedin_outreach_note: str = (
-        "Hi [Hiring Manager], I saw your opening for the Senior AI Engineer position. "
-        "I recorded a 60-second video pitch introducing how my background in multi-agent systems and LLM pipelines directly aligns with your requirements: {reslink_url}\n\n"
-        "Best regards,\nAlex Rivera"
-    )
+    pitch_script: str = ""
+    linkedin_outreach_note: str = ""
     competency_badges: List[str] = Field(default_factory=lambda: [
-        "⚡ 4+ Yrs Python & AI Architecture",
-        "🚀 Scaled LLM Pipelines to 5M+ Queries",
-        "🌍 Worldwide Remote & Global Delivery",
-        "🎓 Proven Track Record in Production Agents"
+        "⚡ Verified Skills & Practical Projects",
+        "🚀 Scalable Architecture & System Design",
+        "🎓 Proven Track Record"
     ])
     cta_settings: RecruiterCTASettings = Field(default_factory=RecruiterCTASettings)
     is_public: bool = True
@@ -175,7 +165,7 @@ class ResLinkManager:
         clean_name = (profile.full_name or "Candidate").strip()
         clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', clean_name.lower().replace(' ', '-')).strip('-') or "candidate"
         tagline = profile.headline or profile.target_role or "AI & Software Engineering Specialist"
-        location = profile.contact.location or "Worldwide Remote"
+        location = profile.contact.location or ""
         bio = profile.summary or ""
         
         # Load existing profile to preserve custom video if already recorded
@@ -205,17 +195,21 @@ class ResLinkManager:
         if not real_badges:
             real_badges = [
                 f"⚡ {tagline}",
-                "🌍 Worldwide Remote Candidate",
                 "🎓 Verified Skills & Practical Projects"
             ]
 
+        # Extract only real phone number (ignore dummy placeholder numbers)
+        real_phone = profile.contact.phone or ""
+        if "211920123456" in real_phone.replace(" ", "") or "920123456" in real_phone.replace(" ", ""):
+            real_phone = ""
+
         cta = RecruiterCTASettings(
-            direct_email=profile.contact.email or (existing.cta_settings.direct_email if existing and existing.cta_settings else ""),
-            whatsapp_number=profile.contact.phone or (existing.cta_settings.whatsapp_number if existing and existing.cta_settings else ""),
-            linkedin_url=profile.contact.linkedin or (existing.cta_settings.linkedin_url if existing and existing.cta_settings else ""),
-            github_url=profile.contact.github or (existing.cta_settings.github_url if existing and existing.cta_settings else ""),
-            portfolio_url=profile.contact.portfolio or (existing.cta_settings.portfolio_url if existing and existing.cta_settings else ""),
-            calendly_url=existing.cta_settings.calendly_url if (existing and existing.cta_settings) else "https://calendly.com",
+            direct_email=profile.contact.email or "",
+            whatsapp_number=real_phone,
+            linkedin_url=profile.contact.linkedin or "",
+            github_url=profile.contact.github or "",
+            portfolio_url=profile.contact.portfolio or "",
+            calendly_url=existing.cta_settings.calendly_url if (existing and existing.cta_settings and "calendly.com" in existing.cta_settings.calendly_url) else "",
             telegram_username=existing.cta_settings.telegram_username if (existing and existing.cta_settings) else "",
             enable_booking=True,
             enable_cv_download=True,

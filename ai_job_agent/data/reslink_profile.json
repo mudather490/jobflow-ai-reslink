@@ -2,17 +2,17 @@
   "slug": "mudather-mohammed",
   "full_name": "MUDATHER MOHAMMED",
   "tagline": "Junior AI Engineer | Machine Learning Engineer",
-  "location": "Worldwide Remote",
+  "location": "",
   "summary_bio": "Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel. Built ML models, neural networks from scratch, AI lead-discovery systems, and end-to-end software applications. Currently advancing in PyTorch and AI Engineering through professional certifications and practical projects. Seeking a remote Junior AI Engineer / Machine Learning Engineer opportunity..",
   "video_url": "/videos/video_pitch.webm",
   "video_duration": 60.0,
   "theme": "cyber_neon",
-  "selected_cv_template": "modern",
+  "selected_cv_template": "corporate_elite",
   "target_job_title": "Remote Junior AI Engineer / Machine Learning Engineer",
   "target_company": "Global Tech Employers",
   "senior_contact": "Hiring Team",
-  "pitch_script": "Hi there! I'm Alex Rivera, a Senior AI Engineer specializing in autonomous multi-agent systems and high-scale LLM pipelines. Over the past 4 years, I have architected production AI applications that reduced inference latency by 45% and scaled to millions of queries. I thrive in worldwide remote environments and deliver immediate impact in Python, PyTorch, FastAPI, and modern cloud infrastructures. Feel free to explore my interactive experience below, download my tailored resume, or schedule a quick intro call directly. Looking forward to connecting!",
-  "linkedin_outreach_note": "Hi [Hiring Manager], I saw your opening for the Senior AI Engineer position. I recorded a 60-second video pitch introducing how my background in multi-agent systems and LLM pipelines directly aligns with your requirements: {reslink_url}\n\nBest regards,\nAlex Rivera",
+  "pitch_script": "",
+  "linkedin_outreach_note": "",
   "competency_badges": [
     "\u26a1 Core: Python, SQL, Git/GitHub",
     "\ud83d\udcbc AI & Software Engineering at Independent / Freelance",
@@ -20,15 +20,15 @@
   ],
   "cta_settings": {
     "calendly_url": "https://calendly.com",
-    "whatsapp_number": "+211920123456",
+    "whatsapp_number": "",
     "telegram_username": "@career_agent",
     "direct_email": "mudatherkbyer@gmail.com",
     "linkedin_url": "linkedin.com/in/Mudax-kbyer",
     "github_url": "github.com/mudather490",
-    "portfolio_url": "https://portfolio.dev",
+    "portfolio_url": "",
     "enable_booking": true,
     "enable_cv_download": true
   },
   "is_public": true,
-  "updated_at": "2026-08-18T01:51:51.948423"
+  "updated_at": "2026-08-18T02:12:19.528488"
 }

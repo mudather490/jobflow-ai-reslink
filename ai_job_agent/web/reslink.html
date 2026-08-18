@@ -1288,14 +1288,21 @@
 
       const fullName = p.full_name || r.full_name || "Candidate";
       const tagline = p.tagline || r.headline || r.target_role || "Engineering Specialist";
-      const location = p.location || r.contact?.location || "Worldwide Remote";
+      
+      const rawLoc = r.contact?.location || p.location || "";
+      const location = (rawLoc && !rawLoc.toLowerCase().includes("worldwide remote") && !rawLoc.toLowerCase().includes("remote only")) ? rawLoc : "";
+      
       const videoUrl = p.video_url || "/videos/video_pitch.webm";
       const linkedinUrl = p.cta_settings?.linkedin_url || r.contact?.linkedin || "";
 
       // 2. Set Header Elements (Safe text insertion)
       document.getElementById('prof-name').textContent = fullName.toUpperCase();
       document.getElementById('prof-tagline').textContent = tagline;
-      document.getElementById('prof-location').textContent = location;
+      const locEl = document.getElementById('prof-location');
+      if (locEl) {
+        locEl.textContent = location;
+        locEl.style.display = location ? 'inline-block' : 'none';
+      }
 
       // Initials for avatar badge
       const initials = fullName.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'CV';
@@ -1373,12 +1380,17 @@
       const fullName = (r.full_name || p.full_name || "Candidate").toUpperCase();
       const headline = r.headline || p.tagline || r.target_role || "";
       
-      const email = r.contact?.email || p.cta_settings?.direct_email || "";
-      const phone = r.contact?.phone || p.cta_settings?.whatsapp_number || "";
-      const location = r.contact?.location || p.location || "";
-      const linkedin = r.contact?.linkedin || p.cta_settings?.linkedin_url || "";
-      const github = r.contact?.github || p.cta_settings?.github_url || "";
-      const portfolio = r.contact?.portfolio || p.cta_settings?.portfolio_url || "";
+      const email = r.contact?.email || (p.cta_settings?.direct_email && !p.cta_settings.direct_email.includes("alex.rivera") ? p.cta_settings.direct_email : "");
+      
+      const rawPhone = r.contact?.phone || (p.cta_settings?.whatsapp_number && !p.cta_settings.whatsapp_number.includes("211920123456") && !p.cta_settings.whatsapp_number.includes("920 123 456") && !p.cta_settings.whatsapp_number.includes("920123456") ? p.cta_settings.whatsapp_number : "");
+      const phone = (rawPhone && !rawPhone.includes("211920123456") && !rawPhone.includes("920 123 456") && !rawPhone.includes("920123456")) ? rawPhone : "";
+      
+      const rawLoc = r.contact?.location || (p.location && !p.location.toLowerCase().includes("worldwide remote") ? p.location : "");
+      const location = (rawLoc && !rawLoc.toLowerCase().includes("worldwide remote") && !rawLoc.toLowerCase().includes("remote only")) ? rawLoc : "";
+      
+      const linkedin = r.contact?.linkedin || (p.cta_settings?.linkedin_url && !p.cta_settings.linkedin_url.endsWith("linkedin.com") && !p.cta_settings.linkedin_url.endsWith("linkedin.com/") ? p.cta_settings.linkedin_url : "");
+      const github = r.contact?.github || (p.cta_settings?.github_url && !p.cta_settings.github_url.endsWith("github.com") && !p.cta_settings.github_url.endsWith("github.com/") ? p.cta_settings.github_url : "");
+      const portfolio = r.contact?.portfolio || (p.cta_settings?.portfolio_url && !p.cta_settings.portfolio_url.includes("portfolio.dev") ? p.cta_settings.portfolio_url : "");
 
       const summary = r.summary || p.summary_bio || "";
 
@@ -1400,26 +1412,31 @@
       // Education - strictly from user profile
       let education = r.education || [];
 
-      // Additional Background & Target Role
+      // Additional Background
       let additional = r.additional_background || "";
-      let targetRole = r.target_role || p.target_job_title || "";
 
       // ── Render Template HTML Safely ──
       let html = '';
 
       // A. HEADER SECTION
       if (currentTemplate === 'harvard_consulting') {
+        const contactParts = [];
+        if (phone) contactParts.push(`<span>${escapeHtml(phone)}</span>`);
+        if (email) contactParts.push(`<a href="mailto:${escapeHtml(email)}" class="contact-item-link">${escapeHtml(email)}</a>`);
+        if (location) contactParts.push(`<span>${escapeHtml(location)}</span>`);
+        if (linkedin) contactParts.push(`<a href="${sanitizeUrl(linkedin)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">LinkedIn</a>`);
+        if (github) contactParts.push(`<a href="${sanitizeUrl(github)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">GitHub</a>`);
+        if (portfolio) contactParts.push(`<a href="${sanitizeUrl(portfolio)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">Portfolio</a>`);
+
         html += `
           <div class="cand-header-centered">
             <h1 class="cand-name">${escapeHtml(fullName)}</h1>
-            <div class="cand-headline">${escapeHtml(headline)}</div>
-            <div class="cand-contacts-bar">
-              ${phone ? `<span>${escapeHtml(phone)}</span> • ` : ''}
-              ${email ? `<a href="mailto:${escapeHtml(email)}" class="contact-item-link">${escapeHtml(email)}</a> • ` : ''}
-              <span>${escapeHtml(location)}</span>
-              ${linkedin ? ` • <a href="${sanitizeUrl(linkedin)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">LinkedIn</a>` : ''}
-              ${github ? ` • <a href="${sanitizeUrl(github)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">GitHub</a>` : ''}
-            </div>
+            ${headline ? `<div class="cand-headline">${escapeHtml(headline)}</div>` : ''}
+            ${contactParts.length > 0 ? `
+              <div class="cand-contacts-bar">
+                ${contactParts.join(' &nbsp;•&nbsp; ')}
+              </div>
+            ` : ''}
             <div class="cand-divider"></div>
           </div>
         `;
@@ -1429,14 +1446,15 @@
           <div class="cand-header-table">
             <div>
               <h1 class="cand-name">${escapeHtml(fullName)}</h1>
-              <div class="cand-headline">${escapeHtml(headline)}</div>
+              ${headline ? `<div class="cand-headline">${escapeHtml(headline)}</div>` : ''}
             </div>
             <div class="cand-contacts-right">
               ${phone ? `<div><strong>Phone:</strong> ${escapeHtml(phone)}</div>` : ''}
               ${email ? `<div><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}" class="contact-item-link">${escapeHtml(email)}</a></div>` : ''}
               ${location ? `<div><strong>Location:</strong> ${escapeHtml(location)}</div>` : ''}
-              ${linkedin ? `<div><strong>LinkedIn:</strong> <a href="${sanitizeUrl(linkedin)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">linkedin.com/profile ↗</a></div>` : ''}
-              ${github ? `<div><strong>GitHub:</strong> <a href="${sanitizeUrl(github)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">github.com/profile ↗</a></div>` : ''}
+              ${linkedin ? `<div><strong>LinkedIn:</strong> <a href="${sanitizeUrl(linkedin)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">${escapeHtml(linkedin.replace(/^https?:\/\//i, ''))} ↗</a></div>` : ''}
+              ${github ? `<div><strong>GitHub:</strong> <a href="${sanitizeUrl(github)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">${escapeHtml(github.replace(/^https?:\/\//i, ''))} ↗</a></div>` : ''}
+              ${portfolio ? `<div><strong>Portfolio:</strong> <a href="${sanitizeUrl(portfolio)}" target="_blank" rel="noopener noreferrer" class="contact-item-link">${escapeHtml(portfolio.replace(/^https?:\/\//i, ''))} ↗</a></div>` : ''}
             </div>
           </div>
           <div class="cand-divider"></div>
@@ -1634,18 +1652,6 @@
         html += renderExperienceBlock();
         html += renderEducationAndCertsBlock();
         html += renderAdditionalBackgroundBlock();
-      }
-
-      // Target Role Statement if available
-      if (targetRole) {
-        html += `
-          <section class="resume-sec" style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #E2E8F0;">
-            <div style="font-size: 12px; color: #64748B; line-height: 1.5;">
-              <strong>Target Role:</strong> ${escapeHtml(targetRole)}
-              ${location ? ` • <strong>Location / Availability:</strong> ${escapeHtml(location)}` : ''}
-            </div>
-          </section>
-        `;
       }
 
       sheet.innerHTML = html;
