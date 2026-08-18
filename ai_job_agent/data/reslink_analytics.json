@@ -1,11 +1,18 @@
 {
-  "total_views": 48,
-  "unique_visitors": 48,
+  "total_views": 49,
+  "unique_visitors": 49,
   "video_plays": 26,
   "cv_downloads": 17,
   "calendly_clicks": 17,
   "average_watch_seconds": 4244.5,
   "recent_events": [
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 02:03:37",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "page_view",
       "timestamp": "2026-08-18 01:43:10",
@@ -346,13 +353,6 @@
       "event": "page_view",
       "timestamp": "2026-08-16 00:04:33",
       "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:02:12",
-      "referrer": "https://linkedin.com/in/alex",
       "device": "desktop",
       "city": "Global Recruiter View"
     }
