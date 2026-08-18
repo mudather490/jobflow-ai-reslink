@@ -948,16 +948,21 @@
     }
 
     function updateReqWordCount() {
-      const text = document.getElementById('studio-job-requirements').value.trim();
+      const ta = document.getElementById('studio-job-requirements');
+      const text = ta ? ta.value.trim() : '';
       const words = text ? text.split(/\s+/).length : 0;
       const estSec = Math.round(words / 2.2); // ~130 WPM
-      document.getElementById('req-word-count').innerText = words;
-      document.getElementById('req-est-time').innerText = `${estSec}s`;
+      const wcEl = document.getElementById('req-word-count');
+      if (wcEl) wcEl.innerText = words;
+      const timeEl = document.getElementById('req-est-time');
+      if (timeEl) timeEl.innerText = `${estSec}s`;
     }
 
     function syncScriptToPrompter() {
-      const text = document.getElementById('studio-script-editor').value;
-      document.getElementById('studio-prompter-text').innerText = text || "✨ Teleprompter transcript will move here while you speak...";
+      const ed = document.getElementById('studio-script-editor');
+      const text = ed ? ed.value : '';
+      const pr = document.getElementById('studio-prompter-text');
+      if (pr) pr.innerText = text || "✨ Teleprompter transcript will move here while you speak...";
     }
 
     async function enumerateVideoDevices() {
@@ -1049,30 +1054,40 @@
 
         if (rRes.ok) {
           currentResLinkProfile = await rRes.json();
-          const slug = currentResLinkProfile.slug || 'alex-rivera';
+          const slug = currentResLinkProfile.slug || 'mudather-mohammed';
           const fullUrl = `${window.location.origin}/p/${slug}`;
 
-          document.getElementById('share-url-display').innerText = fullUrl;
-          document.getElementById('btn-studio-preview-link').href = `/p/${slug}`;
-          document.getElementById('preview-slug-text').innerText = `/p/${slug}`;
+          const shareEl = document.getElementById('share-url-display');
+          if (shareEl) shareEl.innerText = fullUrl;
+          
+          const prevLink = document.getElementById('btn-studio-preview-link');
+          if (prevLink) prevLink.href = `/p/${slug}`;
+          
+          const slugTxt = document.getElementById('preview-slug-text');
+          if (slugTxt) slugTxt.innerText = `/p/${slug}`;
 
           if (currentResLinkProfile.target_job_title) {
-            document.getElementById('studio-job-title').value = currentResLinkProfile.target_job_title;
+            const el = document.getElementById('studio-job-title');
+            if (el) el.value = currentResLinkProfile.target_job_title;
           }
           if (currentResLinkProfile.target_company) {
-            document.getElementById('studio-company-name').value = currentResLinkProfile.target_company;
+            const el = document.getElementById('studio-company-name');
+            if (el) el.value = currentResLinkProfile.target_company;
           }
           if (currentResLinkProfile.senior_contact) {
-            document.getElementById('studio-senior-contact').value = currentResLinkProfile.senior_contact;
+            const el = document.getElementById('studio-senior-contact');
+            if (el) el.value = currentResLinkProfile.senior_contact;
           }
           if (currentResLinkProfile.pitch_script) {
-            document.getElementById('studio-script-editor').value = currentResLinkProfile.pitch_script;
-            document.getElementById('studio-prompter-text').innerText = currentResLinkProfile.pitch_script;
+            const ed = document.getElementById('studio-script-editor');
+            if (ed) ed.value = currentResLinkProfile.pitch_script;
+            const pr = document.getElementById('studio-prompter-text');
+            if (pr) pr.innerText = currentResLinkProfile.pitch_script;
           }
           
           // Resolve currently active CV template from dashboard / storage / server
-          let rawTmpl = localStorage.getItem('selected_resume_template') || currentResLinkProfile.selected_cv_template || 'modern';
-          let activeTmpl = 'modern';
+          let rawTmpl = localStorage.getItem('selected_resume_template') || currentResLinkProfile.selected_cv_template || 'corporate_elite';
+          let activeTmpl = 'corporate_elite';
           if (rawTmpl === 'harvard' || rawTmpl === 'harvard_consulting' || rawTmpl === 'mbb') activeTmpl = 'harvard_consulting';
           else if (rawTmpl === 'corporate' || rawTmpl === 'corporate_elite' || rawTmpl === 'minimal' || rawTmpl === 'minimalist') activeTmpl = 'corporate_elite';
           else if (rawTmpl === 'tech' || rawTmpl === 'tech_specialist' || rawTmpl === 'tech_innovator') activeTmpl = 'tech_specialist';
@@ -1080,18 +1095,24 @@
 
           const tmplSelect = document.getElementById('studio-cv-template-select');
           if (tmplSelect) tmplSelect.value = activeTmpl;
-          document.getElementById('btn-studio-test-download').href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(activeTmpl)}`;
+          const dlBtn = document.getElementById('btn-studio-test-download');
+          if (dlBtn) dlBtn.href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(activeTmpl)}`;
 
           if (currentResLinkProfile.cta_settings && currentResLinkProfile.cta_settings.linkedin_url) {
-            document.getElementById('studio-linkedin-input').value = currentResLinkProfile.cta_settings.linkedin_url;
+            const li = document.getElementById('studio-linkedin-input');
+            if (li) li.value = currentResLinkProfile.cta_settings.linkedin_url;
           }
           if (currentResLinkProfile.linkedin_outreach_note) {
-            document.getElementById('studio-outreach-note-preview').innerText = currentResLinkProfile.linkedin_outreach_note.replace('{reslink_url}', fullUrl);
+            const noteEl = document.getElementById('studio-outreach-note-preview');
+            if (noteEl) noteEl.innerText = currentResLinkProfile.linkedin_outreach_note.replace('{reslink_url}', fullUrl);
           }
           if (currentResLinkProfile.competency_badges) {
-            document.getElementById('studio-resume-badges').innerHTML = currentResLinkProfile.competency_badges.map(b => `
-              <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
-            `).join('');
+            const bEl = document.getElementById('studio-resume-badges');
+            if (bEl) {
+              bEl.innerHTML = currentResLinkProfile.competency_badges.map(b => `
+                <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
+              `).join('');
+            }
           }
         }
 
@@ -1101,9 +1122,12 @@
             const badges = (currentResLinkProfile?.competency_badges && currentResLinkProfile.competency_badges.length > 0)
               ? currentResLinkProfile.competency_badges
               : uProf.skills.slice(0, 4).map(s => `⚡ ${s}`);
-            document.getElementById('studio-resume-badges').innerHTML = badges.map(b => `
-              <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
-            `).join('');
+            const bEl = document.getElementById('studio-resume-badges');
+            if (bEl) {
+              bEl.innerHTML = badges.map(b => `
+                <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
+              `).join('');
+            }
           }
         }
 
@@ -1116,16 +1140,18 @@
     }
 
     async function generateStudioPitch() {
-      const jobTitle = document.getElementById('studio-job-title').value.trim() || 'Senior AI Engineer';
-      const company = document.getElementById('studio-company-name').value.trim() || 'Target Employer';
-      const seniorContact = document.getElementById('studio-senior-contact').value.trim() || 'Hiring Lead';
-      const duration = document.getElementById('studio-pitch-duration').value || '60s';
-      const reqs = document.getElementById('studio-job-requirements').value.trim() || `Target role requirements for ${jobTitle} at ${company}.`;
+      const jobTitle = document.getElementById('studio-job-title')?.value?.trim() || 'Junior AI Engineer';
+      const company = document.getElementById('studio-company-name')?.value?.trim() || 'Target Employer';
+      const seniorContact = document.getElementById('studio-senior-contact')?.value?.trim() || 'Hiring Lead';
+      const duration = document.getElementById('studio-pitch-duration')?.value || '60s';
+      const reqs = document.getElementById('studio-job-requirements')?.value?.trim() || `Target role requirements for ${jobTitle} at ${company}.`;
 
       const btn = document.getElementById('btn-studio-generate-script');
-      const orig = btn.innerHTML;
-      btn.innerHTML = '⚡ Matching CV & Sanitizing Script...';
-      btn.disabled = true;
+      const orig = btn ? btn.innerHTML : '✨ Match CV with Job & Generate Sanitized Spoken Script';
+      if (btn) {
+        btn.innerHTML = '⚡ Matching CV & Sanitizing Script...';
+        btn.disabled = true;
+      }
 
       try {
         const res = await fetch('/api/v1/reslink/pitch/match-job', {
@@ -1142,46 +1168,65 @@
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.detail || "Failed to synthesize script");
+          throw new Error(errData.detail || errData.message || "Failed to synthesize script");
         }
         
         const data = await res.json();
         const p = data.pitch_data;
 
         // Populate transcript box and teleprompter inside video
-        document.getElementById('studio-script-editor').value = p.pitch_script;
-        document.getElementById('studio-prompter-text').innerText = p.pitch_script;
+        const ed = document.getElementById('studio-script-editor');
+        if (ed) ed.value = p.pitch_script;
 
-        const fullUrl = `${window.location.origin}/p/${currentResLinkProfile?.slug || 'alex-rivera'}`;
-        document.getElementById('studio-outreach-note-preview').innerText = p.linkedin_outreach_note.replace('{reslink_url}', fullUrl);
+        const pr = document.getElementById('studio-prompter-text');
+        if (pr) pr.innerText = p.pitch_script;
 
-        if (p.competency_badges) {
-          document.getElementById('studio-resume-badges').innerHTML = p.competency_badges.map(b => `
+        const fullUrl = `${window.location.origin}/p/${currentResLinkProfile?.slug || 'mudather-mohammed'}`;
+        const noteEl = document.getElementById('studio-outreach-note-preview');
+        if (noteEl && p.linkedin_outreach_note) {
+          noteEl.innerText = p.linkedin_outreach_note.replace('{reslink_url}', fullUrl);
+        }
+
+        const badgesEl = document.getElementById('studio-resume-badges');
+        if (badgesEl && p.competency_badges) {
+          badgesEl.innerHTML = p.competency_badges.map(b => `
             <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
           `).join('');
         }
 
-        showToast(`✓ Generated & Sanitized ${duration} Pitch for ${company} (${seniorContact})!`);
+        if (currentResLinkProfile) {
+          currentResLinkProfile.pitch_script = p.pitch_script;
+          currentResLinkProfile.target_job_title = p.target_job_title;
+          currentResLinkProfile.target_company = p.target_company;
+          currentResLinkProfile.competency_badges = p.competency_badges;
+          currentResLinkProfile.linkedin_outreach_note = p.linkedin_outreach_note;
+        }
+
+        showToast(`✓ Generated & Sanitized ${duration} Pitch for ${company}!`);
         goToStep(2);
       } catch (err) {
         showToast(`Error: ${err.message}`);
       } finally {
-        btn.innerHTML = orig;
-        btn.disabled = false;
+        if (btn) {
+          btn.innerHTML = orig;
+          btn.disabled = false;
+        }
       }
     }
 
     async function matchScriptFromStudio() {
-      const jobTitle = document.getElementById('studio-job-title').value.trim() || 'Senior AI Engineer';
-      const company = document.getElementById('studio-company-name').value.trim() || 'Target Employer';
-      const seniorContact = document.getElementById('studio-senior-contact').value.trim() || 'Hiring Lead';
-      const duration = document.getElementById('studio-studio-pitch-duration').value || '60s';
-      const reqs = document.getElementById('studio-job-requirements').value.trim() || `Target role requirements for ${jobTitle} at ${company}.`;
+      const jobTitle = document.getElementById('studio-job-title')?.value?.trim() || 'Junior AI Engineer';
+      const company = document.getElementById('studio-company-name')?.value?.trim() || 'Target Employer';
+      const seniorContact = document.getElementById('studio-senior-contact')?.value?.trim() || 'Hiring Lead';
+      const duration = document.getElementById('studio-studio-pitch-duration')?.value || '60s';
+      const reqs = document.getElementById('studio-job-requirements')?.value?.trim() || `Target role requirements for ${jobTitle} at ${company}.`;
 
       const btn = document.getElementById('btn-studio-match-now');
-      const orig = btn.innerHTML;
-      btn.innerHTML = '⚡ Matching with AI...';
-      btn.disabled = true;
+      const orig = btn ? btn.innerHTML : '⚡ Match with AI';
+      if (btn) {
+        btn.innerHTML = '⚡ Matching with AI...';
+        btn.disabled = true;
+      }
 
       try {
         const res = await fetch('/api/v1/reslink/pitch/match-job', {
@@ -1198,27 +1243,41 @@
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.detail || "Failed to synthesize script");
+          throw new Error(errData.detail || errData.message || "Failed to synthesize script");
         }
 
         const data = await res.json();
         const p = data.pitch_data;
 
-        document.getElementById('studio-script-editor').value = p.pitch_script;
-        document.getElementById('studio-prompter-text').innerText = p.pitch_script;
+        const ed = document.getElementById('studio-script-editor');
+        if (ed) ed.value = p.pitch_script;
 
-        if (p.competency_badges) {
-          document.getElementById('studio-resume-badges').innerHTML = p.competency_badges.map(b => `
+        const pr = document.getElementById('studio-prompter-text');
+        if (pr) pr.innerText = p.pitch_script;
+
+        const badgesEl = document.getElementById('studio-resume-badges');
+        if (badgesEl && p.competency_badges) {
+          badgesEl.innerHTML = p.competency_badges.map(b => `
             <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
           `).join('');
+        }
+
+        if (currentResLinkProfile) {
+          currentResLinkProfile.pitch_script = p.pitch_script;
+          currentResLinkProfile.target_job_title = p.target_job_title;
+          currentResLinkProfile.target_company = p.target_company;
+          currentResLinkProfile.competency_badges = p.competency_badges;
+          currentResLinkProfile.linkedin_outreach_note = p.linkedin_outreach_note;
         }
 
         showToast("✓ Teleprompter updated with sanitized AI script!");
       } catch (err) {
         showToast(`Error: ${err.message}`);
       } finally {
-        btn.innerHTML = orig;
-        btn.disabled = false;
+        if (btn) {
+          btn.innerHTML = orig;
+          btn.disabled = false;
+        }
       }
     }
 

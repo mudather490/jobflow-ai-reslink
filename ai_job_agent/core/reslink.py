@@ -288,16 +288,17 @@ class ResLinkManager:
             top_bullet = "delivered scalable systems with measurable performance gains"
 
         # Format Senior Contact Greeting
-        first_name = candidate_profile.full_name.split()[0] if candidate_profile.full_name else "Alex"
-        full_name = candidate_profile.full_name or "Alex Rivera"
+        first_name = candidate_profile.full_name.split()[0] if (candidate_profile and candidate_profile.full_name) else "Mudather"
+        full_name = candidate_profile.full_name if (candidate_profile and candidate_profile.full_name) else "Mudather Mohammed"
 
-        if contact_clean and len(contact_clean.strip()) > 0:
+        generic_contacts = {"hiring team", "hiring manager", "recruiter", "talent team", "hr team", "hiring lead", "team"}
+        if contact_clean and contact_clean.strip().lower() not in generic_contacts:
             contact_parts = contact_clean.strip().split()
             titles = {"dr.", "dr", "mr.", "mr", "mrs.", "mrs", "ms.", "ms", "prof.", "prof"}
             if contact_parts[0].lower() in titles and len(contact_parts) > 1:
                 contact_salutation = f"{contact_parts[0]} {contact_parts[1]}"  # e.g., "Dr. Demis"
             else:
-                contact_salutation = contact_parts[0]  # e.g., "Sarah" from "Sarah Jenkins"
+                contact_salutation = contact_parts[0]  # e.g., "Sarah"
             greeting_spoken = f"Hi {contact_salutation}, and the {company_clean} team!"
             greeting_written = f"Hi {contact_salutation},"
         else:
@@ -305,9 +306,9 @@ class ResLinkManager:
             greeting_written = f"Hi {company_clean} Hiring Team,"
 
         # Natural, authentic, conversational human pitch generation (NOT robotic AI sounding)
-        skill_1 = matched_skills[0] if len(matched_skills) > 0 else "system architecture"
-        skill_2 = matched_skills[1] if len(matched_skills) > 1 else "high-throughput engineering"
-        skill_3 = matched_skills[2] if len(matched_skills) > 2 else "cloud infrastructure"
+        skill_1 = matched_skills[0] if len(matched_skills) > 0 else "Python"
+        skill_2 = matched_skills[1] if len(matched_skills) > 1 else "Machine Learning"
+        skill_3 = matched_skills[2] if len(matched_skills) > 2 else "FastAPI & AI Systems"
 
         clean_bullet = top_bullet.strip().rstrip('.')
         if clean_bullet.startswith("•") or clean_bullet.startswith("-"):
@@ -315,30 +316,37 @@ class ResLinkManager:
         # lowercase start if needed
         clean_bullet_lower = clean_bullet[0].lower() + clean_bullet[1:] if len(clean_bullet) > 1 else clean_bullet
 
+        if any(clean_bullet_lower.startswith(v) for v in ["building", "developing", "architecting", "implementing", "leading", "creating", "designing", "training"]):
+            bullet_phrase = f"focused on {clean_bullet_lower}"
+        elif any(clean_bullet_lower.startswith(v) for v in ["built", "developed", "architected", "implemented", "led", "created", "designed", "trained"]):
+            bullet_phrase = clean_bullet_lower
+        else:
+            bullet_phrase = f"focused on {clean_bullet_lower}"
+
         if duration_mode == "30s":
             raw_script = (
                 f"{greeting_spoken} I am {first_name}. "
                 f"I saw your opening for the {title_clean} position and wanted to introduce myself directly. "
-                f"With deep hands-on expertise in {skill_1} and {skill_2}, my recent focus at {top_company} was when I {clean_bullet_lower}. "
+                f"With deep hands-on expertise in {skill_1} and {skill_2}, at {top_company} I {bullet_phrase}. "
                 f"I am ready to step in and deliver immediate technical value for {company_clean}. "
                 f"Feel free to explore my interactive project timeline below, or click to schedule a quick conversation. Thank you!"
             )
         elif duration_mode == "90s":
             raw_script = (
                 f"{greeting_spoken} My name is {full_name}, and I am excited to share my background for the {title_clean} opportunity at {company_clean}. "
-                f"Throughout my career as a {top_role}, I have focused on architecting resilient, high-performance systems with {skill_1}, {skill_2}, and {skill_3}. "
-                f"During my time at {top_company}, a major milestone was when I {clean_bullet_lower}, which significantly improved system reliability and speed. "
-                f"Reviewing the requirements for {company_clean}, your focus on scalable execution and technical excellence directly matches how I build software. "
-                f"I enjoy solving high-impact problems, collaborating with cross-functional teams, and shipping production-ready features quickly. "
-                f"Right below this video, you can review my interactive experience timeline, test live project demos, download my tailored PDF resume, or book an introductory call on my calendar. "
-                f"Thank you for your time, and I look forward to speaking with you!"
+                f"Throughout my career as a {top_role}, I have focused on building resilient, high-performance systems with {skill_1}, {skill_2}, and {skill_3}. "
+                f"During my time at {top_company}, a major milestone was when I {bullet_phrase}, which significantly improved system reliability and speed. "
+                f"What excites me most about {company_clean} is the opportunity to solve meaningful technical challenges alongside an exceptional team. "
+                f"I take complete ownership from architecture to production deployment. "
+                f"Please take a look at my verified code repositories below, download my tailored resume, or book a short intro call directly. Looking forward to speaking with you!"
             )
-        else:  # Default 60s
+        else:  # 60s default
             raw_script = (
                 f"{greeting_spoken} My name is {full_name}, and I wanted to introduce myself for the {title_clean} role at {company_clean}. "
                 f"Over the past several years, I have specialized in {skill_1} and {skill_2}, building reliable software that scales smoothly under heavy production loads. "
-                f"At {top_company}, I recently {clean_bullet_lower}, delivering measurable impact for the business and engineering organization. "
-                f"What excites me most about {company_clean} is your commitment to high-quality engineering. My background enables me to contribute immediately and integrate seamlessly into your workflow. "
+                f"At {top_company}, I recently {bullet_phrase}, delivering measurable impact for the engineering organization. "
+                f"What excites me most about {company_clean} is your commitment to high-quality engineering. "
+                f"My background enables me to contribute immediately and integrate seamlessly into your workflow. "
                 f"You can explore my full interactive resume below, download my tailored CV, or schedule a quick chat directly. Looking forward to connecting!"
             )
 
