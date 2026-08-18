@@ -263,14 +263,14 @@ class ResumeParser:
             github=github_match.group(1) if github_match else None,
         )
 
-        # 3. Universal Section Boundary Identification (Semantic Section Synonyms)
+        # 3. Universal Section Boundary Identification (Comprehensive Semantic Section Synonym Matcher)
         section_patterns = [
-            ("CERTIFICATIONS", r"(?i)(?:\b|\n)(?:Training\s+(?:and|&)\s+Certifications|Certifications\s+(?:and|&)\s+Training|Professional\s+Certifications|Certifications|Licenses\s+(?:and|&)\s+Certifications|Licenses\s+&\s+Certifications|Certificates|Accreditations|Credentials|Professional\s+Development|Courses|Training\s+Programs)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("SKILLS", r"(?i)(?:\b|\n)(?:TECHNICAL\s+SKILLS|Technical\s+Skills|Core\s+Competencies|Skills\s+(?:and|&)\s+Tools|Skills\s+&\s+Tools|Key\s+Skills|Areas\s+of\s+Expertise|Technical\s+Proficiencies|Domain\s+Expertise|Technologies|Tech\s+Stack|Tools\s+(?:and|&)\s+Technologies|Tools\s+&\s+Technologies|SKILLS|Skills)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("PROJECTS", r"(?i)(?:\b|\n)(?:Practical\s+Projects|Featured\s+Projects|Key\s+Projects|Selected\s+Projects|Personal\s+Projects|Academic\s+Projects|Technical\s+Projects|Engineering\s+Projects|Portfolio\s+Projects|Independent\s+Projects|PROJECTS|Projects)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("CERTIFICATIONS", r"(?i)(?:\b|\n)(?:Training\s+(?:and|&)\s+Certifications|Certifications\s+(?:and|&)\s+Training|Professional\s+Certifications|Licenses\s+(?:and|&)\s+Certifications|Accreditations|Credentials|Professional\s+Development|Training\s+Programs|Certifications|Certificates|Courses)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("SKILLS", r"(?i)(?:\b|\n)(?:Technical\s+Skills\s+(?:and|&)\s+Core\s+Competencies|TECHNICAL\s+SKILLS|Technical\s+Skills|Core\s+Competencies|Skills\s+(?:and|&)\s+Tools|Key\s+Skills|Areas\s+of\s+Expertise|Technical\s+Proficiencies|Domain\s+Expertise|Technologies|Tech\s+Stack|Tools\s+(?:and|&)\s+Technologies|SKILLS|Skills)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("PROJECTS", r"(?i)(?:\b|\n)(?:Practical\s+Engineering\s+Projects|Practical\s+Projects|Featured\s+Projects|Key\s+Projects|Selected\s+Projects|Personal\s+Projects|Academic\s+Projects|Technical\s+Projects|Engineering\s+Projects|Portfolio\s+Projects|Independent\s+Projects|Project\s+Profile|PROJECTS|Projects)\s*(?:[:—•\n]|\s+•|\s*$)"),
             ("EXPERIENCE", r"(?i)(?:\b|\n)(?:Professional\s+Experience|Work\s+Experience|WORK\s+EXPERIENCE|Employment\s+History|Work\s+History|Career\s+History|Professional\s+Background|Relevant\s+Experience|EXPERIENCE|Experience)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("EDUCATION", r"(?i)(?:\b|\n)(?:EDUCATION|Education|Academic\s+Background|Academic\s+History|Educational\s+Background|Degrees\s+(?:and|&)\s+Education|Degrees\s+&\s+Education|University\s+Education|Education\s+and\s+Qualifications|Qualifications|University)\s*(?:[:—•\n]|\s+•|\s*$)"),
-            ("ADDITIONAL_BACKGROUND", r"(?i)(?:\b|\n)(?:ADDITIONAL\s+BACKGROUND|Additional\s+Background|Personal\s+Background|Background|Other\s+Experience|Additional\s+Information)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("EDUCATION", r"(?i)(?:\b|\n)(?:EDUCATION|Education|Academic\s+Background|Academic\s+History|Educational\s+Background|Degrees\s+(?:and|&)\s+Education|University\s+Education|Education\s+(?:and|&)\s+Qualifications|Qualifications)\s*(?:[:—•\n]|\s+•|\s*$)"),
+            ("ADDITIONAL_BACKGROUND", r"(?i)(?:\b|\n)(?:ADDITIONAL\s+BACKGROUND|Additional\s+Background|Personal\s+Background|Additional\s+Information|Other\s+Experience)\s*(?:[:—•\n]|\s+•|\s*$)"),
             ("TARGET_ROLE", r"(?i)(?:\b|\n)(?:TARGET\s+ROLE|Target\s+Role|Desired\s+Role|Target\s+Position|Desired\s+Position|Career\s+Objective|Objective)\s*(?:[:—•\n]|\s+•|\s*$)"),
             ("SUMMARY", r"(?i)(?:\b|\n)(?:ABOUT\s+ME|About\s+Me|PROFESSIONAL\s+SUMMARY|Professional\s+Summary|EXECUTIVE\s+SUMMARY|Executive\s+Summary|CAREER\s+SUMMARY|Career\s+Summary|SUMMARY|Summary|PROFILE|Profile|Professional\s+Profile|About)\s*(?:[:—•\n]|\s+•|\s*$)"),
         ]
@@ -396,7 +396,7 @@ class ResumeParser:
             
             proj_title_patterns = [
                 r'^(IntentFlow|Neural Network|House Price|FinanceTracker|Real-Time|AI Agent|Autonomous|E-Commerce|Portfolio|Chatbot|Lead Discovery|Machine Learning|Deep Learning|NLP|Computer Vision)',
-                r'^[A-Z][\w\s\-]{2,45}(?:—|:)(?!\s*(?:Completed|In Progress|Python|SQL|FastAPI|PostgreSQL))'
+                r'^[A-Z][\w\s\-\&/,\.]{2,55}(?:—|:)(?!\s*(?:Completed|In Progress|Python|SQL|FastAPI|PostgreSQL))'
             ]
             
             for line in p_lines:
@@ -485,16 +485,36 @@ class ResumeParser:
         if "EXPERIENCE" in sections_dict:
             raw_exp_text = sections_dict["EXPERIENCE"]
             exp_lines = [l.strip() for l in raw_exp_text.split("\n") if l.strip()]
-            company_header_pat = r'^([A-Za-z0-9\s&,\.\-]+?)\s*(?:\||—|-|\()\s*((?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|Present|Current|\d{4})|\d{4})'
+            date_pat = r'(?:\||—|–|-|\(|\s)\s*((?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|Present|Current|\d{4})|\b(?:19|20)\d{2}\b)\)?\s*$'
             
             headers = []
             roles = []
             descriptions = []
             
             for l in exp_lines:
-                m = re.search(company_header_pat, l)
+                m = re.search(date_pat, l)
                 if m:
-                    headers.append((m.group(1).strip(" •|—:-"), m.group(2).strip(" ()")))
+                    dur = m.group(1).strip(" ()")
+                    raw_head = l[:m.start()].strip(" •|—:-")
+                    comp = raw_head
+                    role = None
+                    if " — " in raw_head:
+                        parts = raw_head.split(" — ", 1)
+                        if any(k in parts[0].lower() for k in ["engineer", "developer", "analyst", "specialist", "manager", "lead", "architect", "accountant", "consultant", "scientist", "director", "officer", "intern"]):
+                            role, comp = parts[0].strip(), parts[1].strip()
+                        else:
+                            comp, role = parts[0].strip(), parts[1].strip()
+                    elif " - " in raw_head:
+                        parts = raw_head.split(" - ", 1)
+                        if any(k in parts[0].lower() for k in ["engineer", "developer", "analyst", "specialist", "manager", "lead", "architect", "accountant", "consultant", "scientist", "director", "officer", "intern"]):
+                            role, comp = parts[0].strip(), parts[1].strip()
+                        else:
+                            comp, role = parts[0].strip(), parts[1].strip()
+                    elif " at " in raw_head.lower():
+                        parts = re.split(r'\s+at\s+', raw_head, flags=re.I)
+                        role, comp = parts[0].strip(), parts[1].strip()
+
+                    headers.append((comp, dur, role))
                 elif len(l) < 40 and not l.startswith("•") and not l.lower().startswith("lorem") and not l.lower().startswith("experience includes") and not l.lower().startswith("building") and not l.lower().startswith("developing"):
                     roles.append(l.strip(" •:"))
                 else:
@@ -502,10 +522,9 @@ class ResumeParser:
                     if clean_b and not clean_b.lower().startswith("experience includes:"):
                         descriptions.append(clean_b)
             
-            if headers and (len(headers) == len(roles) or len(headers) == len(descriptions)):
-                # Clustered / Layer-ordered Canva layout
-                for i, (comp, dur) in enumerate(headers):
-                    r_title = roles[i] if i < len(roles) else "Professional Role"
+            if headers and (len(headers) == len(roles) or len(headers) == len(descriptions) or any(h[2] for h in headers)):
+                for i, (comp, dur, r_inline) in enumerate(headers):
+                    r_title = r_inline or (roles[i] if i < len(roles) else "Professional Role")
                     b_list = [descriptions[i]] if i < len(descriptions) else []
                     experience_list.append(WorkExperience(
                         company=comp,
@@ -514,17 +533,36 @@ class ResumeParser:
                         bullets=b_list
                     ))
             elif headers:
-                # Standard chronological top-to-bottom layout
                 current_exp = None
                 for line in exp_lines:
-                    m = re.search(company_header_pat, line)
+                    m = re.search(date_pat, line)
                     if m:
                         if current_exp:
                             experience_list.append(WorkExperience(**current_exp))
+                        dur = m.group(1).strip(" ()")
+                        raw_head = line[:m.start()].strip(" •|—:-")
+                        comp = raw_head
+                        role = "Professional Role"
+                        if " — " in raw_head:
+                            parts = raw_head.split(" — ", 1)
+                            if any(k in parts[0].lower() for k in ["engineer", "developer", "analyst", "specialist", "manager", "lead", "architect", "accountant", "consultant", "scientist", "director", "officer", "intern"]):
+                                role, comp = parts[0].strip(), parts[1].strip()
+                            else:
+                                comp, role = parts[0].strip(), parts[1].strip()
+                        elif " - " in raw_head:
+                            parts = raw_head.split(" - ", 1)
+                            if any(k in parts[0].lower() for k in ["engineer", "developer", "analyst", "specialist", "manager", "lead", "architect", "accountant", "consultant", "scientist", "director", "officer", "intern"]):
+                                role, comp = parts[0].strip(), parts[1].strip()
+                            else:
+                                comp, role = parts[0].strip(), parts[1].strip()
+                        elif " at " in raw_head.lower():
+                            parts = re.split(r'\s+at\s+', raw_head, flags=re.I)
+                            role, comp = parts[0].strip(), parts[1].strip()
+
                         current_exp = {
-                            "company": m.group(1).strip(" •|—:-"),
-                            "role": "Professional Role",
-                            "duration": m.group(2).strip(" ()"),
+                            "company": comp,
+                            "role": role,
+                            "duration": dur,
                             "subtitle": None,
                             "summary": None,
                             "bullets": []
@@ -566,25 +604,41 @@ class ResumeParser:
         if "EDUCATION" in sections_dict:
             raw_edu_text = sections_dict["EDUCATION"]
             edu_lines = [l.strip() for l in raw_edu_text.split("\n") if l.strip()]
-            edu_header_pat = r'^([A-Za-z0-9\s&,\.\-]+?(?:University|College|Institute|School|Academy|[A-Z][a-z]+))\s*(?:\||—|-|\()\s*((?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|Present|Current|\d{4})|\d{4})'
+            date_pat = r'(?:\||—|–|-|\(|\s)\s*((?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|Present|Current|\d{4})|\b(?:19|20)\d{2}\b)\)?\s*$'
             
             headers = []
             degrees = []
             descriptions = []
             
             for l in edu_lines:
-                m = re.search(edu_header_pat, l)
+                m = re.search(date_pat, l)
                 if m:
-                    headers.append((m.group(1).strip(" •|—:-"), m.group(2).strip(" ()")))
+                    dur = m.group(1).strip(" ()")
+                    raw_head = l[:m.start()].strip(" •|—:-")
+                    inst = raw_head
+                    deg = None
+                    if " — " in raw_head:
+                        parts = raw_head.split(" — ", 1)
+                        if any(k in parts[0].lower() for k in ["university", "college", "institute", "school", "academy", "mit", "stanford", "berkeley", "harvard", "columbia"]):
+                            inst, deg = parts[0].strip(), parts[1].strip()
+                        else:
+                            deg, inst = parts[0].strip(), parts[1].strip()
+                    elif " - " in raw_head:
+                        parts = raw_head.split(" - ", 1)
+                        if any(k in parts[0].lower() for k in ["university", "college", "institute", "school", "academy", "mit", "stanford", "berkeley", "harvard", "columbia"]):
+                            inst, deg = parts[0].strip(), parts[1].strip()
+                        else:
+                            deg, inst = parts[0].strip(), parts[1].strip()
+                    headers.append((inst, dur, deg))
                 elif len(l) < 45 and not l.startswith("•") and not l.lower().startswith("lorem"):
                     degrees.append(l.strip(" •:"))
                 else:
                     descriptions.append(l.lstrip("•-* ").strip())
                     
-            if headers and (len(headers) == len(degrees) or len(headers) == len(descriptions)):
+            if headers and (len(headers) == len(degrees) or len(headers) == len(descriptions) or any(h[2] for h in headers)):
                 # Clustered / Layer-ordered Canva layout
-                for i, (inst, yr) in enumerate(headers):
-                    deg = degrees[i] if i < len(degrees) else "Degree"
+                for i, (inst, yr, deg_inline) in enumerate(headers):
+                    deg = deg_inline or (degrees[i] if i < len(degrees) else "Degree")
                     det = descriptions[i] if i < len(descriptions) else None
                     education_list.append(Education(
                         institution=inst,
@@ -595,14 +649,30 @@ class ResumeParser:
             elif headers:
                 current_edu = None
                 for line in edu_lines:
-                    m = re.search(edu_header_pat, line)
+                    m = re.search(date_pat, line)
                     if m:
                         if current_edu:
                             education_list.append(Education(**current_edu))
+                        dur = m.group(1).strip(" ()")
+                        raw_head = line[:m.start()].strip(" •|—:-")
+                        inst = raw_head
+                        deg = "Degree"
+                        if " — " in raw_head:
+                            parts = raw_head.split(" — ", 1)
+                            if any(k in parts[0].lower() for k in ["university", "college", "institute", "school", "academy", "mit", "stanford", "berkeley", "harvard", "columbia"]):
+                                inst, deg = parts[0].strip(), parts[1].strip()
+                            else:
+                                deg, inst = parts[0].strip(), parts[1].strip()
+                        elif " - " in raw_head:
+                            parts = raw_head.split(" - ", 1)
+                            if any(k in parts[0].lower() for k in ["university", "college", "institute", "school", "academy", "mit", "stanford", "berkeley", "harvard", "columbia"]):
+                                inst, deg = parts[0].strip(), parts[1].strip()
+                            else:
+                                deg, inst = parts[0].strip(), parts[1].strip()
                         current_edu = {
-                            "institution": m.group(1).strip(" •|—:-"),
-                            "degree": "Degree",
-                            "year": m.group(2).strip(" ()"),
+                            "institution": inst,
+                            "degree": deg,
+                            "year": dur,
                             "details": None
                         }
                     elif current_edu is not None:
