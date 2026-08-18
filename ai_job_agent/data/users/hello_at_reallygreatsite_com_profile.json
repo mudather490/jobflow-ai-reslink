@@ -1,60 +1,173 @@
 {
   "profile": {
-    "full_name": "SEBASTIAN BENNETT",
-    "headline": "Professional Accountant",
+    "full_name": "Sales Representative",
+    "headline": "DONNA STROUPE",
     "contact": {
       "email": "hello@reallygreatsite.com",
-      "phone": "+123-456-7890",
-      "location": "123 Anywhere St., Any City",
+      "phone": "123-456-7890",
+      "location": null,
       "linkedin": null,
       "github": null,
       "portfolio": null
     },
-    "summary": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+    "summary": "WORK EXPERIENCE\nAug 2018 - present\nConsumer Goods Seller\nAug 2018 - present\nTimmerman Industries\nOffer consumer goods packages to corporate and clients\nMeet with clients every quarter to update or renew services\nTrain junior sales agents\nSales Agent\nAug 2014 - Jul 2015\nTimmerman Industries\nFMCG Sales Agent\nJul 2015 - Aug 2018\nTimmerman Industries\nVisited corporate client offices to offer latest products\nBuilt relationships with clients to maintain sales goals and create\nnew opportunities\nVisited corporate client offices to offer latest products\nREFERENCES\n123 Anywhere St., Any City, ST 12345",
     "skills": [
-      "Auditing",
-      "Financial Accounting",
-      "Financial Reporting"
+      "LANGUAGE",
+      "BA Sales and Commerce",
+      "Wardiere"
     ],
     "categorized_skills": {},
-    "experience": [
-      {
-        "company": "Salford & Co.",
-        "role": "Senior Accountant",
-        "location": null,
-        "duration": "2033 - 2035",
-        "subtitle": null,
-        "summary": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-        "bullets": []
-      },
-      {
-        "company": "Salford & Co.",
-        "role": "Financial Accountant",
-        "location": null,
-        "duration": "2030 - 2033",
-        "subtitle": null,
-        "summary": "ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation",
-        "bullets": []
-      }
-    ],
+    "experience": [],
     "projects": [],
     "education": [
       {
-        "institution": "Borcelle University",
-        "degree": "Senior Accountant",
-        "year": "2026-2030",
-        "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt"
+        "institution": "moving Consumer Goods",
+        "degree": "Fast",
+        "year": null,
+        "details": null
       },
       {
-        "institution": "Borcelle University",
-        "degree": "Senior Accountant",
-        "year": "2023-2026",
-        "details": "ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation"
+        "institution": "Packaged Consumer Goods",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Sales",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Corporate sales account",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "management",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Experience in retail",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "English",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "French",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "456",
+        "degree": "+123",
+        "year": "7890",
+        "details": null
+      },
+      {
+        "institution": "hello@reallygreatsite.com",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Phone:",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Email :",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Wardiere Inc. / CEO",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Harper Russo",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "456",
+        "degree": "+123",
+        "year": "7890",
+        "details": null
+      },
+      {
+        "institution": "hello@reallygreatsite.com",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Phone:",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Email :",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Wardiere Inc. / CEO",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "Estelle Darcy",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "I am a Sales Representative is a professional who initializes and",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "manages relationships with customers. They serve as their point of",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "contact and lead from initial outreach through the making of the",
+        "degree": "Degree",
+        "year": null,
+        "details": null
+      },
+      {
+        "institution": "final purchase by them or someone in their household.",
+        "degree": "Degree",
+        "year": null,
+        "details": null
       }
     ],
     "certifications": [],
     "additional_background": null,
     "target_role": null
   },
-  "filename": "Sebastian_Bennett_Resume.pdf"
+  "filename": "White_Simple_Sales_Representative_CV_Resume.pdf"
 }

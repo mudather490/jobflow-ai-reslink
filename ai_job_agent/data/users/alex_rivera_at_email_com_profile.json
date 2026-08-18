@@ -1,0 +1,117 @@
+{
+  "profile": {
+    "full_name": "ALEX RIVERA",
+    "headline": "Professional Profile",
+    "contact": {
+      "email": "alex.rivera@email.com",
+      "phone": "+1 (555) 345-6789",
+      "location": "San Francisco, CA |  |  | .com/in/alexrivera-ai | .com/alexrivera",
+      "linkedin": "linkedin.com/in/alexrivera-ai",
+      "github": "github.com/alexrivera",
+      "portfolio": null
+    },
+    "summary": "Innovative AI & Full-Stack Engineer with 3+ years of experience designing and deploying scalable LLM applications, RAG pipelines, and microservice backends with Python, FastAPI, and React. Passionate about agentic workflows, high-throughput vector retrieval, and autonomous AI systems.",
+    "skills": [
+      "Python",
+      "JavaScript",
+      "TypeScript",
+      "SQL",
+      "Bash",
+      "LangChain",
+      "LangGraph",
+      "LlamaIndex",
+      "OpenAI API",
+      "Hugging Face",
+      "PyTorch",
+      "FastAPI",
+      "Flask",
+      "PostgreSQL",
+      "Redis",
+      "Qdrant",
+      "Pinecone",
+      "Docker",
+      "Git",
+      "CI/CD",
+      "AWS (S3",
+      "EC2",
+      "Lambda",
+      "Linux"
+    ],
+    "categorized_skills": {
+      "Languages": [
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "SQL",
+        "Bash"
+      ],
+      "AI / LLM Frameworks": [
+        "LangChain",
+        "LangGraph",
+        "LlamaIndex",
+        "OpenAI API",
+        "Hugging Face",
+        "PyTorch"
+      ],
+      "Backend & Databases": [
+        "FastAPI",
+        "Flask",
+        "PostgreSQL",
+        "Redis",
+        "Qdrant",
+        "Pinecone"
+      ],
+      "DevOps & Cloud": [
+        "Docker",
+        "Git",
+        "CI/CD",
+        "AWS (S3",
+        "EC2",
+        "Lambda",
+        "Linux"
+      ]
+    },
+    "experience": [
+      {
+        "company": "Independent / Freelance",
+        "role": "Software Engineer | CloudScale Innovations (2021 - 2023)",
+        "location": null,
+        "duration": "Recent",
+        "subtitle": null,
+        "summary": null,
+        "bullets": [
+          "AI Engineer | Nexus Automation Labs (2023 - Present)",
+          "Architected a multi-agent RAG workflow with LangGraph & Qdrant, reducing customer support query resolution time by 42%.",
+          "Developed FastAPI REST endpoints handling 100k+ daily inference requests with sub-150ms P95 latency.",
+          "Implemented automated CI/CD evaluation pipelines using Ragas & DeepEval to monitor hallucination rates.",
+          "Engineered scalable data ingestion pipelines processing 2M+ records daily using Python, Celery, and PostgreSQL.",
+          "Containerized legacy backend services with Docker and orchestrated deployments on AWS ECS."
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "name": "Autonomous Code Review Agent (Python, LangGraph, Ollama)",
+        "subtitle": null,
+        "description": "Open-source agent that analyzes pull requests for security vulnerabilities and style adherence.",
+        "bullets": [
+          "Real-Time Hybrid Search Engine (FastAPI, Qdrant, BM25): High-performance search system combining dense vector search and BM25 lexical ranking."
+        ],
+        "technologies": [],
+        "repository": null
+      }
+    ],
+    "education": [
+      {
+        "institution": "University of California, Berkeley (2017",
+        "degree": "B.S. in Computer Science",
+        "year": "2021)",
+        "details": null
+      }
+    ],
+    "certifications": [],
+    "additional_background": null,
+    "target_role": null
+  },
+  "filename": "sample_resume.docx"
+}
