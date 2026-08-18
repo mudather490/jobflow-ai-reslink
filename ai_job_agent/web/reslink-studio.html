@@ -430,6 +430,27 @@
           Specify the target company, position, senior contact name, and job requirements. Our engine personalizes the pitch to address the senior hiring lead directly and sanitizes the transcript for smooth teleprompter reading.
         </p>
 
+        <!-- Resume Upload & Dynamic Sync Widget -->
+        <div style="background: rgba(14, 19, 38, 0.7); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+              📄
+            </div>
+            <div>
+              <div style="font-weight: 700; font-size: 13.5px; color: #FFF;" id="studio-cv-filename-display">
+                Uploaded Resume: Candidate Resume
+              </div>
+              <div style="font-size: 12px; color: var(--text-dim);" id="studio-cv-status-display">
+                Synced dynamically with ResLink ATS Canvas & Selected PDF Template
+              </div>
+            </div>
+          </div>
+          <label class="btn btn-secondary" style="font-size: 12px; padding: 7px 16px; cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+            <span>📤 Upload / Change Resume (PDF/DOCX)</span>
+            <input type="file" id="studio-resume-file-input" accept=".pdf,.docx,.doc,.txt" style="display: none;" onchange="handleStudioResumeUpload(this)">
+          </label>
+        </div>
+
         <!-- 4-Grid Target Profile Configuration -->
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 130px; gap: 12px; margin-bottom: 16px;">
           <div class="input-group">
@@ -1045,6 +1066,37 @@
       }
     }
 
+    async function handleStudioResumeUpload(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const statusEl = document.getElementById('studio-cv-status-display');
+      const nameEl = document.getElementById('studio-cv-filename-display');
+      if (statusEl) statusEl.innerText = `⏳ Parsing ${file.name}...`;
+      
+      try {
+        const res = await fetch('/api/v1/resume/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (nameEl) nameEl.innerText = `Uploaded Resume: ${data.filename}`;
+          if (statusEl) statusEl.innerText = `✓ Synced dynamically with ResLink ATS Canvas & Selected PDF Template (${data.filesize})`;
+          showToast(`✓ Resume "${data.filename}" parsed and synced with ResLink!`);
+          await loadStudioProfile();
+        } else {
+          if (statusEl) statusEl.innerText = `❌ Upload failed. Please try again.`;
+          showToast("❌ Failed to parse resume.");
+        }
+      } catch (err) {
+        console.error("Upload error:", err);
+        if (statusEl) statusEl.innerText = `❌ Error connecting to server.`;
+      }
+    }
+
     async function loadStudioProfile() {
       try {
         const [rRes, pRes] = await Promise.all([
@@ -1117,7 +1169,14 @@
         }
 
         if (pRes.ok) {
-          const uProf = (await pRes.json()).profile;
+          const pData = await pRes.json();
+          const uProf = pData.profile;
+          if (pData.filename) {
+            const nameEl = document.getElementById('studio-cv-filename-display');
+            if (nameEl) nameEl.innerText = `Uploaded Resume: ${pData.filename}`;
+            const statusEl = document.getElementById('studio-cv-status-display');
+            if (statusEl) statusEl.innerText = `✓ Synced dynamically with ResLink ATS Canvas & Selected PDF Template (${pData.filesize || 'Active'})`;
+          }
           if (uProf && uProf.skills) {
             const badges = (currentResLinkProfile?.competency_badges && currentResLinkProfile.competency_badges.length > 0)
               ? currentResLinkProfile.competency_badges

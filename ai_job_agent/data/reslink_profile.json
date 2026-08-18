@@ -7,14 +7,14 @@
   "video_url": "/videos/video_pitch.webm",
   "video_duration": 60.0,
   "theme": "cyber_neon",
-  "selected_cv_template": "corporate_elite",
+  "selected_cv_template": "modern",
   "target_job_title": "Remote Junior AI Engineer / Machine Learning Engineer",
   "target_company": "Global Tech Employers",
   "senior_contact": "Hiring Team",
   "pitch_script": "",
   "linkedin_outreach_note": "",
   "competency_badges": [
-    "\u26a1 Core: Python, SQL, Git/GitHub",
+    "\u26a1 Core: Python, LLM APIs, AI Agents",
     "\ud83d\udcbc AI & Software Engineering at Independent / Freelance",
     "\ud83c\udf93 Machine Learning Specialization"
   ],
@@ -30,5 +30,5 @@
     "enable_cv_download": true
   },
   "is_public": true,
-  "updated_at": "2026-08-18T02:16:08.516999"
+  "updated_at": "2026-08-18T04:21:04.876903"
 }

@@ -1,0 +1,60 @@
+{
+  "profile": {
+    "full_name": "SEBASTIAN BENNETT",
+    "headline": "Professional Accountant",
+    "contact": {
+      "email": "hello@reallygreatsite.com",
+      "phone": "+123-456-7890",
+      "location": "123 Anywhere St., Any City",
+      "linkedin": null,
+      "github": null,
+      "portfolio": null
+    },
+    "summary": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+    "skills": [
+      "Auditing",
+      "Financial Accounting",
+      "Financial Reporting"
+    ],
+    "categorized_skills": {},
+    "experience": [
+      {
+        "company": "Salford & Co.",
+        "role": "Senior Accountant",
+        "location": null,
+        "duration": "2033 - 2035",
+        "subtitle": null,
+        "summary": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+        "bullets": []
+      },
+      {
+        "company": "Salford & Co.",
+        "role": "Financial Accountant",
+        "location": null,
+        "duration": "2030 - 2033",
+        "subtitle": null,
+        "summary": "ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation",
+        "bullets": []
+      }
+    ],
+    "projects": [],
+    "education": [
+      {
+        "institution": "Borcelle University",
+        "degree": "Senior Accountant",
+        "year": "2026-2030",
+        "details": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt"
+      },
+      {
+        "institution": "Borcelle University",
+        "degree": "Senior Accountant",
+        "year": "2023-2026",
+        "details": "ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation"
+      }
+    ],
+    "certifications": [],
+    "additional_background": null,
+    "target_role": null
+  },
+  "filename": "Sebastian_Bennett_Resume.pdf"
+}

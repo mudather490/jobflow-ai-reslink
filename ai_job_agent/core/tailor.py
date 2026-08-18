@@ -17,31 +17,17 @@ class ResumeTailor:
 
     def tailor_summary(self, profile: UserProfile, job: JobDetails, match_report: MatchReport) -> str:
         """
-        Creates a concise, evidence-based technical summary answering:
-        Who is the candidate? What technologies do they use? What can they build? What role are they targeting?
+        Preserves the candidate's authentic summary from their uploaded resume without injecting fake claims or targeting phrases.
         """
-        matched = match_report.matched_skills[:4]
-        skills_to_highlight = matched if matched else profile.skills[:4]
-        skills_str = ", ".join(skills_to_highlight) if skills_to_highlight else "Python, Machine Learning, and backend APIs"
-        
-        target_role = job.title or "AI Engineer"
-        target_company = f" at {job.company}" if job.company and job.company.lower() != "company" else ""
-
-        if profile.summary and len(profile.summary.strip()) > 50:
-            base_sum = re.sub(r'Seeking (a|an)?\s*remote.*$', '', profile.summary, flags=re.I).strip(" .")
-            return f"{base_sum}. Targeting the {target_role} position{target_company} to deliver robust, data-driven solutions."
-
-        return (
-            f"Junior AI Engineer specializing in {skills_str}. "
-            f"Hands-on experience building machine learning models, API microservices, and end-to-end application pipelines. "
-            f"Targeting the {target_role} position{target_company} to deliver robust, data-driven solutions."
-        )
+        if profile.summary and profile.summary.strip():
+            return profile.summary.strip()
+        return "Dedicated professional with demonstrated expertise and a strong track record of success."
 
     def tailor_experience_bullets(
         self, experience_list: List[WorkExperience], target_keywords: List[str]
     ) -> List[WorkExperience]:
         """
-        Re-orders and polishes experience bullets to emphasize target job keywords.
+        Re-orders authentic candidate experience bullets to highlight relevance without modifying content.
         """
         tailored_list = []
         keywords_lower = [k.lower() for k in target_keywords]
@@ -58,6 +44,8 @@ class ResumeTailor:
                     role=exp.role,
                     location=exp.location,
                     duration=exp.duration,
+                    subtitle=exp.subtitle,
+                    summary=exp.summary,
                     bullets=sorted_bullets,
                 )
             )
@@ -68,25 +56,28 @@ class ResumeTailor:
         self, profile: UserProfile, job: JobDetails, match_report: MatchReport
     ) -> UserProfile:
         """
-        Produces a tailored UserProfile for an active application while 100% preserving
-        authentic candidate experience, credentials, and identity.
+        Produces an ATS-optimized UserProfile preserving 100% authentic data from the uploaded CV.
         """
         tailored = profile.model_copy(deep=True)
 
-        # 1. Maintain authentic Headline
-        if not tailored.headline or tailored.headline in ["Candidate", "Professional Profile"]:
-            tailored.headline = f"{job.title} | {', '.join(match_report.matched_skills[:3])}"
+        # 1. Preserve authentic Headline
+        tailored.headline = profile.headline or "Professional Profile"
 
-        # 2. Prioritize authentic matching skills
-        if match_report.matched_skills:
-            matched_set = set(match_report.matched_skills)
-            other_skills = [s for s in tailored.skills if s not in matched_set]
-            tailored.skills = [s for s in match_report.matched_skills if s in tailored.skills] + other_skills
+        # 2. Preserve authentic Summary
+        tailored.summary = profile.summary
 
-        # 3. Order authentic Experience bullets by keyword relevance
-        if match_report.matched_skills:
-            tailored.experience = self.tailor_experience_bullets(
-                tailored.experience, match_report.matched_skills
-            )
+        # 3. Prioritize matching authentic skills (only from candidate's existing skills)
+        matched_set = set(match_report.matched_skills)
+        matched_candidate_skills = [s for s in profile.skills if s in matched_set or any(m.lower() == s.lower() for m in matched_set)]
+        other_skills = [s for s in profile.skills if s not in matched_candidate_skills]
+        tailored.skills = matched_candidate_skills + other_skills
+
+        # 4. Tailor Experience bullets (sorting candidate's own bullets)
+        tailored.experience = self.tailor_experience_bullets(
+            profile.experience, match_report.matched_skills
+        )
+
+        # 5. Preserve authentic Target Role if present
+        tailored.target_role = profile.target_role
 
         return tailored

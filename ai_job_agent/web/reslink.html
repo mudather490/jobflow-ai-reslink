@@ -1412,9 +1412,9 @@
       // Education - strictly from user profile
       let education = r.education || [];
 
-      // Additional Background & Target Role
+      // Additional Background & Target Role (strictly from authentic resume)
       let additional = r.additional_background || "";
-      let targetRole = r.target_role || p.target_job_title || "";
+      let targetRole = r.target_role || "";
 
       // ── Render Template HTML Safely ──
       let html = '';
@@ -1581,7 +1581,7 @@
               ${education.map(edu => `
                 <div class="resume-entry" style="margin-bottom: 6px;">
                   <div class="entry-header">
-                    <div><strong>${escapeHtml(edu.institution)}</strong> — <span>${escapeHtml(edu.degree)}</span></div>
+                    <div><strong>${escapeHtml(edu.institution)}</strong>${(edu.degree && edu.degree !== 'Degree') ? ` — <span>${escapeHtml(edu.degree)}</span>` : ''}</div>
                     <div class="entry-date">${escapeHtml(edu.year || "")}</div>
                   </div>
                   ${edu.details ? `<div style="font-size: 12px; color: #475569;">${escapeHtml(edu.details)}</div>` : ''}

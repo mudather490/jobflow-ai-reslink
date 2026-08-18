@@ -322,12 +322,13 @@ async def upload_resume(file: UploadFile = File(...), user_email: Optional[str] 
         print(f"Failed to parse resume: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to parse resume.")
 
+    # Generate initial documents in authentic user profile format
+    active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
+        active_profile, "", "", original_filename=active_resume_filename, template_id=active_template
+    )
+
     if active_job:
         active_match = matcher.evaluate_match(active_profile, active_job)
-        tailored = tailor.tailor_profile(active_profile, active_job, active_match)
-        active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
-            tailored, active_job.title, active_job.company, original_filename=active_resume_filename
-        )
 
     return {
         "status": "success",

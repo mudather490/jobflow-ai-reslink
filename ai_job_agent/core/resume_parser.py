@@ -246,10 +246,13 @@ class ResumeParser:
                     break
         
         if not location_val:
-            loc_m = re.search(r"(?:\d+\s+[A-Za-z0-9\s\.]+(?:St\.|Street|Ave\.|Avenue|Rd\.|Road|Blvd\.|Way|Lane|Dr\.|Drive)[,\s]+[A-Za-z\s]+|[A-Z][a-zA-Z\s]+,\s*[A-Z]{2}\b|[A-Z][a-zA-Z\s]+,\s*[A-Z][a-zA-Z\s]+)", text)
+            us_states = "AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY"
+            countries = "USA|UK|UAE|Canada|Germany|France|South Sudan|Egypt|Nigeria|India|Kenya|Australia|Singapore|Ireland|Netherlands"
+            loc_pat = rf"(?:\d+\s+[A-Za-z0-9\s\.]+(?:St\.|Street|Ave\.|Avenue|Rd\.|Road|Blvd\.|Way|Lane|Dr\.|Drive)[,\s]+[A-Za-z\s]+|[A-Z][a-zA-Z\s]{{2,25}},\s*(?:{us_states}|{countries})\b)"
+            loc_m = re.search(loc_pat, text)
             if loc_m:
                 cand_l = loc_m.group(0).strip(" ,+")
-                if not any(k in cand_l.lower() for k in ["university", "college", "school", "ltd", "inc", "corp", "company", "salford", "borcelle", "email", "phone"]):
+                if not any(k in cand_l.lower() for k in ["university", "college", "school", "ltd", "inc", "corp", "company", "salford", "borcelle", "email", "phone", "learning", "python", "developer", "engineering"]):
                     location_val = cand_l
 
         contact = ContactInfo(
@@ -626,11 +629,27 @@ class ResumeParser:
         additional_background = sections_dict.get("ADDITIONAL_BACKGROUND", "").strip(" :—\n") or None
         target_role = sections_dict.get("TARGET_ROLE", "").strip(" :—\n") or None
 
+        # Clean Summary: Strip contact info, email, phone, location from summary text
+        raw_summary = sections_dict.get("SUMMARY")
+        clean_sum = None
+        if raw_summary:
+            clean_sum = raw_summary.strip()
+            if email_match:
+                clean_sum = clean_sum.replace(email_match.group(0), "")
+            if phone_val:
+                clean_sum = clean_sum.replace(phone_val, "")
+            if location_val:
+                clean_sum = clean_sum.replace(location_val, "")
+            clean_sum = re.sub(r'(?i)\b(?:email|phone|tel|mobile|location|address|linkedin|github)\b\s*[:—]?', '', clean_sum)
+            clean_sum = re.sub(r'\s{2,}', ' ', clean_sum).strip(' ,•—\t\n+')
+            if len(clean_sum) < 5:
+                clean_sum = None
+
         return UserProfile(
             full_name=full_name,
             headline=headline or "Professional Profile",
             contact=contact,
-            summary=sections_dict.get("SUMMARY"),
+            summary=clean_sum,
             skills=skills_list,
             categorized_skills=categorized_skills,
             experience=experience_list,

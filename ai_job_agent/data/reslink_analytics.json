@@ -1,11 +1,123 @@
 {
-  "total_views": 49,
-  "unique_visitors": 49,
+  "total_views": 64,
+  "unique_visitors": 64,
   "video_plays": 26,
-  "cv_downloads": 17,
+  "cv_downloads": 18,
   "calendly_clicks": 17,
   "average_watch_seconds": 4244.5,
   "recent_events": [
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:09:11",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 04:07:40",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:37:18",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:36:47",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:36:46",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:36:45",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:36:42",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:36:34",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "cv_download",
+      "timestamp": "2026-08-18 03:13:44",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:13:21",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:12:19",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:02:45",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:02:07",
+      "referrer": "Direct Link",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 03:01:58",
+      "referrer": "Direct Link",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 02:47:55",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
+    {
+      "event": "page_view",
+      "timestamp": "2026-08-18 02:47:14",
+      "referrer": "http://127.0.0.1:8000/reslink",
+      "device": "desktop",
+      "city": "Global Recruiter View"
+    },
     {
       "event": "page_view",
       "timestamp": "2026-08-18 02:03:37",
@@ -241,118 +353,6 @@
       "event": "page_view",
       "timestamp": "2026-08-16 00:26:43",
       "referrer": "https://linkedin.com/in/alex",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "calendly_click",
-      "timestamp": "2026-08-16 00:26:42",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "cv_download",
-      "timestamp": "2026-08-16 00:26:42",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
-      "timestamp": "2026-08-16 00:26:42",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:26:42",
-      "referrer": "linkedin.com",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:18:51",
-      "referrer": "https://linkedin.com/in/alex",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "calendly_click",
-      "timestamp": "2026-08-16 00:18:51",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "cv_download",
-      "timestamp": "2026-08-16 00:18:51",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
-      "timestamp": "2026-08-16 00:18:51",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:18:51",
-      "referrer": "linkedin.com",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "calendly_click",
-      "timestamp": "2026-08-16 00:18:13",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "cv_download",
-      "timestamp": "2026-08-16 00:18:13",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
-      "timestamp": "2026-08-16 00:18:13",
-      "referrer": "direct",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:18:13",
-      "referrer": "linkedin.com",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "cv_download",
-      "timestamp": "2026-08-16 00:04:55",
-      "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "video_play",
-      "timestamp": "2026-08-16 00:04:40",
-      "referrer": "http://127.0.0.1:8000/reslink",
-      "device": "desktop",
-      "city": "Global Recruiter View"
-    },
-    {
-      "event": "page_view",
-      "timestamp": "2026-08-16 00:04:33",
-      "referrer": "http://127.0.0.1:8000/reslink",
       "device": "desktop",
       "city": "Global Recruiter View"
     }

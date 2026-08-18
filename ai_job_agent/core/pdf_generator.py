@@ -239,9 +239,6 @@ class ResumeDocumentGenerator:
                         doc.add_paragraph(exp.summary)
 
                     if exp.bullets:
-                        p_inc = doc.add_paragraph()
-                        r_inc = p_inc.add_run("Experience includes :")
-                        r_inc.bold = True
                         for b in exp.bullets:
                             p_b = doc.add_paragraph(style="List Bullet")
                             p_b.add_run(b)
@@ -535,7 +532,7 @@ class ResumeDocumentGenerator:
                     deg_str = f" — {edu.degree}" if edu.degree and edu.degree != "Degree" else ""
                     elements.append(Paragraph(f"• <b>{edu.institution}{deg_str}</b>{yr_str}", bullet_style))
                     if edu.details:
-                        elements.append(Paragraph(edu.details, sub_bullet_style))
+                        elements.append(Paragraph(f"{edu.details}", sub_bullet_style))
                 elements.append(Spacer(1, 3))
 
         def add_pdf_certs():
@@ -611,7 +608,6 @@ class ResumeDocumentGenerator:
                         elements.append(Paragraph(exp.summary, summary_style))
                     
                     if exp.bullets:
-                        elements.append(Paragraph("<b>Experience includes :</b>", sub_bullet_style))
                         for bullet in exp.bullets:
                             bullet_clean = bullet.replace("R²", "R<sup>2</sup>")
                             elements.append(Paragraph(f"• {bullet_clean}", bullet_style))
