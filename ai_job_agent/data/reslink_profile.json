@@ -7,29 +7,28 @@
   "video_url": "/videos/video_pitch.webm",
   "video_duration": 60.0,
   "theme": "cyber_neon",
-  "selected_cv_template": "minimal",
-  "target_job_title": "Junior AI Engineer / Machine Learning Engineer",
-  "target_company": "OpenAI / Tech Labs",
-  "senior_contact": "Sarah Jenkins (Head of AI)",
-  "pitch_script": "Hi Sarah, and the OpenAI / Tech Labs team! My name is ALEX RIVERA, and I wanted to introduce myself for the Junior AI Engineer / Machine Learning Engineer role at OpenAI / Tech Labs. Over the past several years, I have specialized in Python and JavaScript, building reliable software that scales smoothly under heavy production loads. At Independent / Freelance, I recently delivered scalable systems with measurable performance gains, delivering measurable impact for the business and engineering organization. What excites me most about OpenAI / Tech Labs is your commitment to high-quality engineering. My background enables me to contribute immediately and integrate seamlessly into your workflow. You can explore my full interactive resume below, download my tailored CV, or schedule a quick chat directly. Looking forward to connecting!",
-  "linkedin_outreach_note": "Hi Hiring Team,\n\nI came across the Junior AI Engineer / Machine Learning Engineer role at OpenAI / Tech Labs and was very impressed by your team's mission. Rather than just sending a flat resume, I put together a 60-second video pitch and interactive project link tailored to your requirements:\n\n\ud83d\udc49 http://127.0.0.1:8000/p/alex-rivera\n\nIt covers my direct experience in Python, JavaScript and key accomplishments at Independent / Freelance. Would love to connect and discuss how I can contribute to OpenAI / Tech Labs!\n\nBest regards,\nALEX RIVERA",
+  "selected_cv_template": "modern",
+  "target_job_title": "Remote Junior AI Engineer / Machine Learning Engineer",
+  "target_company": "Global Tech Employers",
+  "senior_contact": "Hiring Team",
+  "pitch_script": "Hi there! I'm Alex Rivera, a Senior AI Engineer specializing in autonomous multi-agent systems and high-scale LLM pipelines. Over the past 4 years, I have architected production AI applications that reduced inference latency by 45% and scaled to millions of queries. I thrive in worldwide remote environments and deliver immediate impact in Python, PyTorch, FastAPI, and modern cloud infrastructures. Feel free to explore my interactive experience below, download my tailored resume, or schedule a quick intro call directly. Looking forward to connecting!",
+  "linkedin_outreach_note": "Hi [Hiring Manager], I saw your opening for the Senior AI Engineer position. I recorded a 60-second video pitch introducing how my background in multi-agent systems and LLM pipelines directly aligns with your requirements: {reslink_url}\n\nBest regards,\nAlex Rivera",
   "competency_badges": [
-    "\u26a1 Python Specialist",
-    "\ud83d\ude80 Software Engineer | CloudScale Innovations (2021 - 2023) @ Independent / Freelance",
-    "\ud83c\udfaf Matched for Junior AI Engineer / Machine Learning Engineer",
-    "\ud83c\udf0d Worldwide Remote & Immediate Impact"
+    "\u26a1 Core: Python, SQL, Git/GitHub",
+    "\ud83d\udcbc AI & Software Engineering at Independent / Freelance",
+    "\ud83c\udf93 Machine Learning Specialization"
   ],
   "cta_settings": {
     "calendly_url": "https://calendly.com",
     "whatsapp_number": "+211920123456",
     "telegram_username": "@career_agent",
-    "direct_email": "alex.rivera@example.com",
-    "linkedin_url": "https://linkedin.com",
-    "github_url": "https://github.com",
+    "direct_email": "mudatherkbyer@gmail.com",
+    "linkedin_url": "linkedin.com/in/Mudax-kbyer",
+    "github_url": "github.com/mudather490",
     "portfolio_url": "https://portfolio.dev",
     "enable_booking": true,
     "enable_cv_download": true
   },
   "is_public": true,
-  "updated_at": "2026-08-18T00:54:16.059298"
+  "updated_at": "2026-08-18T01:51:51.948423"
 }

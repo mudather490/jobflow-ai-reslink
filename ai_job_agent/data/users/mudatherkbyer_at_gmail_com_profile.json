@@ -1,16 +1,16 @@
 {
   "profile": {
     "full_name": "MUDATHER MOHAMMED",
-    "headline": "Junior AI Engineer | Machine Learning Engineer",
+    "headline": "Machine Learning (AI) Engineer (Hybrid) Candidate | Git, Python, Pytorch",
     "contact": {
       "email": "mudatherkbyer@gmail.com",
       "phone": null,
       "location": null,
-      "linkedin": "linkedin.com/in/Mudax-kbyer",
+      "linkedin": null,
       "github": "github.com/mudather490",
       "portfolio": null
     },
-    "summary": "Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel. Built ML models, neural networks from scratch, AI lead-discovery systems, and end-to-end software applications. Currently advancing in PyTorch and AI Engineering through professional certifications and practical projects. Seeking a remote Junior AI Engineer / Machine Learning Engineer opportunity..",
+    "summary": "Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel. Built ML models, neural networks from scratch, AI lead-discovery systems, and end-to-end software applications. Currently advancing in PyTorch and AI Engineering through professional certifications and practical projects. Targeting the Machine Learning (AI) Engineer (Hybrid) position at Jobs Ai to deliver robust, data-driven solutions.",
     "skills": [
       "Python",
       "SQL",
@@ -40,40 +40,39 @@
       "Matplotlib"
     ],
     "categorized_skills": {
-      "Programming": [
+      "\u007f Programming": [
         "Python",
         "SQL",
         "Git/GitHub"
       ],
-      "Machine Learning": [
+      "\u007f Machine Learning": [
         "Scikit-learn",
         "Linear Regression",
         "Logistic Regression",
         "Gradient Descent",
         "Classification",
         "Model Evaluation",
-        "Regularization",
-        "Feature Engineering"
+        "Regularization"
       ],
-      "Deep Learning": [
+      "\u007f Deep Learning": [
         "Neural Networks",
         "TensorFlow",
         "CNNs",
         "PyTorch (In Progress"
       ],
-      "AI Engineering": [
+      "\u007f AI Engineering": [
         "LLM APIs",
         "AI Agents",
         "Prompt Engineering",
         "AI Applications"
       ],
-      "Backend & Deployment": [
+      "\u007f Backend & Deployment": [
         "FastAPI",
         "REST APIs",
         "Supabase",
         "Vercel"
       ],
-      "Data": [
+      "\u007f Data": [
         "NumPy",
         "Pandas",
         "Matplotlib"
@@ -82,30 +81,45 @@
     "experience": [
       {
         "company": "Independent / Freelance",
-        "role": "Freelance Software & AI Developer. AI & Software Engineering : Developed practical software and AI applications combining machine learning, AI APIs, backend development, databases, and deployment",
+        "role": "Freelance Software & AI Developer. AI & Software Engineering : Developed practical software and AI applications combining",
         "location": null,
         "duration": "Recent",
         "subtitle": "AI & Software Engineering",
-        "summary": null,
+        "summary": "machine learning, AI APIs, backend development, databases, and deployment \u2014 Independent / Freelance | Recent",
         "bullets": [
-          "Building AI-powered applications.",
-          "Integrating LLM APIs into applications.",
-          "Developing AI agent workflows.",
-          "Building backend services using FastAPI.",
-          "Integrating applications with Supabase databases.",
-          "Deploying web applications using Vercel.",
-          "Connecting frontend applications with backend and AI services.",
-          "Developing IntentFlow, an AI-powered lead discovery concept."
+          "\u007f Building AI-powered applications.",
+          "\u007f Integrating LLM APIs into applications.",
+          "\u007f Developing AI agent workflows.",
+          "\u007f Building backend services using FastAPI.",
+          "\u007f Integrating applications with Supabase databases.",
+          "\u007f Deploying web applications using Vercel.",
+          "\u007f Connecting frontend applications with backend and AI services.",
+          "\u007f Developing IntentFlow, an AI-powered lead discovery concept."
         ]
       }
     ],
     "projects": [
       {
-        "name": "IntentFlow",
-        "subtitle": "AI Lead Discovery System Freelance / AI Engineering Project: AI Agent Project: Built an AI agent concept that analyzes Reddit posts to identify potential buying intent and users requesting help. Designed an automated workflow for post analysis, intent detection, lead identification, and AI-generated reply suggestions.",
+        "name": "\u007f IntentFlow",
+        "subtitle": "",
         "description": "",
         "bullets": [
-          "Designed for integration with the Reddit API for automated data collection."
+          "AI Lead Discovery System Freelance / AI Engineering Project: AI Agent Project: Built an AI agent concept that analyzes Reddit posts to identify potential buying intent and users requesting help.",
+          "Designed an automated workflow for post analysis, intent detection, lead identification, and AI-generated reply suggestions.",
+          "Designed for integration with the Reddit API for automated data collection. . \u007f Neural Network Implementations : NumPy NumPy. \u007f TensorFlow : \u007f PyTorch : Implemented a neural network from scratch using NumPy to understand forward propagation, weights, activations, and neural network fundamentals.",
+          "Built and trained a neural network using TensorFlow.",
+          "Currently rebuilding and extending neural network projects using PyTorch.",
+          "Implemented a neural network from scratch using NumPy to understand forward propagation, weights, activations, and neural network fundamentals.",
+          "Built and trained a neural network using TensorFlow.",
+          "Currently rebuilding and extending neural network projects using PyTorch. \u007f House Price Prediction \u2014 Linear Regression : Linear Regression : Built an end-to-end Machine Learning project for predicting house prices.",
+          "Applied data cleaning, EDA, feature selection, train/test splitting, Linear Regression, evaluation, visualization, and model persistence.",
+          "Evaluated the model using MSE and R2.",
+          "Built an end-to-end Machine Learning project for predicting house prices.",
+          "Applied data cleaning, EDA, feature selection, train/test splitting, Linear Regression, evaluation, visualization, and model persistence.",
+          "Evaluated the model using MSE and R2. https://github.com/mudather490/House_Price_model_linearregression.git \u007f FinanceTracker \u2014 Python : Python : Built a command-line application for managing personal income and expenses.",
+          "Implemented adding, searching, viewing, deleting, and calculating expenses using Python and OOP.",
+          "Built a command-line application for managing personal income and expenses.",
+          "Implemented adding, searching, viewing, deleting, and calculating expenses using Python and OOP. https://github.com/mudather490/FinanceTracker-.git."
         ],
         "technologies": [
           "Python",
@@ -113,108 +127,73 @@
           "AI Agents",
           "Reddit API"
         ],
-        "repository": null
-      },
-      {
-        "name": "Neural Network Implementations",
-        "subtitle": "NumPy",
-        "description": "",
-        "bullets": [
-          "NumPy."
-        ],
-        "technologies": [],
-        "repository": null
-      },
-      {
-        "name": "TensorFlow",
-        "subtitle": null,
-        "description": "",
-        "bullets": [],
-        "technologies": [],
-        "repository": null
-      },
-      {
-        "name": "PyTorch",
-        "subtitle": "Implemented a neural network from scratch using NumPy to understand forward propagation, weights, activations, and neural network fundamentals. Built and trained a neural network using TensorFlow. Currently rebuilding and extending neural network projects using PyTorch.",
-        "description": "",
-        "bullets": [
-          "Implemented a neural network from scratch using NumPy to understand forward propagation, weights, activations, and neural network fundamentals.",
-          "Built and trained a neural network using TensorFlow.",
-          "Currently rebuilding and extending neural network projects using PyTorch."
-        ],
-        "technologies": [],
         "repository": "https://github.com/mudather490/Nurons_network-projects.git"
-      },
-      {
-        "name": "House Price Prediction \u2014 Linear Regression",
-        "subtitle": "Linear Regression : Built an end-to-end Machine Learning project for predicting house prices. Applied data cleaning, EDA, feature selection, train/test splitting, Linear Regression, evaluation, visualization, and model persistence. Evaluated the model using MSE and R\u00b2.",
-        "description": "",
-        "bullets": [
-          "Built an end-to-end Machine Learning project for predicting house prices.",
-          "Applied data cleaning, EDA, feature selection, train/test splitting, Linear Regression, evaluation, visualization, and model persistence.",
-          "Evaluated the model using MSE and R\u00b2."
-        ],
-        "technologies": [],
-        "repository": "https://github.com/mudather490/House_Price_model_linearregression.git"
-      },
-      {
-        "name": "FinanceTracker \u2014 Python",
-        "subtitle": "Python : Built a command-line application for managing personal income and expenses. Implemented adding, searching, viewing, deleting, and calculating expenses using Python and OOP.",
-        "description": "",
-        "bullets": [
-          "Built a command-line application for managing personal income and expenses.",
-          "Implemented adding, searching, viewing, deleting, and calculating expenses using Python and OOP."
-        ],
-        "technologies": [],
-        "repository": "https://github.com/mudather490/FinanceTracker-.git"
       }
     ],
     "education": [],
     "certifications": [
       {
-        "name": "Machine Learning Specialization",
+        "name": "\u007f Machine Learning Specialization",
         "issuer": "Stanford / DeepLearning.AI",
         "status": "Completed",
-        "details": "Supervised Learning, Regression, Classification, Gradient Descent, Regularization, Decision Trees, Model Evaluation, and practical ML workflows."
+        "details": "Supervised Learning, Regression, Classification, Gradient"
       },
       {
-        "name": "PyTorch Professional Certificate",
+        "name": "Descent, Regularization, Decision Trees, Model Evaluation, and practical ML workflows.",
+        "issuer": null,
+        "status": "Completed",
+        "details": null
+      },
+      {
+        "name": "\u007f PyTorch Professional Certificate",
         "issuer": "DeepLearning.AI",
         "status": "In Progress",
-        "details": "PyTorch fundamentals, neural networks, training workflows, deep learning, and practical model development."
+        "details": "PyTorch fundamentals, neural networks, training workflows, deep learning,"
       },
       {
-        "name": "AI Engineering Professional Certificate",
+        "name": "and practical model development.",
+        "issuer": null,
+        "status": "Completed",
+        "details": null
+      },
+      {
+        "name": "\u007f AI Engineering Professional Certificate",
         "issuer": "IBM",
         "status": "In Progress",
-        "details": "AI Engineering, Machine Learning, Deep Learning, and AI application development."
+        "details": "AI Engineering, Machine Learning, Deep Learning, and AI application"
       },
       {
-        "name": "AI Engineering",
+        "name": "development.",
+        "issuer": null,
+        "status": "Completed",
+        "details": null
+      },
+      {
+        "name": "\u007f AI Engineering",
         "issuer": "Scrimba",
         "status": "Completed",
         "details": "Professional development in modern AI application development and LLM-based applications."
       },
       {
-        "name": "Crash Course on Python",
+        "name": "\u007f Crash Course on Python",
         "issuer": "Google",
         "status": "Completed",
         "details": "Python programming fundamentals, functions, data structures, and practical programming."
       },
       {
-        "name": "Google Cyber Security Certificate",
+        "name": "\u007f Google Cyber Security Certificate",
         "issuer": "Google",
         "status": "Completed",
         "details": "Includes Linux, MySQL, and Python hands-on labs."
       }
     ],
     "additional_background": "Transitioned from a background in Veterinary Medicine into Software Engineering, Machine Learning, and Artificial Intelligence.",
-    "target_role": "Remote Junior AI Engineer / Machine Learning Engineer"
+    "target_role": "Remote Machine Learning (AI) Engineer (Hybrid) at Jobs Ai"
   },
-  "filename": "Mudather_Mohammed_resume.__1_.pdf",
+  "filename": "MUDATHER_MOHAMMED_Resume__1_.pdf",
   "notifications": {
     "email": "mudatherkbyer@gmail.com",
-    "whatsapp": "+211911671124",
+    "whatsapp": "",
     "telegram": "alex_telegram"
   }
 }

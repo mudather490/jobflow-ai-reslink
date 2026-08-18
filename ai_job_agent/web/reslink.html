@@ -1286,11 +1286,11 @@
       const p = reslinkProfile || {};
       const r = resumeProfile || {};
 
-      const fullName = p.full_name || r.full_name || "MUDATHER MOHAMMED";
-      const tagline = p.tagline || r.headline || "Junior AI Engineer | Machine Learning Engineer";
+      const fullName = p.full_name || r.full_name || "Candidate";
+      const tagline = p.tagline || r.headline || r.target_role || "Engineering Specialist";
       const location = p.location || r.contact?.location || "Worldwide Remote";
       const videoUrl = p.video_url || "/videos/video_pitch.webm";
-      const linkedinUrl = p.cta_settings?.linkedin_url || r.contact?.linkedin || "https://linkedin.com";
+      const linkedinUrl = p.cta_settings?.linkedin_url || r.contact?.linkedin || "";
 
       // 2. Set Header Elements (Safe text insertion)
       document.getElementById('prof-name').textContent = fullName.toUpperCase();
@@ -1298,7 +1298,7 @@
       document.getElementById('prof-location').textContent = location;
 
       // Initials for avatar badge
-      const initials = fullName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'MM';
+      const initials = fullName.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'CV';
       document.getElementById('prof-avatar').textContent = initials;
 
       // 3. Set Video Source
@@ -1312,7 +1312,12 @@
       // 4. Set Action CTA Button Links
       const linkedinBtn = document.getElementById('btn-linkedin-cta');
       if (linkedinBtn) {
-        linkedinBtn.href = sanitizeUrl(linkedinUrl);
+        if (linkedinUrl) {
+          linkedinBtn.href = sanitizeUrl(linkedinUrl);
+          linkedinBtn.style.display = 'inline-flex';
+        } else {
+          linkedinBtn.style.display = 'none';
+        }
       }
 
       // 5. Check Template Selection
@@ -1364,107 +1369,40 @@
       const p = reslinkProfile || {};
       const r = resumeProfile || {};
 
-      // Fallback Data Preparation
-      const fullName = (r.full_name || p.full_name || "MUDATHER MOHAMMED").toUpperCase();
-      const headline = r.headline || p.tagline || "Junior AI Engineer | Machine Learning Engineer";
+      // 100% Authentic Data Extraction from User's Uploaded Profile
+      const fullName = (r.full_name || p.full_name || "Candidate").toUpperCase();
+      const headline = r.headline || p.tagline || r.target_role || "";
       
-      const email = r.contact?.email || p.cta_settings?.direct_email || "mudather@example.com";
-      const phone = r.contact?.phone || p.cta_settings?.whatsapp_number || "+211 920 123 456";
-      const location = r.contact?.location || p.location || "Worldwide Remote";
-      const linkedin = r.contact?.linkedin || p.cta_settings?.linkedin_url || "https://linkedin.com";
-      const github = r.contact?.github || p.cta_settings?.github_url || "https://github.com";
-      const portfolio = r.contact?.portfolio || p.cta_settings?.portfolio_url || "https://portfolio.dev";
+      const email = r.contact?.email || p.cta_settings?.direct_email || "";
+      const phone = r.contact?.phone || p.cta_settings?.whatsapp_number || "";
+      const location = r.contact?.location || p.location || "";
+      const linkedin = r.contact?.linkedin || p.cta_settings?.linkedin_url || "";
+      const github = r.contact?.github || p.cta_settings?.github_url || "";
+      const portfolio = r.contact?.portfolio || p.cta_settings?.portfolio_url || "";
 
-      const summary = r.summary || p.summary_bio || 
-        "Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel. Built ML models, neural networks from scratch, AI lead-discovery systems, and end-to-end software applications. Currently advancing in PyTorch and AI Engineering through professional certifications and practical projects. Seeking a remote Junior AI Engineer / Machine Learning Engineer opportunity.";
+      const summary = r.summary || p.summary_bio || "";
 
-      // Grouped Skills
-      let catSkills = r.categorized_skills;
-      if (!catSkills || Object.keys(catSkills).length === 0) {
-        catSkills = {
-          "AI & Machine Learning": ["Python", "Machine Learning", "Deep Learning", "TensorFlow", "Scikit-learn", "LLM APIs", "AI Agents", "Prompt Engineering", "NumPy", "Pandas"],
-          "Backend & APIs": ["FastAPI", "Flask", "RESTful APIs", "Python OOP", "Asynchronous Programming"],
-          "Databases & Cloud": ["Supabase", "PostgreSQL", "Docker", "Git", "GitHub", "Vercel", "Cloud Deployment"],
-          "Software & Methodologies": ["Data Preprocessing", "Feature Engineering", "Agile Development", "System Design"]
-        };
+      // Grouped Skills - strictly from user profile without fake injections
+      let catSkills = r.categorized_skills || {};
+      if (Object.keys(catSkills).length === 0 && r.skills && r.skills.length > 0) {
+        catSkills = { "Technical Skills & Core Competencies": r.skills };
       }
 
-      // Practical Projects
-      let projects = r.projects;
-      if (!projects || projects.length === 0) {
-        projects = [
-          {
-            name: "AI-Powered Lead Discovery & Qualification Agent",
-            subtitle: "Autonomous AI System & Backend Pipeline",
-            technologies: ["Python", "FastAPI", "LLM APIs", "AI Agents", "Supabase", "Vercel"],
-            repository: "https://github.com/mudather490/ai-lead-discovery",
-            bullets: [
-              "Architected an autonomous multi-agent lead discovery pipeline integrating web scraping, LLM-driven criteria matching, and automated email outreach drafts.",
-              "Implemented asynchronous batch processing with FastAPI and Supabase, reducing end-to-end data parsing time by 45%.",
-              "Built real-time analytics dashboard tracking outreach conversion, qualification scores, and candidate pipeline metrics."
-            ]
-          },
-          {
-            name: "End-to-End Machine Learning Prediction & Classifier Pipeline",
-            subtitle: "Supervised ML & Neural Network Implementation",
-            technologies: ["Python", "Scikit-learn", "TensorFlow", "NumPy", "Pandas", "Docker"],
-            repository: "https://github.com/mudather490/ml-classifier-pipeline",
-            bullets: [
-              "Designed and trained supervised learning classification models with feature engineering, cross-validation, and hyperparameter tuning.",
-              "Achieved 94.2% test accuracy on complex tabular datasets with automated data validation and missing value imputation.",
-              "Containerized model inference service using Docker and created automated unit tests verifying inference consistency."
-            ]
-          },
-          {
-            name: "JobFlow.ai — Autonomous Career & ResLink Platform",
-            subtitle: "Full-Stack AI Application & Document Generator",
-            technologies: ["Python", "FastAPI", "ReportLab", "Supabase", "JavaScript", "CSS3"],
-            repository: "https://github.com/mudather490/jobflow-ai-reslink",
-            bullets: [
-              "Built universal resume parser and multi-template ATS document generation engine creating pixel-matched PDF and DOCX outputs.",
-              "Developed interactive ResLink video pitch player and real-time recruiter telemetry analytics system."
-            ]
-          }
-        ];
-      }
+      // Practical Projects - strictly from user profile
+      let projects = r.projects || [];
 
-      // Work Experience
-      let experience = r.experience;
-      if (!experience || experience.length === 0) {
-        experience = [
-          {
-            company: "Independent / Freelance",
-            role: "Freelance Software & AI Developer",
-            location: "Worldwide Remote",
-            duration: "2023 — Present",
-            subtitle: "AI & Software Engineering",
-            summary: "Developed practical software and AI applications combining machine learning, AI APIs, backend development, databases, and deployment.",
-            bullets: [
-              "Engineered customized AI automations and NLP data extraction pipelines for remote clients using Python and modern APIs.",
-              "Integrated FastAPI backends with PostgreSQL and Supabase databases, guaranteeing low-latency response times under load.",
-              "Delivered robust, modular codebase adhering strictly to clean code practices, PEP 8, and CI/CD best practices."
-            ]
-          }
-        ];
-      }
+      // Work Experience - strictly from user profile
+      let experience = r.experience || [];
 
-      // Certifications
-      let certs = r.certifications;
-      if (!certs || certs.length === 0) {
-        certs = [
-          { name: "AI Engineering & Deep Learning Specialization", issuer: "DeepLearning.AI / Coursera", status: "In Progress", details: "Hands-on PyTorch, Neural Networks & Generative AI" },
-          { name: "Machine Learning with Python", issuer: "IBM / Cognitive Class", status: "Completed", details: "Scikit-learn, Regression, Classification & Clustering" },
-          { name: "FastAPI & Modern Python Microservices", issuer: "Professional Certification", status: "Completed", details: "Asynchronous Backend Architecture & REST APIs" }
-        ];
-      }
+      // Certifications - strictly from user profile
+      let certs = r.certifications || [];
 
-      // Education
-      let education = r.education;
-      if (!education || education.length === 0) {
-        education = [
-          { institution: "University / Academic Institution", degree: "Bachelor of Science in Computer Science / Engineering", year: "Graduated", details: "Coursework in Data Structures, Algorithms, Mathematics for ML, Operating Systems" }
-        ];
-      }
+      // Education - strictly from user profile
+      let education = r.education || [];
+
+      // Additional Background & Target Role
+      let additional = r.additional_background || "";
+      let targetRole = r.target_role || p.target_job_title || "";
 
       // ── Render Template HTML Safely ──
       let html = '';
@@ -1657,6 +1595,16 @@
         return content;
       }
 
+      function renderAdditionalBackgroundBlock() {
+        if (!additional) return '';
+        return `
+          <section class="resume-sec">
+            <h2 class="resume-sec-title">Additional Background</h2>
+            <p class="resume-paragraph">${escapeHtml(additional)}</p>
+          </section>
+        `;
+      }
+
       // Template Flow Order Alignment
       if (currentTemplate === 'tech_specialist') {
         html += renderSummaryBlock();
@@ -1664,34 +1612,37 @@
         html += renderProjectsBlock();
         html += renderExperienceBlock();
         html += renderEducationAndCertsBlock();
+        html += renderAdditionalBackgroundBlock();
       } else if (currentTemplate === 'harvard_consulting') {
         html += renderSummaryBlock();
         html += renderExperienceBlock();
         html += renderEducationAndCertsBlock();
         html += renderSkillsBlock();
         html += renderProjectsBlock();
+        html += renderAdditionalBackgroundBlock();
       } else if (currentTemplate === 'corporate_elite') {
         html += renderSummaryBlock();
         html += renderSkillsBlock();
         html += renderExperienceBlock();
         html += renderProjectsBlock();
         html += renderEducationAndCertsBlock();
+        html += renderAdditionalBackgroundBlock();
       } else { // modern
         html += renderSummaryBlock();
         html += renderSkillsBlock();
         html += renderProjectsBlock();
         html += renderExperienceBlock();
         html += renderEducationAndCertsBlock();
+        html += renderAdditionalBackgroundBlock();
       }
 
-      // Additional Background & Target Role Statement
-      const targetRole = r.target_role || p.target_job_title;
-      if (targetRole || location) {
+      // Target Role Statement if available
+      if (targetRole) {
         html += `
-          <section class="resume-sec" style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #E2E8F0;">
+          <section class="resume-sec" style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #E2E8F0;">
             <div style="font-size: 12px; color: #64748B; line-height: 1.5;">
-              <strong>Target Role:</strong> ${escapeHtml(targetRole || 'Junior AI Engineer | Machine Learning Engineer')} • 
-              <strong>Availability:</strong> Worldwide Remote, Immediate Full-Time Availability.
+              <strong>Target Role:</strong> ${escapeHtml(targetRole)}
+              ${location ? ` • <strong>Location / Availability:</strong> ${escapeHtml(location)}` : ''}
             </div>
           </section>
         `;

@@ -98,7 +98,8 @@ class ResumeDocumentGenerator:
 
             p_head = doc.add_paragraph()
             p_head.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            r_head = p_head.add_run(profile.headline or "Professional Consultant | Executive")
+            head_text = profile.headline or profile.target_role or ""
+            r_head = p_head.add_run(head_text)
             r_head.font.size = Pt(9.5)
             r_head.font.color.rgb = sec_rgb
 
@@ -129,7 +130,8 @@ class ResumeDocumentGenerator:
             r_name.font.color.rgb = prim_rgb
 
             p_head = c_left.add_paragraph()
-            r_head = p_head.add_run(profile.headline or "Junior AI Engineer | Machine Learning Engineer")
+            head_text = profile.headline or profile.target_role or ""
+            r_head = p_head.add_run(head_text)
             r_head.font.size = Pt(10)
             r_head.font.color.rgb = prim_rgb
 
@@ -445,8 +447,10 @@ class ResumeDocumentGenerator:
             # Centered Harvard MBB Header
             elements.append(Paragraph(f"<b>{profile.full_name.upper()}</b>", name_style))
             elements.append(Spacer(1, 2))
-            elements.append(Paragraph(profile.headline or "Management Consultant | Strategy Leader", headline_style))
-            elements.append(Spacer(1, 3))
+            head_text = profile.headline or profile.target_role or ""
+            if head_text:
+                elements.append(Paragraph(head_text, headline_style))
+                elements.append(Spacer(1, 3))
 
             cnt_items = []
             if profile.contact.phone: cnt_items.append(f"<b>Phone:</b> {profile.contact.phone}")
@@ -470,8 +474,10 @@ class ResumeDocumentGenerator:
             left_header = [
                 Paragraph(f"<b>{profile.full_name.upper()}</b>", name_style),
                 Spacer(1, 2),
-                Paragraph(profile.headline or "Junior AI Engineer | Machine Learning Engineer", headline_style)
             ]
+            head_text = profile.headline or profile.target_role or ""
+            if head_text:
+                left_header.append(Paragraph(head_text, headline_style))
 
             right_header = []
             if profile.contact.phone:

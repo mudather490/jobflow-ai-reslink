@@ -130,30 +130,23 @@ class ResLinkManager:
             try:
                 with open(cls.PROFILE_PATH, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    return ResLinkProfile(**data)
+                    p = ResLinkProfile(**data)
+                    # If fallback_profile exists and disk profile has placeholder name, sync automatically
+                    if fallback_profile and (p.full_name in ["Alex Rivera", "Candidate", "Candidate Name", ""]):
+                        return cls.sync_with_user_profile(fallback_profile)
+                    return p
             except Exception as e:
                 print(f"[Warning] Failed to parse ResLink profile from disk: {e}")
 
         # Initialize from candidate profile if available
-        prof = fallback_profile
-        slug = "alex-rivera"
-        name = "Alex Rivera"
-        tagline = "Senior AI Engineer & LLM Specialist"
-        loc = "Worldwide Remote"
-        bio = "Experienced professional ready to deliver immediate value."
+        if fallback_profile:
+            return cls.sync_with_user_profile(fallback_profile)
 
-        if prof:
-            name = prof.full_name or name
-            clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', name.lower().replace(' ', '-'))
-            slug = clean_slug or slug
-            exp_list = getattr(prof, 'experience', None) or getattr(prof, 'experiences', [])
-            if exp_list and len(exp_list) > 0:
-                first_role = getattr(exp_list[0], 'role', None) or getattr(exp_list[0], 'title', 'Engineering Specialist')
-                tagline = f"{first_role} & Technical Specialist"
-            if prof.contact and prof.contact.location:
-                loc = prof.contact.location
-            if prof.summary:
-                bio = prof.summary
+        slug = "candidate-profile"
+        name = "Candidate Profile"
+        tagline = "Engineering Specialist"
+        loc = "Worldwide Remote"
+        bio = ""
 
         new_profile = ResLinkProfile(
             slug=slug,
@@ -164,6 +157,88 @@ class ResLinkManager:
         )
         cls.save_profile(new_profile)
         return new_profile
+
+    @classmethod
+    def sync_with_user_profile(cls, profile: UserProfile) -> ResLinkProfile:
+        """
+        Synchronizes ResLinkProfile 100% faithfully from the authentic parsed UserProfile:
+        - Full Name & Slug
+        - Headline / Target Role Tagline
+        - Contact Info (Email, Phone/WhatsApp, LinkedIn, GitHub, Portfolio)
+        - Location
+        - Executive Summary / Bio
+        - Real competence badges from user skills and top experience
+        """
+        if not profile:
+            return cls.load_profile()
+
+        clean_name = (profile.full_name or "Candidate").strip()
+        clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', clean_name.lower().replace(' ', '-')).strip('-') or "candidate"
+        tagline = profile.headline or profile.target_role or "AI & Software Engineering Specialist"
+        location = profile.contact.location or "Worldwide Remote"
+        bio = profile.summary or ""
+        
+        # Load existing profile to preserve custom video if already recorded
+        existing = None
+        if cls.PROFILE_PATH.exists():
+            try:
+                with open(cls.PROFILE_PATH, "r", encoding="utf-8") as f:
+                    existing = ResLinkProfile(**json.load(f))
+            except Exception:
+                existing = None
+
+        video_url = existing.video_url if existing else ""
+        video_duration = existing.video_duration if existing else 60.0
+        theme = existing.theme if existing else "glassmorphic_dark"
+        selected_template = existing.selected_cv_template if existing else "corporate_elite"
+
+        # Construct authentic competency badges from user's real skills & experience
+        real_badges = []
+        if profile.skills:
+            top_skills = profile.skills[:3]
+            real_badges.append(f"⚡ Core: {', '.join(top_skills)}")
+        if profile.experience and len(profile.experience) > 0:
+            top_exp = profile.experience[0]
+            real_badges.append(f"💼 {top_exp.role} at {top_exp.company}")
+        if profile.certifications and len(profile.certifications) > 0:
+            real_badges.append(f"🎓 {profile.certifications[0].name}")
+        if not real_badges:
+            real_badges = [
+                f"⚡ {tagline}",
+                "🌍 Worldwide Remote Candidate",
+                "🎓 Verified Skills & Practical Projects"
+            ]
+
+        cta = RecruiterCTASettings(
+            direct_email=profile.contact.email or (existing.cta_settings.direct_email if existing and existing.cta_settings else ""),
+            whatsapp_number=profile.contact.phone or (existing.cta_settings.whatsapp_number if existing and existing.cta_settings else ""),
+            linkedin_url=profile.contact.linkedin or (existing.cta_settings.linkedin_url if existing and existing.cta_settings else ""),
+            github_url=profile.contact.github or (existing.cta_settings.github_url if existing and existing.cta_settings else ""),
+            portfolio_url=profile.contact.portfolio or (existing.cta_settings.portfolio_url if existing and existing.cta_settings else ""),
+            calendly_url=existing.cta_settings.calendly_url if (existing and existing.cta_settings) else "https://calendly.com",
+            telegram_username=existing.cta_settings.telegram_username if (existing and existing.cta_settings) else "",
+            enable_booking=True,
+            enable_cv_download=True,
+        )
+
+        synced_profile = ResLinkProfile(
+            slug=clean_slug,
+            full_name=clean_name,
+            tagline=tagline,
+            location=location,
+            summary_bio=bio,
+            video_url=video_url,
+            video_duration=video_duration,
+            theme=theme,
+            selected_cv_template=selected_template,
+            target_job_title=profile.target_role or tagline,
+            competency_badges=real_badges,
+            cta_settings=cta,
+            is_public=True,
+        )
+
+        cls.save_profile(synced_profile)
+        return synced_profile
 
     @classmethod
     def save_profile(cls, profile: ResLinkProfile) -> bool:

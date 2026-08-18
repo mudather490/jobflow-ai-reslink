@@ -164,9 +164,35 @@ SAMPLE_RESUME = DATA_DIR / "sample_resume.docx"
 if not SAMPLE_RESUME.exists():
     ResumeParser.generate_sample_docx(str(SAMPLE_RESUME))
 
-active_resume_filename: str = "sample_resume.docx"
-active_resume_size: str = "38 KB"
-active_profile: UserProfile = ResumeParser.parse_file(str(SAMPLE_RESUME))
+MASTER_CV = (
+    DATA_DIR / "Mudather_Mohammed_resume.docx"
+    if (DATA_DIR / "Mudather_Mohammed_resume.docx").exists()
+    else (
+        DATA_DIR / "Mudather_Mohammed_resume.__1_.pdf"
+        if (DATA_DIR / "Mudather_Mohammed_resume.__1_.pdf").exists()
+        else (
+            DATA_DIR / "Mudather_Mohammed_Resume_1_Resume__1_.pdf"
+            if (DATA_DIR / "Mudather_Mohammed_Resume_1_Resume__1_.pdf").exists()
+            else SAMPLE_RESUME
+        )
+    )
+)
+
+if MASTER_CV.exists():
+    active_resume_filename = MASTER_CV.name
+    active_resume_size = f"{round(MASTER_CV.stat().st_size / 1024, 1)} KB"
+    active_profile: UserProfile = ResumeParser.parse_file(str(MASTER_CV))
+else:
+    active_resume_filename = "sample_resume.docx"
+    active_resume_size = "38 KB"
+    active_profile: UserProfile = ResumeParser.parse_file(str(SAMPLE_RESUME))
+
+# Sync initial ResLink profile with active candidate data
+try:
+    ResLinkManager.sync_with_user_profile(active_profile)
+except Exception:
+    pass
+
 active_job: Optional[JobDetails] = None
 active_match: Optional[MatchReport] = None
 active_pdf_path: Optional[str] = None
@@ -287,20 +313,9 @@ async def upload_resume(file: UploadFile = File(...), user_email: Optional[str] 
         if target_email:
             SupabaseManager.save_user_profile(target_email, active_profile.model_dump(), filename=active_resume_filename)
 
-        # Sync ResLink profile with newly uploaded resume
+        # Sync ResLink profile 100% with newly uploaded resume
         try:
-            res_prof = ResLinkManager.load_profile(fallback_profile=active_profile)
-            res_prof.full_name = active_profile.full_name or res_prof.full_name
-            clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', active_profile.full_name.lower().replace(' ', '-'))
-            if clean_slug:
-                res_prof.slug = clean_slug
-            if active_profile.headline:
-                res_prof.tagline = active_profile.headline
-            if active_profile.summary:
-                res_prof.summary_bio = active_profile.summary
-            if active_profile.contact and active_profile.contact.location:
-                res_prof.location = active_profile.contact.location
-            ResLinkManager.save_profile(res_prof)
+            ResLinkManager.sync_with_user_profile(active_profile)
         except Exception as se:
             print(f"[Warning] Failed to sync ResLink on upload: {se}")
     except Exception as e:
