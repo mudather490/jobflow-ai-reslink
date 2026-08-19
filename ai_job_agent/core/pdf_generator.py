@@ -185,11 +185,15 @@ class ResumeDocumentGenerator:
         # Helper for projects block
         def render_projects():
             if profile.projects:
-                add_heading("Practical Projects")
+                add_heading("Production & Practical Projects", upper=True)
                 for proj in profile.projects:
                     p_p = doc.add_paragraph(style="List Bullet")
-                    r_pn = p_p.add_run(f"{proj.name}")
+                    r_pn = p_p.add_run(proj.name.strip(" :—"))
                     r_pn.bold = True
+                    if proj.technologies:
+                        p_p.add_run(f" | {', '.join(proj.technologies)}")
+                    if proj.repository:
+                        p_p.add_run(f" | {proj.repository.strip()}")
 
                     if proj.subtitle:
                         p_sub = doc.add_paragraph()
@@ -198,26 +202,16 @@ class ResumeDocumentGenerator:
 
                     if proj.bullets:
                         for b in proj.bullets:
-                            doc.add_paragraph(b)
+                            p_b = doc.add_paragraph(style="List Bullet")
+                            p_b.add_run(b)
                     elif proj.description:
-                        doc.add_paragraph(proj.description)
-
-                    if proj.technologies:
-                        p_tech = doc.add_paragraph()
-                        r_tl = p_tech.add_run("Technologies: ")
-                        r_tl.bold = True
-                        p_tech.add_run(", ".join(proj.technologies))
-
-                    if proj.repository:
-                        p_rep = doc.add_paragraph()
-                        r_rl = p_rep.add_run("Repository: ")
-                        r_rl.bold = True
-                        p_rep.add_run(proj.repository)
+                        p_d = doc.add_paragraph()
+                        p_d.add_run(proj.description)
 
         # Helper for experience block
         def render_experience():
             if profile.experience:
-                add_heading("Professional Experience")
+                add_heading("Professional Experience", upper=True)
                 for exp in profile.experience:
                     p_r = doc.add_paragraph()
                     exp_title = exp.role
@@ -245,19 +239,8 @@ class ResumeDocumentGenerator:
 
         # Helper for education & certs
         def render_education_and_certs():
-            if profile.education:
-                add_heading("Education")
-                for edu in profile.education:
-                    p_e = doc.add_paragraph(style="List Bullet")
-                    r_en = p_e.add_run(f"{edu.institution}")
-                    r_en.bold = True
-                    if edu.degree and edu.degree != "Degree":
-                        p_e.add_run(f" — {edu.degree}")
-                    if edu.year:
-                        p_e.add_run(f" | {edu.year}")
-
             if profile.certifications:
-                add_heading("Training and Certifications")
+                add_heading("Certifications & Continuous Education", upper=True)
                 for cert in profile.certifications:
                     p_c = doc.add_paragraph(style="List Bullet")
                     r_cn = p_c.add_run(f"{cert.name}")
@@ -269,8 +252,31 @@ class ResumeDocumentGenerator:
                     if cert.details:
                         p_c.add_run(f" — {cert.details}")
 
+            if profile.education:
+                add_heading("Education / Transition Background", upper=True)
+                for edu in profile.education:
+                    p_e = doc.add_paragraph(style="List Bullet")
+                    r_en = p_e.add_run(f"{edu.institution}")
+                    r_en.bold = True
+                    if edu.degree and edu.degree != "Degree":
+                        p_e.add_run(f" — {edu.degree}")
+                    if edu.year:
+                        p_e.add_run(f" | {edu.year}")
+                    if edu.details:
+                        p_ed = doc.add_paragraph()
+                        p_ed.add_run(edu.details)
+
         # Template Flow Sequencing
-        if tmpl.id == "tech_specialist":
+        if tmpl.id == "corporate_elite":
+            if profile.summary:
+                p_sum = doc.add_paragraph(profile.summary)
+                p_sum.paragraph_format.space_after = Pt(4)
+            render_skills()
+            render_projects()
+            render_experience()
+            render_education_and_certs()
+
+        elif tmpl.id == "tech_specialist":
             if profile.summary:
                 p_sum = doc.add_paragraph(profile.summary)
                 p_sum.paragraph_format.space_after = Pt(4)
@@ -280,15 +286,6 @@ class ResumeDocumentGenerator:
             render_education_and_certs()
 
         elif tmpl.id == "harvard_consulting":
-            if profile.summary:
-                p_sum = doc.add_paragraph(profile.summary)
-                p_sum.paragraph_format.space_after = Pt(4)
-            render_experience()
-            render_education_and_certs()
-            render_skills()
-            render_projects()
-
-        elif tmpl.id == "corporate_elite":
             if profile.summary:
                 p_sum = doc.add_paragraph(profile.summary)
                 p_sum.paragraph_format.space_after = Pt(4)
@@ -526,7 +523,7 @@ class ResumeDocumentGenerator:
         # Reusable Section Renderers
         def add_pdf_education():
             if profile.education:
-                add_pdf_heading("Education", upper=(tmpl.id != "modern"))
+                add_pdf_heading("Education / Transition Background", upper=(tmpl.id != "modern"))
                 for edu in profile.education:
                     yr_str = f" | {edu.year}" if edu.year else ""
                     deg_str = f" — {edu.degree}" if edu.degree and edu.degree != "Degree" else ""
@@ -537,7 +534,7 @@ class ResumeDocumentGenerator:
 
         def add_pdf_certs():
             if hasattr(profile, 'certifications') and profile.certifications:
-                add_pdf_heading("Training and Certifications", upper=(tmpl.id != "modern"))
+                add_pdf_heading("Certifications & Continuous Education", upper=(tmpl.id != "modern"))
                 for cert in profile.certifications:
                     c_name = cert.name
                     c_iss = f" — <a href='https://www.deeplearning.ai' color='{tmpl.primary_color}'><u>{cert.issuer}</u></a>" if cert.issuer and "deeplearning" in cert.issuer.lower() else (f" — {cert.issuer}" if cert.issuer else "")
@@ -562,11 +559,13 @@ class ResumeDocumentGenerator:
 
         def add_pdf_projects():
             if profile.projects:
-                add_pdf_heading("Practical Projects", upper=(tmpl.id != "modern"))
+                add_pdf_heading("Production & Practical Projects", upper=(tmpl.id != "modern"))
                 for proj in profile.projects:
                     proj_name = proj.name.strip(" :—")
                     proj_name_fmt = proj_name.replace("R²", "R<sup>2</sup>")
-                    p_title_str = f"• <b>{proj_name_fmt} :</b>" if not proj_name_fmt.endswith(":") else f"• <b>{proj_name_fmt}</b>"
+                    tech_part = f" | {', '.join(proj.technologies)}" if proj.technologies else ""
+                    repo_part = f" | <a href='{proj.repository.strip()}' color='{tmpl.primary_color}'><u>{proj.repository.strip()}</u></a>" if proj.repository else ""
+                    p_title_str = f"• <b>{proj_name_fmt}</b>{tech_part}{repo_part}"
                     elements.append(Paragraph(p_title_str, bullet_style))
 
                     if proj.subtitle:
@@ -576,18 +575,10 @@ class ResumeDocumentGenerator:
                     if proj.bullets:
                         for b in proj.bullets:
                             b_clean = b.replace("R²", "R<sup>2</sup>")
-                            elements.append(Paragraph(b_clean, sub_bullet_style))
+                            elements.append(Paragraph(f"• {b_clean}", sub_bullet_style))
                     elif proj.description:
                         desc_clean = proj.description.replace("R²", "R<sup>2</sup>")
                         elements.append(Paragraph(desc_clean, sub_bullet_style))
-
-                    if proj.technologies:
-                        tech_str = ", ".join(proj.technologies)
-                        elements.append(Paragraph(f"<b>Technologies:</b> {tech_str}.", sub_bullet_style))
-
-                    if proj.repository:
-                        repo_url = proj.repository.strip()
-                        elements.append(Paragraph(f'<b>Repository:</b> <a href="{repo_url}" color="{tmpl.primary_color}"><u>{repo_url}</u></a>', sub_bullet_style))
 
                     elements.append(Spacer(1, 2))
                 elements.append(Spacer(1, 2))
@@ -616,17 +607,27 @@ class ResumeDocumentGenerator:
                 elements.append(Spacer(1, 2))
 
         # Flow Sequencing per Template
-        if tmpl.id == "tech_specialist":
+        if tmpl.id == "corporate_elite":
             if profile.summary:
                 elements.append(Paragraph(profile.summary, summary_style))
                 elements.append(Spacer(1, 4))
             add_pdf_skills()
             add_pdf_projects()
             add_pdf_experience()
-            add_pdf_education()
             add_pdf_certs()
+            add_pdf_education()
 
-        elif tmpl.id in ["harvard_consulting", "corporate_elite"]:
+        elif tmpl.id == "tech_specialist":
+            if profile.summary:
+                elements.append(Paragraph(profile.summary, summary_style))
+                elements.append(Spacer(1, 4))
+            add_pdf_skills()
+            add_pdf_projects()
+            add_pdf_experience()
+            add_pdf_certs()
+            add_pdf_education()
+
+        elif tmpl.id == "harvard_consulting":
             if profile.summary:
                 elements.append(Paragraph(profile.summary, summary_style))
                 elements.append(Spacer(1, 4))
