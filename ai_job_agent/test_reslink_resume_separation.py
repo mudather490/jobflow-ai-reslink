@@ -27,33 +27,27 @@ class TestResLinkResumeSeparation(unittest.TestCase):
         """Verify dedicated ResLink CV upload parses and attaches candidate resume."""
         sample_cv_text = """
 MUDATHER MOHAMMED
-Lead AI & Distributed Systems Architect
+Junior AI Engineer | Machine Learning Engineer
 Email: mudatherkbyer@gmail.com | Phone: +249 92 012 3456 | Location: Dubai, UAE
 LinkedIn: https://linkedin.com/in/mudather-mohammed | GitHub: https://github.com/mudather490
 
 EXECUTIVE SUMMARY
-Distinguished AI Engineer and Autonomous Agent Architect specializing in production multi-agent orchestration, high-throughput LLM pipelines, and enterprise automation systems.
+Junior AI Engineer specializing in machine learning, PyTorch, LLM APIs, and AI agent architectures.
 
 AREAS OF EXPERTISE
-Python, FastAPI, PyTorch, LangChain, Distributed Systems, Multi-Agent Systems, Docker, Redis, PostgreSQL, React
+Python, PyTorch, TensorFlow, FastAPI, Scikit-learn, Docker, Redis, SQL
 
 PRACTICAL PROJECTS
-Autonomous JobFlow Agent Orchestrator: Architected distributed agent network processing 10,000+ applications daily with sub-second latency.
-ResLink Interactive Recruiter Pitch Engine: Built browser-native video teleprompter and dynamic ATS resume canvas for senior candidates.
+Autonomous JobFlow Agent Orchestrator: Built distributed agent processing applications with FastAPI and Redis.
 
 CAREER HISTORY
-Principal AI Architect — Tech Frontier Innovations | 2021 - Present
-- Spearheaded enterprise AI agent deployment reducing workflow latency by 85%.
-- Directed a team of 12 machine learning engineers across 4 time zones.
-
-Senior Software Engineer — Global Digital Systems | 2018 - 2021
-- Designed high-throughput microservices handling 50M+ requests per month.
+Software & AI Developer — Freelance | 2022 - Present
+- Built machine learning workflows and AI applications.
 
 ACADEMIC BACKGROUND
-University of Khartoum — Bachelor of Science in Computer Engineering | 2013 - 2018
+University of Khartoum — Bachelor of Science in Computer Engineering | 2018 - 2023
 
 PROFESSIONAL CERTIFICATIONS
-AWS Certified Solutions Architect — Professional
 Deep Learning Specialization (DeepLearning.AI)
 """
         file_bytes = sample_cv_text.encode("utf-8")
@@ -61,7 +55,7 @@ Deep Learning Specialization (DeepLearning.AI)
 
         response = self.client.post(
             "/api/v1/reslink/resume/upload",
-            files={"file": ("Mudather_Mohammed_Official_CV.txt", file_obj, "text/plain")},
+            files={"file": ("Mudather_Mohammed_Resume.txt", file_obj, "text/plain")},
             data={"slug": "mudather-mohammed", "user_email": "mudatherkbyer@gmail.com"},
             headers={"Origin": "http://127.0.0.1:8000"}
         )

@@ -1795,16 +1795,23 @@ class MatchJobPitchRequest(BaseModel):
 @app.post("/api/v1/reslink/match-script")
 async def match_job_pitch_endpoint(req: MatchJobPitchRequest):
     global active_profile
+    res_prof = ResLinkManager.load_profile(fallback_profile=active_profile)
+    cand_prof = active_profile
+    if not cand_prof and res_prof.attached_profile:
+        try:
+            cand_prof = UserProfile(**res_prof.attached_profile) if isinstance(res_prof.attached_profile, dict) else res_prof.attached_profile
+        except Exception:
+            pass
+
     pitch_data = ResLinkManager.generate_job_matched_pitch(
         job_requirements=req.job_requirements,
         job_title=req.job_title,
         company=req.company,
-        candidate_profile=active_profile,
+        candidate_profile=cand_prof,
         duration_mode=req.duration_mode,
         senior_contact=req.senior_contact
     )
     # Save into active ResLink profile
-    res_prof = ResLinkManager.load_profile(fallback_profile=active_profile)
     res_prof.pitch_script = pitch_data["pitch_script"]
     res_prof.target_job_title = pitch_data["target_job_title"]
     res_prof.target_company = pitch_data["target_company"]

@@ -1,0 +1,24 @@
+
+MUDATHER MOHAMMED
+Junior AI Engineer | Machine Learning Engineer
+Email: mudatherkbyer@gmail.com | Phone: +249 92 012 3456 | Location: Dubai, UAE
+LinkedIn: https://linkedin.com/in/mudather-mohammed | GitHub: https://github.com/mudather490
+
+EXECUTIVE SUMMARY
+Junior AI Engineer specializing in machine learning, PyTorch, LLM APIs, and AI agent architectures.
+
+AREAS OF EXPERTISE
+Python, PyTorch, TensorFlow, FastAPI, Scikit-learn, Docker, Redis, SQL
+
+PRACTICAL PROJECTS
+Autonomous JobFlow Agent Orchestrator: Built distributed agent processing applications with FastAPI and Redis.
+
+CAREER HISTORY
+Software & AI Developer — Freelance | 2022 - Present
+- Built machine learning workflows and AI applications.
+
+ACADEMIC BACKGROUND
+University of Khartoum — Bachelor of Science in Computer Engineering | 2018 - 2023
+
+PROFESSIONAL CERTIFICATIONS
+Deep Learning Specialization (DeepLearning.AI)
