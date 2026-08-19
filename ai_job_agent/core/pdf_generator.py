@@ -307,10 +307,6 @@ class ResumeDocumentGenerator:
             add_heading("ADDITIONAL BACKGROUND :", upper=True)
             doc.add_paragraph(profile.additional_background)
 
-        if profile.target_role:
-            add_heading("TARGET ROLE", upper=True)
-            doc.add_paragraph(profile.target_role)
-
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         doc.save(output_path)
         return output_path
@@ -651,10 +647,6 @@ class ResumeDocumentGenerator:
             add_pdf_heading("ADDITIONAL BACKGROUND :", upper=True)
             elements.append(Paragraph(profile.additional_background, summary_style))
             elements.append(Spacer(1, 3))
-
-        if profile.target_role:
-            add_pdf_heading("TARGET ROLE", upper=True)
-            elements.append(Paragraph(f"<b>{profile.target_role}</b>", summary_style))
 
         doc.build(elements, canvasmaker=NumberedCanvas)
         return output_path

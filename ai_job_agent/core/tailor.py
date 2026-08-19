@@ -17,37 +17,38 @@ class ResumeTailor:
     """
 
     SKILL_TAXONOMY = {
-        "Programming": [
+        "Programming & Core Tools": [
             "python", "sql", "bash", "linux", "git", "github", "c++", "c", "javascript",
-            "typescript", "go", "golang", "rust", "java", "html", "css", "r", "shell"
+            "typescript", "go", "golang", "rust", "java", "html", "css", "r", "shell", "core tools"
         ],
-        "Machine Learning": [
+        "Machine Learning & Statistics": [
             "scikit-learn", "sklearn", "regression", "classification", "random forest", "xgboost",
             "decision trees", "trees", "ensembles", "gradient descent", "feature engineering",
             "model evaluation", "metrics", "mse", "r2", "r²", "roc-auc", "f1-score", "k-means",
-            "pca", "cross-validation", "hyperparameter tuning", "clustering", "time series"
+            "pca", "cross-validation", "hyperparameter tuning", "clustering", "time series",
+            "supervised learning", "unsupervised learning"
         ],
-        "Deep Learning": [
+        "Deep Learning & Neural Networks": [
             "neural networks", "pytorch", "tensorflow", "keras", "cnns", "cnn", "rnns", "rnn",
             "lstm", "transformers", "attention mechanisms", "bert", "hugging face", "huggingface",
             "torchvision", "transfer learning", "backpropagation", "autoencoders", "gan", "gans",
             "diffusion models", "computer vision", "nlp", "natural language processing"
         ],
-        "AI & LLM Engineering": [
+        "AI Engineering & LLM Systems": [
             "llm apis", "llm", "llms", "large language models", "ai agents", "multi-agent",
             "multi-agent systems", "prompt engineering", "rag", "retrieval-augmented generation",
             "vector databases", "chromadb", "pinecone", "weaviate", "qdrant", "langchain",
             "llamaindex", "semantic search", "embeddings", "function calling", "agentic workflows"
         ],
-        "Backend & Deployment": [
+        "Backend, Cloud & Databases": [
             "fastapi", "flask", "django", "rest apis", "rest api", "graphql", "supabase",
             "postgresql", "postgres", "mysql", "sqlite", "redis", "docker", "ci/cd", "vercel",
-            "cloud hosting", "aws", "gcp", "azure", "microservices", "celery", "rabbitmq"
+            "cloud hosting", "aws", "gcp", "azure", "microservices", "celery", "rabbitmq", "cloud"
         ],
-        "Core Math & Data": [
+        "Data & Math": [
             "numpy", "pandas", "matplotlib", "seaborn", "linear algebra", "calculus",
             "multivariate calculus", "statistics", "inferential statistics", "probability",
-            "matrix factorization", "data visualization", "data analysis", "eda"
+            "matrix factorization", "data visualization", "data analysis", "eda", "math"
         ],
     }
 
@@ -152,11 +153,11 @@ class ResumeTailor:
 
         # Distribute remaining general skills cleanly
         if unmatched:
-            if not categorized["Programming"]:
-                categorized["Programming"].extend(unmatched[:4])
+            if not categorized["Programming & Core Tools"]:
+                categorized["Programming & Core Tools"].extend(unmatched[:4])
                 unmatched = unmatched[4:]
-            if unmatched and not categorized["Backend & Deployment"]:
-                categorized["Backend & Deployment"].extend(unmatched[:4])
+            if unmatched and not categorized["Backend, Cloud & Databases"]:
+                categorized["Backend, Cloud & Databases"].extend(unmatched[:4])
                 unmatched = unmatched[4:]
             if unmatched:
                 categorized.setdefault("Domain & Specialized Tools", []).extend(unmatched)

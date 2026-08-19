@@ -357,13 +357,17 @@ class ResumeParser:
                         details=details_part
                     ))
 
-        # B. Skills (Categorized & Flat, with Deduplication)
+        # B. Skills (Categorized & Flat, with Deduplication and Zero Section Contamination)
         categorized_skills: Dict[str, List[str]] = {}
         skills_list: List[str] = []
         if "SKILLS" in sections_dict:
             raw_skills_text = sections_dict["SKILLS"]
             skill_chunks = [s.strip() for s in re.split(r'•|\n', raw_skills_text) if s.strip()]
             for schunk in skill_chunks:
+                # Discard section contamination (project descriptions, urls, repository links)
+                if any(x in schunk.lower() for x in ["http://", "https://", "github.com", "repository:"]):
+                    continue
+
                 if ":" in schunk:
                     cat, sks = schunk.split(":", 1)
                     cat_clean = cat.strip(" •—:")
@@ -371,21 +375,27 @@ class ResumeParser:
                     clean_tokens = []
                     for t in tokens:
                         t_clean = re.sub(r'^\W+|\W+$', '', t).strip()
-                        if t_clean and len(t_clean) > 1 and not t_clean.lower().startswith(("in progress", "completed")):
-                            if t_clean not in clean_tokens:
-                                clean_tokens.append(t_clean)
-                            if t_clean not in skills_list:
-                                skills_list.append(t_clean)
+                        # Reject long sentences or project contamination
+                        if t_clean and 1 < len(t_clean) < 45 and len(t_clean.split()) <= 5:
+                            if not t_clean.lower().startswith(("in progress", "completed")):
+                                if t_clean not in clean_tokens:
+                                    clean_tokens.append(t_clean)
+                                if t_clean not in skills_list:
+                                    skills_list.append(t_clean)
                     if clean_tokens and len(cat_clean) < 35:
                         categorized_skills[cat_clean] = clean_tokens
                 else:
                     tokens = [t.strip() for t in re.split(r'[,|;]|\s{2,}', schunk) if t.strip()]
                     for t in tokens:
                         t_clean = re.sub(r'^\W+|\W+$', '', t).strip()
-                        if t_clean and len(t_clean) > 1 and t_clean not in skills_list:
-                            skills_list.append(t_clean)
+                        if t_clean and 1 < len(t_clean) < 45 and len(t_clean.split()) <= 5:
+                            if t_clean not in skills_list:
+                                skills_list.append(t_clean)
 
-        # C. Projects
+        # Standardize categorized skills if not already categorized
+        from core.tailor import ResumeTailor
+        if not categorized_skills or len(categorized_skills) <= 1:
+            categorized_skills = ResumeTailor.categorize_skills(skills_list)
         projects_list: List[Project] = []
         if "PROJECTS" in sections_dict:
             raw_proj_text = sections_dict["PROJECTS"]
@@ -715,19 +725,56 @@ class ResumeParser:
             if len(clean_sum) < 5:
                 clean_sum = None
 
+        # Integrated Header: Ensure headline captures target role directly under name
+        final_headline = headline or target_role or "AI & Machine Learning Specialist"
+
+        # Sanitize URLs across contact and projects
+        from core.tailor import ResumeTailor
+        if contact:
+            contact.linkedin = ResumeTailor.sanitize_url(contact.linkedin)
+            contact.github = ResumeTailor.sanitize_url(contact.github)
+            contact.portfolio = ResumeTailor.sanitize_url(contact.portfolio)
+
+        # Deduplicate and clean projects
+        clean_projects = []
+        for p in projects_list:
+            clean_p = Project(
+                name=p.name.strip(" :—"),
+                subtitle=p.subtitle,
+                description=p.description,
+                bullets=ResumeTailor.deduplicate_bullets(p.bullets),
+                technologies=[t.strip(" ,.;:") for t in p.technologies if t.strip()],
+                repository=ResumeTailor.sanitize_url(p.repository)
+            )
+            clean_projects.append(clean_p)
+
+        # Deduplicate and clean experience
+        clean_experience = []
+        for e in experience_list:
+            clean_e = WorkExperience(
+                company=e.company,
+                role=e.role,
+                location=e.location,
+                duration=e.duration,
+                subtitle=e.subtitle,
+                summary=e.summary,
+                bullets=ResumeTailor.deduplicate_bullets(e.bullets)
+            )
+            clean_experience.append(clean_e)
+
         return UserProfile(
             full_name=full_name,
-            headline=headline or "Professional Profile",
+            headline=final_headline,
             contact=contact,
             summary=clean_sum,
             skills=skills_list,
             categorized_skills=categorized_skills,
-            experience=experience_list,
-            projects=projects_list,
+            experience=clean_experience,
+            projects=clean_projects,
             education=education_list,
             certifications=certifications_list,
             additional_background=additional_background,
-            target_role=target_role
+            target_role=None  # Integrated directly into header/headline to prevent standalone bottom section
         )
 
     @classmethod

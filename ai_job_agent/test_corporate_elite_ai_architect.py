@@ -164,19 +164,44 @@ class TestCorporateEliteAIArchitect(unittest.TestCase):
         tailored = self.tailor.tailor_profile(self.raw_profile)
         cats = tailored.categorized_skills
 
-        self.assertIn("Programming", cats)
-        self.assertIn("Machine Learning", cats)
-        self.assertIn("Deep Learning", cats)
-        self.assertIn("AI & LLM Engineering", cats)
-        self.assertIn("Backend & Deployment", cats)
-        self.assertIn("Core Math & Data", cats)
+        self.assertIn("Programming & Core Tools", cats)
+        self.assertIn("Machine Learning & Statistics", cats)
+        self.assertIn("Deep Learning & Neural Networks", cats)
+        self.assertIn("AI Engineering & LLM Systems", cats)
+        self.assertIn("Backend, Cloud & Databases", cats)
+        self.assertIn("Data & Math", cats)
 
-        self.assertIn("Python", cats["Programming"])
-        self.assertIn("PyTorch", cats["Deep Learning"])
-        self.assertIn("FastAPI", cats["Backend & Deployment"])
-        self.assertIn("NumPy", cats["Core Math & Data"])
+        self.assertIn("Python", cats["Programming & Core Tools"])
+        self.assertIn("PyTorch", cats["Deep Learning & Neural Networks"])
+        self.assertIn("FastAPI", cats["Backend, Cloud & Databases"])
+        self.assertIn("NumPy", cats["Data & Math"])
 
-    def test_05_corporate_elite_pdf_and_docx_generation(self):
+    def test_05_zero_section_contamination(self):
+        """Verify skills contain ONLY keywords and tools, never URLs or project sentences."""
+        from core.resume_parser import ResumeParser
+        raw_text = """
+        MUDATHER MOHAMMED
+        mudatherkbyer@gmail.com | +249 92 012 3456 | Dubai, UAE
+        
+        TECHNICAL SKILLS:
+        • Programming & Tools: Python, SQL, Linux, Git, GitHub
+        • Machine Learning: Scikit-learn, Regression, Decision Trees
+        • https://github.com/mudather490/jobflow-ai-reslink
+        • Built autonomous agent network processing 10,000 requests per second with high throughput.
+        • Deep Learning: PyTorch, TensorFlow, CNNs
+        
+        PRACTICAL PROJECTS:
+        • Autonomous Agent Orchestrator:
+        Built multi-agent system processing 10,000+ applications daily with sub-second latency.
+        Repository: https://github.com/mudather490/jobflow-ai-reslink
+        """
+        parsed = ResumeParser.parse_text_to_profile(raw_text)
+        for s in parsed.skills:
+            self.assertNotIn("http", s.lower(), f"Contaminated skill with URL: {s}")
+            self.assertNotIn("github.com", s.lower(), f"Contaminated skill with URL: {s}")
+            self.assertLess(len(s.split()), 6, f"Skill is too long / sentence: {s}")
+
+    def test_06_corporate_elite_pdf_and_docx_generation(self):
         """Verify error-free PDF and DOCX generation in corporate_elite style."""
         tailored = self.tailor.tailor_profile(self.raw_profile)
 

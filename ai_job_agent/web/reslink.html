@@ -1541,7 +1541,7 @@
         });
         return `
           <section class="resume-sec">
-            <h2 class="resume-sec-title">Practical Engineering Projects</h2>
+            <h2 class="resume-sec-title">Practical & Open-Source Projects</h2>
             ${content}
           </section>
         `;
@@ -1573,7 +1573,7 @@
         });
         return `
           <section class="resume-sec">
-            <h2 class="resume-sec-title">Professional Experience</h2>
+            <h2 class="resume-sec-title">Professional Experience / Freelance</h2>
             ${content}
           </section>
         `;
@@ -1581,27 +1581,10 @@
 
       function renderEducationAndCertsBlock() {
         let content = '';
-        if (education && education.length > 0) {
-          content += `
-            <div style="margin-bottom: 12px;">
-              <h2 class="resume-sec-title">Education</h2>
-              ${education.map(edu => `
-                <div class="resume-entry" style="margin-bottom: 6px;">
-                  <div class="entry-header">
-                    <div><strong>${escapeHtml(edu.institution)}</strong>${(edu.degree && edu.degree !== 'Degree') ? ` — <span>${escapeHtml(edu.degree)}</span>` : ''}</div>
-                    <div class="entry-date">${escapeHtml(edu.year || "")}</div>
-                  </div>
-                  ${edu.details ? `<div style="font-size: 12px; color: #475569;">${escapeHtml(edu.details)}</div>` : ''}
-                </div>
-              `).join('')}
-            </div>
-          `;
-        }
-
         if (certs && certs.length > 0) {
           content += `
-            <div style="margin-bottom: 8px;">
-              <h2 class="resume-sec-title">Training & Professional Certifications</h2>
+            <div style="margin-bottom: 12px;">
+              <h2 class="resume-sec-title">Certifications & Continuous Education</h2>
               ${certs.map(c => `
                 <div class="resume-entry" style="margin-bottom: 6px;">
                   <div class="entry-header">
@@ -1612,6 +1595,23 @@
                     </div>
                   </div>
                   ${c.details ? `<div style="font-size: 12px; color: #475569;">${escapeHtml(c.details)}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        if (education && education.length > 0) {
+          content += `
+            <div style="margin-bottom: 8px;">
+              <h2 class="resume-sec-title">Education & Background</h2>
+              ${education.map(edu => `
+                <div class="resume-entry" style="margin-bottom: 6px;">
+                  <div class="entry-header">
+                    <div><strong>${escapeHtml(edu.institution)}</strong>${(edu.degree && edu.degree !== 'Degree') ? ` — <span>${escapeHtml(edu.degree)}</span>` : ''}</div>
+                    <div class="entry-date">${escapeHtml(edu.year || "")}</div>
+                  </div>
+                  ${edu.details ? `<div style="font-size: 12px; color: #475569;">${escapeHtml(edu.details)}</div>` : ''}
                 </div>
               `).join('')}
             </div>
@@ -1631,17 +1631,7 @@
         `;
       }
 
-      function renderTargetRoleBlock() {
-        if (!targetRole) return '';
-        return `
-          <section class="resume-sec">
-            <h2 class="resume-sec-title">Target Role</h2>
-            <p class="resume-paragraph"><strong>${escapeHtml(targetRole)}</strong></p>
-          </section>
-        `;
-      }
-
-      // Template Flow Order Alignment
+      // Template Flow Order Alignment (AI Resume Architect Standard: 7 Clean Sections)
       if (currentTemplate === 'tech_specialist') {
         html += renderSummaryBlock();
         html += renderSkillsBlock();
@@ -1649,7 +1639,13 @@
         html += renderExperienceBlock();
         html += renderEducationAndCertsBlock();
         html += renderAdditionalBackgroundBlock();
-        html += renderTargetRoleBlock();
+      } else if (currentTemplate === 'corporate_elite') {
+        html += renderSummaryBlock();
+        html += renderSkillsBlock();
+        html += renderProjectsBlock();
+        html += renderExperienceBlock();
+        html += renderEducationAndCertsBlock();
+        html += renderAdditionalBackgroundBlock();
       } else if (currentTemplate === 'harvard_consulting') {
         html += renderSummaryBlock();
         html += renderExperienceBlock();
@@ -1657,15 +1653,6 @@
         html += renderSkillsBlock();
         html += renderProjectsBlock();
         html += renderAdditionalBackgroundBlock();
-        html += renderTargetRoleBlock();
-      } else if (currentTemplate === 'corporate_elite') {
-        html += renderSummaryBlock();
-        html += renderSkillsBlock();
-        html += renderExperienceBlock();
-        html += renderProjectsBlock();
-        html += renderEducationAndCertsBlock();
-        html += renderAdditionalBackgroundBlock();
-        html += renderTargetRoleBlock();
       } else { // modern
         html += renderSummaryBlock();
         html += renderSkillsBlock();
@@ -1673,7 +1660,6 @@
         html += renderExperienceBlock();
         html += renderEducationAndCertsBlock();
         html += renderAdditionalBackgroundBlock();
-        html += renderTargetRoleBlock();
       }
 
       sheet.innerHTML = html;
