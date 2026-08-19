@@ -14,6 +14,16 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// ─── XSS Protection: Safe URL Sanitizer ───
+function sanitizeUrl(url) {
+  if (!url || typeof url !== 'string') return '#';
+  const clean = url.trim();
+  if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('mailto:') || clean.startsWith('/')) {
+    return clean.replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  return '#';
+}
+
 // ─── Global Toast Notification System ───
 function showToast(msg, duration = 3500) {
   if (!msg) return;
@@ -369,6 +379,9 @@ document.getElementById('btn-pricing-modal')?.addEventListener('click', () => op
 document.getElementById('btn-settings-modal')?.addEventListener('click', async () => {
   await loadNotificationSettings();
   openModal('modal-settings');
+});
+document.getElementById('btn-open-reslink-preview')?.addEventListener('click', () => {
+  window.openTemplatePreviewModal();
 });
 
 // Step 1: Initialize Base Resume & Cross-Device Cloud Sync
