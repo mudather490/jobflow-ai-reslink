@@ -75,23 +75,23 @@ function saveCandidateProfile(profile) {
 
 // Template Management
 const templateNames = {
-  modern: 'Modern Executive',
-  harvard: 'Harvard Consulting (MBB)',
-  harvard_consulting: 'Harvard Consulting (MBB)',
-  tech: 'Tech Specialist & AI Innovator',
-  tech_specialist: 'Tech Specialist & AI Innovator',
-  minimal: 'Silicon Valley Minimalist',
-  corporate_elite: 'Silicon Valley Minimalist'
+  modern: 'Google FAANG XYZ Standard',
+  harvard: 'Harvard MCS & MBB Consulting',
+  harvard_consulting: 'Harvard MCS & MBB Consulting',
+  tech: 'Stanford BEAM Tech & AI Standard',
+  tech_specialist: 'Stanford BEAM Tech & AI Standard',
+  minimal: 'Wharton & WSO Executive Standard',
+  corporate_elite: 'Wharton & WSO Executive Standard'
 };
 
 const templateShortNames = {
-  modern: 'Modern',
-  harvard: 'Harvard',
-  harvard_consulting: 'Harvard',
-  tech: 'Tech',
-  tech_specialist: 'Tech',
-  minimal: 'Minimal',
-  corporate_elite: 'Minimal'
+  modern: 'Google FAANG',
+  harvard: 'Harvard MCS',
+  harvard_consulting: 'Harvard MCS',
+  tech: 'Stanford BEAM',
+  tech_specialist: 'Stanford BEAM',
+  minimal: 'Wharton WSO',
+  corporate_elite: 'Wharton WSO'
 };
 
 window.selectedTemplateId = localStorage.getItem('selected_resume_template') || 'corporate_elite';

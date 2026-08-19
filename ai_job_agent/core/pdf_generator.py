@@ -80,6 +80,16 @@ class ResumeDocumentGenerator:
 
         doc = docx.Document()
 
+        # Set official typography based on template standard
+        if template_id == "harvard_consulting":
+            doc.styles['Normal'].font.name = 'Times New Roman'
+        elif template_id == "tech_specialist":
+            doc.styles['Normal'].font.name = 'Segoe UI'
+        elif template_id == "corporate_elite":
+            doc.styles['Normal'].font.name = 'Calibri'
+        else: # modern (Google FAANG)
+            doc.styles['Normal'].font.name = 'Arial'
+
         for section in doc.sections:
             section.top_margin = Inches(0.55)
             section.bottom_margin = Inches(0.55)
@@ -700,54 +710,267 @@ class ResumeDocumentGenerator:
         """
         from core.resume_parser import ContactInfo, Project, WorkExperience, Education, Certification
 
-        if template_id == "corporate_elite":
-            name = "[YOUR FULL NAME]"
-            headline = "Executive AI Architect & Senior Engineering Leader"
-            summary = "Strategic, results-oriented AI Engineering Leader with extensive experience architecting production-grade machine learning pipelines, distributed backend microservices, and autonomous multi-agent systems delivering measurable enterprise impact."
+        if template_id == "harvard_consulting":
+            # 1. Official Harvard Mignone Center (MCS) & MBB Strategy Standard
+            name = "[FIRST NAME] [LAST NAME]"
+            headline = "Candidate for Strategy & Management Consulting | Operations & Analytics"
+            summary = "High-impact, analytical professional with proven expertise in quantitative data modeling, cross-functional leadership, and strategic decision-making. Track record delivering measurable efficiency and multi-million-dollar growth for global clients."
             skills = {
-                "Programming & Core Tools": ["Python", "SQL", "Linux/Bash", "Git", "GitHub", "C++", "TypeScript"],
-                "Machine Learning & Statistics": ["Scikit-learn", "Supervised/Unsupervised Learning", "Regression", "Classification", "Decision Trees", "Feature Engineering", "Evaluation Metrics (MSE, R2, ROC-AUC, F1-Score)"],
-                "Deep Learning & Neural Networks": ["Neural Networks", "PyTorch", "TensorFlow", "CNNs", "Transformers", "Attention Mechanisms"],
-                "AI Engineering & LLM Systems": ["LLM APIs", "AI Agents", "Prompt Engineering", "Retrieval-Augmented Generation (RAG)", "Vector Databases"],
-                "Backend, Cloud & Databases": ["FastAPI", "REST APIs", "Supabase (PostgreSQL)", "Docker", "Vercel", "Redis"],
-                "Data & Math": ["NumPy", "Pandas", "Matplotlib", "Linear Algebra", "Calculus", "Probability & Statistics"]
+                "Analytical & Financial Tools": ["Financial Modeling", "Advanced Excel / VBA", "SQL", "Tableau", "Power BI", "Python (Pandas)"],
+                "Strategic Competencies": ["Quantitative Analysis", "Market Sizing & Due Diligence", "Competitive Benchmarking", "Executive Presentations", "P&L Management"],
+                "Languages & Professional Skills": ["English (Fluent / Professional)", "Arabic (Native)", "Cross-Functional Leadership", "Stakeholder Management"]
             }
-        elif template_id == "harvard_consulting":
-            name = "[YOUR FULL NAME]"
-            headline = "Management Consultant & Strategy Analyst"
-            summary = "High-impact Management Consultant specializing in quantitative business analytics, enterprise digital transformation, and executive strategy. Proven track record driving operational efficiency and multi-million-dollar growth for global clients."
-            skills = {
-                "Programming & Core Tools": ["Python", "SQL", "Advanced Excel / VBA", "Power BI", "Git"],
-                "Machine Learning & Statistics": ["Predictive Analytics", "Hypothesis Testing", "Regression Analysis", "Econometrics", "Time Series"],
-                "Deep Learning & Neural Networks": ["Deep Learning Foundations", "Natural Language Processing", "Automated Insights"],
-                "AI Engineering & LLM Systems": ["Executive AI Strategy", "Generative AI Integration", "Process Automation Agents"],
-                "Backend, Cloud & Databases": ["Cloud Analytics", "PostgreSQL", "Data Warehousing", "Tableau Server"],
-                "Data & Math": ["Financial Modeling", "Valuation", "Cost Optimization", "Decision Science"]
-            }
+            contact = ContactInfo(
+                email="your.email@alumni.harvard.edu",
+                phone="+1 (555) 012-3456",
+                location="Boston, MA (Open to Global Relocation & Remote)",
+                linkedin="https://linkedin.com/in/yourprofile",
+                github="https://github.com/yourhandle"
+            )
+            projects = [
+                Project(
+                    name="Global Market Expansion Due Diligence",
+                    subtitle="Strategic Growth Strategy Initiative",
+                    technologies=["Excel / VBA", "Financial Modeling", "Market Sizing", "Tableau"],
+                    repository="https://github.com/yourhandle/consulting-market-model",
+                    bullets=[
+                        "Spearheaded comprehensive market sizing study across 5 international territories, identifying $4.2M in annual revenue opportunities through quantitative regression analysis.",
+                        "Formulated dynamic scenario stress-testing model in Excel/VBA, evaluating downside capital risks across 12 macroeconomic conditions.",
+                        "Synthesized findings into a 20-page executive presentation delivered directly to senior leadership, securing immediate board consensus."
+                    ]
+                )
+            ]
+            experience = [
+                WorkExperience(
+                    company="Global Management Advisory Group",
+                    role="Management Strategy Consultant",
+                    duration="Month Year – Present",
+                    location="New York, NY / Remote",
+                    subtitle="Enterprise Transformation & Strategy Practice",
+                    bullets=[
+                        "Led a cross-functional workstream of 8 client stakeholders to redesign procurement operations, reducing turnaround cycle time by 35%.",
+                        "Constructed cost-optimization framework analyzing $50M+ in operational expenditures, capturing $3.8M in annualized savings.",
+                        "Coached and mentored 4 junior analysts on hypothesis-driven problem solving and structured executive communication."
+                    ]
+                )
+            ]
+            certifications = [
+                Certification(
+                    name="Certified Management Consultant (CMC)",
+                    issuer="Institute of Management Consultants",
+                    status="Completed",
+                    details="Executive Strategy, Organizational Design, and Client Governance."
+                )
+            ]
+            education = [
+                Education(
+                    institution="Harvard University / College of Business",
+                    degree="Bachelor of Arts / Science in Economics & Computer Science",
+                    year="Graduation: Month Year | GPA: 3.8 / 4.0",
+                    details="Honors: Dean's List (All Semesters). Coursework: Microeconomics, Quantitative Methods, Corporate Finance, Strategic Management."
+                )
+            ]
+
         elif template_id == "tech_specialist":
-            name = "[YOUR FULL NAME]"
-            headline = "Senior AI & Cloud Systems Engineer"
-            summary = "Hands-on AI & Cloud Systems Engineer building resilient distributed microservices, GPU-accelerated machine learning pipelines, and autonomous AI agents. Passionate about open-source engineering and low-latency system design."
+            # 2. Official Stanford BEAM & Silicon Valley Tech & AI Standard
+            name = "[FIRST NAME] [LAST NAME]"
+            headline = "Software & AI Engineer | Distributed Systems & Machine Learning"
+            summary = "Results-driven Software & AI Engineer with expertise architecting low-latency backend microservices, high-throughput machine learning pipelines, and autonomous AI agents. Passionate about resilient systems and open-source software."
             skills = {
-                "Programming & Core Tools": ["Python", "Rust", "Go", "C++", "Linux", "Git", "GitHub Actions"],
-                "Machine Learning & Statistics": ["PyTorch", "TensorFlow", "CUDA", "Distributed Training", "MLOps"],
-                "Deep Learning & Neural Networks": ["Transformers", "Diffusion Models", "Vision Transformers", "LLM Fine-Tuning"],
-                "AI Engineering & LLM Systems": ["LangChain", "LlamaIndex", "Vector Search", "ChromaDB", "vLLM Inference"],
-                "Backend, Cloud & Databases": ["FastAPI", "gRPC", "Docker", "Kubernetes", "Redis", "PostgreSQL", "AWS"],
-                "Data & Math": ["NumPy", "Pandas", "Linear Algebra", "Matrix Decompositions", "High-Performance Compute"]
+                "Languages & Core": ["Python", "C++", "SQL", "TypeScript", "Bash / Linux", "Go"],
+                "Machine Learning & AI": ["PyTorch", "TensorFlow", "Scikit-learn", "Transformers", "LLM APIs", "Prompt Engineering", "RAG Systems"],
+                "Backend & Distributed Systems": ["FastAPI", "gRPC", "Docker", "Kubernetes", "Redis", "Celery", "RESTful APIs"],
+                "Databases & Storage": ["PostgreSQL", "Supabase", "Vector Databases (ChromaDB / Pinecone / pgvector)", "Redis"],
+                "Cloud & DevOps": ["AWS (EC2, S3, Lambda)", "GCP", "GitHub Actions CI/CD", "Linux CLI", "vLLM Inference"]
             }
-        else: # modern
-            name = "[YOUR FULL NAME]"
-            headline = "AI Engineer & Full-Stack Developer"
-            summary = "Versatile AI Engineer & Full-Stack Developer experienced in building end-to-end intelligent web platforms, scalable REST APIs, and production LLM integrations with modern user experiences."
+            contact = ContactInfo(
+                email="your.email@stanford.edu",
+                phone="+1 (555) 012-3456",
+                location="San Francisco, CA / Worldwide Remote",
+                linkedin="https://linkedin.com/in/yourprofile",
+                github="https://github.com/yourhandle"
+            )
+            projects = [
+                Project(
+                    name="Autonomous Multi-Agent Workflow Orchestrator",
+                    subtitle="Distributed Agentic Pipeline & Real-Time Queue",
+                    technologies=["Python", "FastAPI", "PyTorch", "Redis", "Docker"],
+                    repository="https://github.com/yourhandle/autonomous-ai-agent",
+                    bullets=[
+                        "Architected asynchronous event-driven workflow engine processing 10,000+ simulated jobs daily with sub-250ms latency.",
+                        "Implemented in-memory Redis caching layer, reducing database compute load by 45% across distributed worker nodes.",
+                        "Containerized multi-service architecture with Docker Compose and automated CI/CD deployment via GitHub Actions."
+                    ]
+                ),
+                Project(
+                    name="Enterprise Semantic Search & RAG Pipeline",
+                    subtitle="High-Precision Vector Retrieval System",
+                    technologies=["Python", "LangChain", "ChromaDB", "FastAPI", "OpenAI API"],
+                    repository="https://github.com/yourhandle/semantic-search-rag",
+                    bullets=[
+                        "Indexed 500,000+ domain documents with sub-100ms vector lookup, achieving 94% factual answering precision.",
+                        "Integrated cross-encoder reranking algorithms, eliminating hallucinations across multi-turn reasoning workflows."
+                    ]
+                )
+            ]
+            experience = [
+                WorkExperience(
+                    company="Silicon Valley Engineering Labs",
+                    role="Senior Software & AI Engineer",
+                    duration="Month Year – Present",
+                    location="Palo Alto, CA / Remote",
+                    subtitle="Core Infrastructure & Machine Learning Team",
+                    bullets=[
+                        "Engineered distributed data ingestion pipelines handling 50M+ monthly events with 99.9% uptime.",
+                        "Integrated real-time model inference endpoints in FastAPI, improving system throughput by 3.2x under high concurrency.",
+                        "Collaborated in an Agile squad of 8 engineers, conducting rigorous code reviews and maintaining 92% test coverage."
+                    ]
+                )
+            ]
+            certifications = [
+                Certification(
+                    name="Deep Learning Specialization",
+                    issuer="DeepLearning.AI",
+                    status="Completed",
+                    details="Neural Networks, CNNs, Sequence Models, and Hyperparameter Optimization."
+                ),
+                Certification(
+                    name="AWS Certified Solutions Architect – Associate",
+                    issuer="Amazon Web Services",
+                    status="Completed",
+                    details="High-Availability Cloud Architecture, Distributed Storage, and Serverless Infrastructure."
+                )
+            ]
+            education = [
+                Education(
+                    institution="Stanford University / Institute of Technology",
+                    degree="Bachelor of Science in Computer Science & Artificial Intelligence",
+                    year="2021 – 2025",
+                    details="Relevant Coursework: Algorithms & Data Structures, Distributed Systems, Deep Learning, Operating Systems."
+                )
+            ]
+
+        elif template_id == "corporate_elite":
+            # 3. Official Wharton & Wall Street Oasis (WSO) Executive Standard
+            name = "[FIRST NAME] [LAST NAME]"
+            headline = "Corporate Executive & Senior Technology Leader"
+            summary = "Strategic, performance-focused technology executive with extensive track record directing high-scale engineering programs, modernizing enterprise architectures, and generating multi-million-dollar operational efficiencies."
             skills = {
-                "Programming & Core Tools": ["Python", "JavaScript", "TypeScript", "SQL", "Git", "GitHub"],
-                "Machine Learning & Statistics": ["Scikit-learn", "Regression", "Classification", "Clustering", "Model Evaluation"],
-                "Deep Learning & Neural Networks": ["PyTorch", "TensorFlow", "Neural Networks", "Computer Vision", "NLP"],
-                "AI Engineering & LLM Systems": ["LLM APIs", "AI Agents", "Prompt Engineering", "RAG Systems", "Vector Embeddings"],
-                "Backend, Cloud & Databases": ["FastAPI", "Node.js", "Supabase", "PostgreSQL", "Docker", "Vercel"],
-                "Data & Math": ["NumPy", "Pandas", "Matplotlib", "Data Visualization", "Applied Statistics"]
+                "Executive Leadership": ["Engineering Management", "P&L Accountability", "Cross-Functional Leadership", "Stakeholder Alignment"],
+                "Enterprise Architecture": ["Distributed Systems", "Cloud Transformation (AWS/GCP)", "Enterprise AI Integration", "REST/Microservices"],
+                "Governance & Delivery": ["Agile/Scrum Governance", "Data Privacy & Security", "Risk Management", "Vendor Negotiations"],
+                "Data & Engineering Tools": ["Python", "SQL", "FastAPI", "Docker", "Supabase/PostgreSQL", "Power BI"]
             }
+            contact = ContactInfo(
+                email="your.email@wharton.upenn.edu",
+                phone="+1 (555) 012-3456",
+                location="New York, NY / Remote",
+                linkedin="https://linkedin.com/in/yourprofile",
+                github="https://github.com/yourhandle"
+            )
+            projects = [
+                Project(
+                    name="Enterprise Digital Modernization Initiative",
+                    subtitle="Core Infrastructure Transformation Program",
+                    technologies=["Cloud Architecture", "FastAPI", "PostgreSQL", "Docker"],
+                    repository="https://github.com/yourhandle/enterprise-transformation",
+                    bullets=[
+                        "Spearheaded modernization of legacy transaction pipelines, boosting throughput capacity from 10M to 100M daily records.",
+                        "Negotiated primary cloud vendor licensing agreements, achieving 30% reduction in annual compute expenditure ($850K savings)."
+                    ]
+                )
+            ]
+            experience = [
+                WorkExperience(
+                    company="Fortune 500 Enterprise Technologies",
+                    role="Senior Director of Engineering",
+                    duration="Month Year – Present",
+                    location="New York, NY",
+                    subtitle="Global Platform & Enterprise Solutions Squad",
+                    bullets=[
+                        "Directed 18+ senior engineers across 3 squads, delivering flagship enterprise platform on-time and $350K under budget.",
+                        "Architected scalable cloud microservices migration, reducing annual infrastructure expenditures by 28% ($1.2M savings).",
+                        "Instituted secure coding practices and automated testing frameworks, cutting critical production incidents by 75%."
+                    ]
+                )
+            ]
+            certifications = [
+                Certification(
+                    name="Project Management Professional (PMP)",
+                    issuer="Project Management Institute (PMI)",
+                    status="Completed",
+                    details="Executive Program Management, Budget Governance, and Risk Mitigation."
+                )
+            ]
+            education = [
+                Education(
+                    institution="The Wharton School / University of Pennsylvania",
+                    degree="Bachelor of Science in Economics / Engineering Management",
+                    year="Graduated with Honors",
+                    details="Executive Leadership Fellow. Core focus: Corporate Finance, Technology Innovation, Enterprise Operations."
+                )
+            ]
+
+        else: # modern (Google FAANG "XYZ Formula" Engineering Standard)
+            # 4. Official Google FAANG "Accomplished [X] as measured by [Y], by doing [Z]" Standard
+            name = "[FIRST NAME] [LAST NAME]"
+            headline = "Senior Software Engineer | High-Scale Distributed Platforms"
+            summary = "Results-driven Software Engineer with 5+ years of experience delivering high-availability backend systems and machine learning services using outcome-driven engineering principles."
+            skills = {
+                "Core Programming Languages": ["Python", "Go", "C++", "SQL", "TypeScript"],
+                "Distributed Systems & APIs": ["FastAPI", "gRPC", "Microservices", "Event-Driven Queues", "Redis"],
+                "Cloud & Container Platforms": ["Google Cloud Platform (GCP)", "Kubernetes (K8s)", "Docker", "CI/CD Pipelines"],
+                "AI & Machine Learning": ["PyTorch", "TensorFlow", "Scikit-learn", "Vector Search", "LLM APIs"]
+            }
+            contact = ContactInfo(
+                email="your.email@gmail.com",
+                phone="+1 (555) 012-3456",
+                location="San Francisco, CA / Remote",
+                linkedin="https://linkedin.com/in/yourprofile",
+                github="https://github.com/yourhandle"
+            )
+            projects = [
+                Project(
+                    name="High-Performance Distributed Data Indexer",
+                    subtitle="Real-Time Vector Embedding Service",
+                    technologies=["Python", "FastAPI", "Docker", "PostgreSQL"],
+                    repository="https://github.com/yourhandle/distributed-indexer",
+                    bullets=[
+                        "Accomplished sub-second indexing across 1,000,000+ vector records (as measured by load testing metrics) by developing parallelized batch worker pools.",
+                        "Accomplished 95% automated test coverage across core libraries by establishing end-to-end integration pipelines with GitHub Actions."
+                    ]
+                )
+            ]
+            experience = [
+                WorkExperience(
+                    company="Global Technology Platforms",
+                    role="Senior Backend Software Engineer",
+                    duration="Month Year – Present",
+                    location="Mountain View, CA / Remote",
+                    subtitle="Core Systems & Distributed Reliability Group",
+                    bullets=[
+                        "Accomplished 40% reduction in API response latency (from 180ms to 108ms) by redesigning backend data serialization in FastAPI and implementing Redis memory caching.",
+                        "Accomplished $450,000 annual cloud infrastructure cost savings by optimizing container orchestration and autoscaling policies across Kubernetes clusters.",
+                        "Accomplished 99.95% system uptime across 12 distributed microservices by architecting automated failover queues and circuit-breaker patterns."
+                    ]
+                )
+            ]
+            certifications = [
+                Certification(
+                    name="Google Cloud Certified Professional Cloud Architect",
+                    issuer="Google Cloud",
+                    status="Completed",
+                    details="Scalable Cloud Architecture, Kubernetes Cluster Management, and High-Reliability Infrastructure."
+                )
+            ]
+            education = [
+                Education(
+                    institution="University of California, Berkeley",
+                    degree="Bachelor of Science in Computer Science",
+                    year="2018 – 2022",
+                    details="Graduated with Honors. Core coursework: Distributed Systems, Operating Systems, Database Architecture, Machine Learning."
+                )
+            ]
 
         flat_skills = [s for sub in skills.values() for s in sub]
 
