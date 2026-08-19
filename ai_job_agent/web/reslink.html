@@ -1292,12 +1292,18 @@
             reslinkProfile = await reslinkRes.json();
             if (reslinkProfile.resume_profile) {
               resumeProfile = reslinkProfile.resume_profile;
+            } else if (reslinkProfile.attached_profile) {
+              resumeProfile = reslinkProfile.attached_profile;
             }
           }
 
           if (!resumeProfile && resumeRes && resumeRes.ok) {
             const resData = await resumeRes.json();
             resumeProfile = resData.profile;
+          }
+
+          if (!resumeProfile && reslinkProfile) {
+            resumeProfile = reslinkProfile.resume_profile || reslinkProfile.attached_profile;
           }
         }
 

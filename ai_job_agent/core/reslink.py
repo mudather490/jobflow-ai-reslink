@@ -200,7 +200,8 @@ class ResLinkManager:
 
         # 3. Fallback to main profile
         res_prof = cls.load_profile(fallback_profile=fallback_profile)
-        return res_prof, fallback_profile
+        u_prof = res_prof.attached_profile or fallback_profile
+        return res_prof, u_prof
 
     @classmethod
     def sync_with_user_profile(

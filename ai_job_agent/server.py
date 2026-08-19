@@ -274,12 +274,14 @@ async def get_current_profile(email: Optional[str] = None, slug: Optional[str] =
     from core.supabase_client import SupabaseManager
 
     if slug:
-        _, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
-        if u_prof:
+        profile, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
+        target_u_prof = u_prof or getattr(profile, "attached_profile", None) or active_profile
+        if target_u_prof:
+            u_dict = target_u_prof.model_dump() if not isinstance(target_u_prof, dict) else target_u_prof
             return {
-                "filename": f"{u_prof.full_name.replace(' ', '_')}_Resume.pdf",
-                "filesize": "Verified (Cloud Synced)",
-                "profile": u_prof.model_dump(),
+                "filename": getattr(profile, "attached_resume_filename", None) or f"{u_dict.get('full_name', 'Resume').replace(' ', '_')}_Resume.pdf",
+                "filesize": getattr(profile, "attached_resume_size", None) or "Verified (Cloud Synced)",
+                "profile": u_dict,
             }
 
     if email:
@@ -1756,15 +1758,20 @@ async def get_reslink_profile_endpoint(slug: Optional[str] = None):
     if slug:
         profile, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
         res_data = profile.model_dump()
-        target_u_prof = u_prof or active_profile
+        target_u_prof = u_prof or getattr(profile, "attached_profile", None) or active_profile
         if target_u_prof:
-            res_data["resume_profile"] = target_u_prof.model_dump()
+            u_dict = target_u_prof.model_dump() if not isinstance(target_u_prof, dict) else target_u_prof
+            res_data["resume_profile"] = u_dict
+            res_data["attached_profile"] = u_dict
         return res_data
 
     profile = ResLinkManager.load_profile(fallback_profile=active_profile)
     res_data = profile.model_dump()
-    if active_profile:
-        res_data["resume_profile"] = active_profile.model_dump()
+    target_u_prof = getattr(profile, "attached_profile", None) or active_profile
+    if target_u_prof:
+        u_dict = target_u_prof.model_dump() if not isinstance(target_u_prof, dict) else target_u_prof
+        res_data["resume_profile"] = u_dict
+        res_data["attached_profile"] = u_dict
     return res_data
 
 
