@@ -214,9 +214,12 @@ class ResumeDocumentGenerator:
                 add_heading("Professional Experience", upper=True)
                 for exp in profile.experience:
                     p_r = doc.add_paragraph()
-                    exp_title = exp.role
-                    if exp.company and exp.company != "Independent":
-                        exp_title = f"{exp.role} — {exp.company}"
+                    clean_role = exp.role
+                    if clean_role.lower() in ["professional role", "work professional", "lead professional", "professional profile", "role"]:
+                        clean_role = profile.headline.split("|")[0].strip() if profile.headline else "Software Engineer"
+                    exp_title = clean_role
+                    if exp.company and exp.company not in ["Independent", "General", ""]:
+                        exp_title = f"{clean_role} — {exp.company}"
                     if exp.duration:
                         exp_title = f"{exp_title} | {exp.duration}"
                     r_ro = p_r.add_run(exp_title)
@@ -583,9 +586,12 @@ class ResumeDocumentGenerator:
             if profile.experience:
                 add_pdf_heading("Professional Experience", upper=(tmpl.id != "modern"))
                 for exp in profile.experience:
+                    clean_role = exp.role
+                    if clean_role.lower() in ["professional role", "work professional", "lead professional", "professional profile", "role"]:
+                        clean_role = profile.headline.split("|")[0].strip() if profile.headline else "Software Engineer"
                     dur_str = f" | {exp.duration}" if exp.duration else ""
-                    comp_str = f" — {exp.company}" if exp.company and exp.company != "Independent" else ""
-                    r_title = f"{exp.role}{comp_str}{dur_str}"
+                    comp_str = f" — {exp.company}" if exp.company and exp.company not in ["Independent", "General", ""] else ""
+                    r_title = f"{clean_role}{comp_str}{dur_str}"
                     elements.append(Paragraph(f"<b>{r_title}</b>", role_title_style))
                     
                     if exp.subtitle:

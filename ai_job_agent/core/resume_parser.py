@@ -101,6 +101,82 @@ class UserProfile(BaseModel):
 
         return "\n".join(sections)
 
+    def to_ats_schema_dict(self) -> Dict[str, Any]:
+        """
+        Maps the profile into the mandatory ATS JSON schema without altering authentic wording:
+        """
+        from core.tailor import ResumeTailor
+
+        cats = self.categorized_skills or ResumeTailor.categorize_skills(self.skills)
+        schema_skills = {
+            "Programming": cats.get("Programming & Core Tools") or cats.get("Programming") or [],
+            "Machine Learning": cats.get("Machine Learning & Statistics") or cats.get("Machine Learning") or [],
+            "Deep Learning": cats.get("Deep Learning & Neural Networks") or cats.get("Deep Learning") or [],
+            "AI Engineering": cats.get("AI Engineering & LLM Systems") or cats.get("AI & LLM Engineering") or [],
+            "Backend & Deployment": cats.get("Backend, Cloud & Databases") or cats.get("Backend & Deployment") or [],
+            "Data & Tools": cats.get("Data & Math") or cats.get("Core Math & Data") or []
+        }
+
+        schema_certs = []
+        for c in (self.certifications or []):
+            schema_certs.append({
+                "name": c.name,
+                "issuer": c.issuer or "Accredited Organization",
+                "status": c.status or "Completed",
+                "topics": c.details or ""
+            })
+
+        schema_projects = []
+        for p in (self.projects or []):
+            clean_repo = ResumeTailor.sanitize_url(p.repository) if p.repository else None
+            schema_projects.append({
+                "project_name": p.name.strip(" :—"),
+                "sub_title": p.subtitle or "",
+                "technologies": p.technologies or [],
+                "repository_url": clean_repo,
+                "bullet_points": ResumeTailor.deduplicate_bullets(p.bullets)
+            })
+
+        schema_exp = []
+        for e in (self.experience or []):
+            clean_role = e.role
+            if clean_role.lower() in ["professional role", "work professional", "lead professional", "professional profile", "role"]:
+                clean_role = self.headline.split("|")[0].strip() if self.headline else "Software Engineer"
+            clean_comp = e.company if e.company and e.company != "Independent" else "Enterprise Client / Freelance"
+            schema_exp.append({
+                "role_title": clean_role,
+                "company_or_type": clean_comp,
+                "timeline": e.duration or "Recent",
+                "bullet_points": ResumeTailor.deduplicate_bullets(e.bullets)
+            })
+
+        target_title = self.target_role or self.headline or "AI & Machine Learning Specialist"
+        schema_personal = {
+            "full_name": self.full_name,
+            "target_title": target_title,
+            "email": self.contact.email or "",
+            "linkedin_url": ResumeTailor.sanitize_url(self.contact.linkedin),
+            "github_url": ResumeTailor.sanitize_url(self.contact.github)
+        }
+
+        add_bg = self.additional_background or ""
+        if self.education:
+            edu_strs = [f"{e.institution} ({e.degree}, {e.year or ''})" for e in self.education]
+            if add_bg:
+                add_bg = f"{add_bg} | Education: {'; '.join(edu_strs)}"
+            else:
+                add_bg = f"Education: {'; '.join(edu_strs)}"
+
+        return {
+            "personal_info": schema_personal,
+            "professional_summary": self.summary or "",
+            "technical_skills": schema_skills,
+            "certifications": schema_certs,
+            "practical_projects": schema_projects,
+            "professional_experience": schema_exp,
+            "additional_background": add_bg
+        }
+
 
 class ResumeParser:
     """

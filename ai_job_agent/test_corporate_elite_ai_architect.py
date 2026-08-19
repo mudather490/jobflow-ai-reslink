@@ -218,6 +218,54 @@ class TestCorporateEliteAIArchitect(unittest.TestCase):
         self.assertTrue(Path(pdf_path).exists())
         self.assertTrue(Path(pdf_path).stat().st_size > 1000)
 
+    def test_07_to_ats_schema_json(self):
+        """Verify export to structured ATS JSON schema."""
+        tailored = self.tailor.tailor_profile(self.raw_profile)
+        schema = tailored.to_ats_schema_dict()
+
+        self.assertIn("personal_info", schema)
+        self.assertIn("professional_summary", schema)
+        self.assertIn("technical_skills", schema)
+        self.assertIn("certifications", schema)
+        self.assertIn("practical_projects", schema)
+        self.assertIn("professional_experience", schema)
+        self.assertIn("additional_background", schema)
+
+        # Check technical_skills keys
+        skills = schema["technical_skills"]
+        self.assertIn("Programming", skills)
+        self.assertIn("Machine Learning", skills)
+        self.assertIn("Deep Learning", skills)
+        self.assertIn("AI Engineering", skills)
+        self.assertIn("Backend & Deployment", skills)
+        self.assertIn("Data & Tools", skills)
+
+        # Check personal_info keys
+        p_info = schema["personal_info"]
+        self.assertIn("full_name", p_info)
+        self.assertIn("target_title", p_info)
+        self.assertIn("email", p_info)
+        self.assertIn("linkedin_url", p_info)
+        self.assertIn("github_url", p_info)
+
+    def test_08_no_work_professional_or_lead_professional(self):
+        """Verify that 'Work Professional', 'Lead Professional', or 'Professional Role' never appear."""
+        from core.resume_parser import ResumeParser
+        raw_text = """
+        MUDATHER MOHAMMED
+        mudatherkbyer@gmail.com
+        
+        EXPERIENCE
+        Google Cloud | 2022 - Present
+        • Built scalable distributed backend systems.
+        """
+        parsed = ResumeParser.parse_text_to_profile(raw_text)
+        schema = parsed.to_ats_schema_dict()
+        for exp in schema["professional_experience"]:
+            self.assertNotIn("work professional", exp["role_title"].lower())
+            self.assertNotIn("lead professional", exp["role_title"].lower())
+            self.assertNotIn("professional role", exp["role_title"].lower())
+
 
 if __name__ == "__main__":
     unittest.main()
