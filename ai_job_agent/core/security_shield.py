@@ -33,7 +33,7 @@ class SecurityShield:
     # ── 2. Command Injection, Path Traversal & XSS Signatures ──
     CMD_PATTERNS = [
         re.compile(r"(<script[\s\S]*?>[\s\S]*?</script>|javascript:|onerror=|onload=|eval\(|alert\()", re.IGNORECASE),
-        re.compile(r"(\|{1,2}|&&|;|`|\$\(|\${)", re.IGNORECASE),
+        re.compile(r"(\|{2,}|\|\s*(?:bash\b|sh\b|cmd(?:\.exe)?\b|powershell(?:\.exe)?\b|cat\s+|curl\s+|wget\s+|nc\s+|python(?:\d)?\s+-[ce]|rm\s+|touch\s+|whoami\b|reboot\b)|&&|;|`|\$\(|\${)", re.IGNORECASE),
         re.compile(r"(\.\./|\.\.\\|%2e%2e%2f|%2e%2e/|%252e%252e|/etc/|windows/|win\.ini|boot\.ini)", re.IGNORECASE),
     ]
 

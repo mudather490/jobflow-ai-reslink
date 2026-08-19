@@ -348,9 +348,9 @@ class ResLinkManager:
         3. A personalized LinkedIn DM / InMail outreach note addressed to the senior contact.
         """
         req_clean = SecurityShield.sanitize_text_content(job_requirements, "Job Requirements")
-        title_clean = SecurityShield.sanitize_string(job_title or "Target Role", "Job Title")
-        company_clean = SecurityShield.sanitize_string(company or "your team", "Company Name")
-        contact_clean = SecurityShield.sanitize_string(senior_contact or "", "Senior Contact")
+        title_clean = SecurityShield.sanitize_text_content(job_title or "Target Role", "Job Title")
+        company_clean = SecurityShield.sanitize_text_content(company or "your team", "Company Name")
+        contact_clean = SecurityShield.sanitize_text_content(senior_contact or "", "Senior Contact")
 
         req_lower = req_clean.lower()
         skills = candidate_profile.skills or ["Python", "Machine Learning", "FastAPI", "Cloud Infrastructure", "System Architecture"]

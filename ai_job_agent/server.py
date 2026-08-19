@@ -751,9 +751,9 @@ async def match_job(req: MatchRequest):
     global active_job, active_match, active_pdf_path, active_docx_path, active_profile
 
     # Sanitize and validate against SSRF
-    safe_title = SecurityShield.sanitize_string(req.job_title, "Job Title")
-    safe_company = SecurityShield.sanitize_string(req.company, "Company")
-    safe_location = SecurityShield.sanitize_string(req.location, "Location")
+    safe_title = SecurityShield.sanitize_text_content(req.job_title, "Job Title")
+    safe_company = SecurityShield.sanitize_text_content(req.company, "Company")
+    safe_location = SecurityShield.sanitize_text_content(req.location, "Location")
 
     if req.job_url:
         SecurityShield.validate_url_for_ssrf(req.job_url)
@@ -1140,9 +1140,9 @@ async def auto_apply_endpoint(req: AutoApplyRequest):
         if not active_job:
             active_job = JobDetails(
                 job_id=safe_job_id,
-                title=SecurityShield.sanitize_string(req.job_title or "Target Role", "Job Title"),
-                company=SecurityShield.sanitize_string(req.company or "Target Company", "Company"),
-                location=SecurityShield.sanitize_string(req.location or "Worldwide Remote", "Location"),
+                title=SecurityShield.sanitize_text_content(req.job_title or "Target Role", "Job Title"),
+                company=SecurityShield.sanitize_text_content(req.company or "Target Company", "Company"),
+                location=SecurityShield.sanitize_text_content(req.location or "Worldwide Remote", "Location"),
                 posted_date="Recent",
                 job_url=req.job_url or f"https://www.linkedin.com/jobs/view/{safe_job_id}",
                 description=f"Automated Easy Apply submission for {req.job_title} at {req.company}.",
