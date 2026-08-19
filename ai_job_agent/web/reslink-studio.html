@@ -30,7 +30,7 @@
     /* Stepper Navigation Bar */
     .stepper-nav {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       margin-bottom: 28px;
       background: rgba(14, 19, 38, 0.85);
@@ -41,7 +41,7 @@
 
     @media (max-width: 768px) {
       .stepper-nav {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
       }
     }
 
@@ -383,34 +383,27 @@
         <span class="step-num">1</span>
         <div>
           <div>Target Profile</div>
-          <div style="font-size: 11px; color: var(--text-dim);">Company & Recruiter</div>
+          <div style="font-size: 11px; color: var(--text-dim);">Candidate CV & Target Job</div>
         </div>
       </button>
       <button class="step-tab" id="tab-step-2" onclick="goToStep(2)">
         <span class="step-num">2</span>
         <div>
           <div>Video Studio</div>
-          <div style="font-size: 11px; color: var(--text-dim);">Camera & Prompter</div>
+          <div style="font-size: 11px; color: var(--text-dim);">Camera & Teleprompter</div>
         </div>
       </button>
       <button class="step-tab" id="tab-step-3" onclick="goToStep(3)">
         <span class="step-num">3</span>
         <div>
-          <div>CV Template</div>
-          <div style="font-size: 11px; color: var(--text-dim);">PDF & CTAs</div>
-        </div>
-      </button>
-      <button class="step-tab" id="tab-step-4" onclick="goToStep(4)">
-        <span class="step-num">4</span>
-        <div>
           <div>Analytics & Share</div>
-          <div style="font-size: 11px; color: var(--text-dim);">Real Visitor Logs</div>
+          <div style="font-size: 11px; color: var(--text-dim);">Recruiter Tracking & Links</div>
         </div>
       </button>
     </nav>
 
     <!-- ============================================================ -->
-    <!-- STEP 1: Target Profile (Role, Company, Senior Contact, Reqs) -->
+    <!-- STEP 1: Target Profile & PDF Resume Upload                   -->
     <!-- ============================================================ -->
     <div class="step-pane active" id="pane-step-1">
       <section class="studio-card">
@@ -418,7 +411,7 @@
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 22px;">🎯</span>
             <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0;">
-              Step 1: Define Target Profile & Recruiter Details
+              Step 1: Target Profile & Candidate CV Upload
             </h2>
           </div>
           <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 6px 14px;" onclick="importFromLastSearch()">
@@ -427,28 +420,46 @@
         </div>
 
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">
-          Specify the target company, position, senior contact name, and job requirements. Our engine personalizes the pitch to address the senior hiring lead directly and sanitizes the transcript for smooth teleprompter reading.
+          Upload your authentic candidate resume (PDF/DOCX), specify the target company, hiring lead, and job requirements. Our AI engine personalizes your spoken script to address the recruiter directly and synchronizes it with your teleprompter.
         </p>
 
-        <!-- Resume Upload & Dynamic Sync Widget -->
-        <div style="background: rgba(14, 19, 38, 0.7); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 20px;">
-              📄
+        <!-- Candidate CV / PDF Upload Dropzone -->
+        <div style="background: rgba(14, 19, 38, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px; box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.04);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                📑
+              </div>
+              <div>
+                <div style="font-weight: 800; font-size: 14px; color: #FFF; display: flex; align-items: center; gap: 8px;">
+                  <span id="studio-cv-filename-display">Candidate Resume Attached</span>
+                  <span class="live-badge-chip" style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4);" id="studio-cv-attached-badge">✓ ATS SYNCED</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-dim);" id="studio-cv-status-display">
+                  Synced dynamically with ResLink Video Pitch & AI Script Generator
+                </div>
+              </div>
             </div>
-            <div>
-              <div style="font-weight: 700; font-size: 13.5px; color: #FFF;" id="studio-cv-filename-display">
-                Uploaded Resume: Candidate Resume
+            <label class="btn btn-secondary" style="font-size: 12.5px; padding: 8px 18px; cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 8px; border-color: rgba(56, 189, 248, 0.45); color: #38BDF8; font-weight: 700;">
+              <span>📤 Upload / Change CV (PDF/DOCX)</span>
+              <input type="file" id="studio-resume-file-input" accept=".pdf,.docx,.doc,.txt" style="display: none;" onchange="handleStudioResumeUpload(this)">
+            </label>
+          </div>
+
+          <!-- Live Candidate Details Extracted from Authentic CV -->
+          <div id="studio-cv-extracted-preview" style="background: rgba(15, 23, 42, 0.65); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px 14px; margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+              <div style="font-size: 13.5px; font-weight: 700; color: var(--accent-cyan);" id="studio-cv-cand-name">
+                Candidate Profile
               </div>
-              <div style="font-size: 12px; color: var(--text-dim);" id="studio-cv-status-display">
-                Synced dynamically with ResLink ATS Canvas & Selected PDF Template
+              <div style="font-size: 12px; color: var(--text-muted);" id="studio-cv-cand-role">
+                AI & Software Engineering Specialist
               </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;" id="studio-cv-cand-skills-chips">
+              <span class="skill-chip chip-match" style="font-size: 11px; padding: 2px 8px;">Technical Skills Active</span>
             </div>
           </div>
-          <label class="btn btn-secondary" style="font-size: 12px; padding: 7px 16px; cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 6px;">
-            <span>📤 Upload / Change Resume (PDF/DOCX)</span>
-            <input type="file" id="studio-resume-file-input" accept=".pdf,.docx,.doc,.txt" style="display: none;" onchange="handleStudioResumeUpload(this)">
-          </label>
         </div>
 
         <!-- 4-Grid Target Profile Configuration -->
@@ -501,9 +512,9 @@
         </button>
 
         <div class="step-actions">
-          <span style="font-size: 12.5px; color: var(--text-dim);">Step 1 of 4: Target Profile</span>
-          <button type="button" class="btn btn-primary" style="padding: 8px 20px;" onclick="goToStep(2)">
-            Continue to Video Studio ➔
+          <span style="font-size: 12.5px; color: var(--text-dim);">Step 1 of 3: Target Profile & Candidate CV</span>
+          <button type="button" class="btn btn-primary" style="padding: 8px 20px; font-weight: 700;" onclick="goToStep(2)">
+            Continue to Video Studio ➔ (Step 2)
           </button>
         </div>
       </section>
@@ -671,121 +682,15 @@
           ← Back to Target Profile
         </button>
         <button type="button" class="btn btn-primary" onclick="goToStep(3)">
-          Continue to Step 3 (CV Template) ➔
+          Continue to Analytics & Share ➔ (Step 3)
         </button>
       </div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- ============================================================ -->
-    <!-- STEP 3: Connect Attached Resume Template (PDF Generator) -->
+    <!-- STEP 3: Unified Recruiter Hub & Real-Time Analytics          -->
     <!-- ============================================================ -->
     <div class="step-pane" id="pane-step-3">
-      <section class="studio-card">
-        <!-- Step 3 Header with Dual Actions -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 24px;">📄</span>
-            <div>
-              <h2 style="font-size: 18px; font-weight: 800; color: #FFF; margin: 0;">
-                Step 3: Attach Official CV to Video Pitch & Select Template
-              </h2>
-              <p style="font-size: 12.5px; color: var(--text-muted); margin: 2px 0 0 0;">
-                Upload your authentic external CV for recruiters to view & download on your public ResLink video profile.
-              </p>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <label class="btn btn-secondary" style="font-size: 12.5px; padding: 7px 14px; cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 6px; border-color: rgba(56, 189, 248, 0.4);">
-              <span>📤 Upload CV (PDF/DOCX)</span>
-              <input type="file" id="studio-step3-file-input" accept=".pdf,.docx,.doc,.txt" style="display: none;" onchange="handleStudioResumeUpload(this)">
-            </label>
-            <a id="btn-studio-test-download" href="/api/v1/resume/download-pdf?template_id=corporate_elite" target="_blank" class="btn btn-emerald" style="font-size: 12.5px; padding: 7px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-              <span>📥 Test Download Selected CV (PDF)</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- Dedicated Authentic ResLink CV Vault & Upload Dropzone -->
-        <div style="background: rgba(14, 19, 38, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; font-size: 22px;">
-                📑
-              </div>
-              <div>
-                <div style="font-weight: 700; font-size: 14px; color: #FFF; display: flex; align-items: center; gap: 8px;">
-                  <span id="studio-cv-attached-name">Official Resume Attached</span>
-                  <span class="live-badge-chip" style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4);" id="studio-cv-attached-badge">✓ ACTIVE RESLINK CV</span>
-                </div>
-                <div style="font-size: 12px; color: var(--text-dim);" id="studio-cv-attached-status">
-                  Synced dynamically with ResLink Video Pitch & Public ATS Recruiter View
-                </div>
-              </div>
-            </div>
-            <label class="btn btn-secondary" style="font-size: 12px; padding: 6px 14px; cursor: pointer; margin: 0;">
-              <span>🔄 Change Uploaded CV</span>
-              <input type="file" id="studio-step3-change-input" accept=".pdf,.docx,.doc,.txt" style="display: none;" onchange="handleStudioResumeUpload(this)">
-            </label>
-          </div>
-
-          <!-- Live Candidate Details Extracted from Authentic CV -->
-          <div id="studio-cv-extracted-preview" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-              <div style="font-size: 13px; font-weight: 700; color: var(--accent-cyan);" id="studio-cv-cand-name">
-                Candidate Profile
-              </div>
-              <div style="font-size: 11.5px; color: var(--text-muted);" id="studio-cv-cand-role">
-                AI & Software Engineering Specialist
-              </div>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;" id="studio-cv-cand-skills-chips">
-              <span class="skill-chip chip-match" style="font-size: 11px; padding: 2px 8px;">Technical Skills Active</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Template Selector & LinkedIn Settings -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-          <div class="input-group">
-            <label class="input-label" style="color: var(--accent-cyan);">🎨 Attached Resume Template Style</label>
-            <select id="studio-cv-template-select" class="select-field" onchange="updateAttachedResumeTemplate()">
-              <option value="corporate_elite" selected>👑 Corporate Elite (Executive Leadership & Finance)</option>
-              <option value="modern">💎 Modern Executive (Two-Tone Header & Metric Badges)</option>
-              <option value="harvard_consulting">🏛️ Harvard Consulting (MBB Ivy League Standard)</option>
-              <option value="tech_specialist">⚡ Tech Specialist & AI Innovator (Skills Matrix & Repos)</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label class="input-label" style="color: #38BDF8;">💼 LinkedIn Profile URL</label>
-            <input type="text" id="studio-linkedin-input" class="input-field" placeholder="https://linkedin.com/in/yourname" value="https://linkedin.com" onchange="saveStudioSettings()">
-          </div>
-        </div>
-
-        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px;">
-          <div style="font-size: 13px; font-weight: 700; color: #FFF; margin-bottom: 6px;">
-            🔍 Recruiter Public Page Preview:
-          </div>
-          <div style="font-size: 12.5px; color: var(--text-muted);">
-            Recruiters on <code style="color: var(--accent-cyan);" id="preview-slug-text">/p/candidate-profile</code> will see your identity header with <strong>[▶ Play the Video]</strong>, a full-screen interactive ATS resume canvas matching your active template, one-click <strong>[📥 Download CV (PDF)]</strong>, and direct <strong>[💼 Connect on LinkedIn]</strong>.
-          </div>
-        </div>
-
-        <div class="step-actions">
-          <button type="button" class="btn btn-secondary" onclick="goToStep(2)">
-            ← Back to Video Studio
-          </button>
-          <button type="button" class="btn btn-primary" onclick="goToStep(4)">
-            Continue to Share & Analytics ➔
-          </button>
-        </div>
-      </section>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- STEP 4: Unified Recruiter Hub & Real-Time Analytics -->
-    <!-- ============================================================ -->
-    <div class="step-pane" id="pane-step-4">
       <section class="studio-card" style="padding: 24px;">
         <!-- 1. Header with Title & Quick Controls -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
@@ -910,10 +815,10 @@
 
         <!-- Step Navigation Footer -->
         <div class="step-actions" style="margin-top: 16px;">
-          <button type="button" class="btn btn-secondary" onclick="goToStep(3)">
-            ← Back to CV Template
+          <button type="button" class="btn btn-secondary" onclick="goToStep(2)">
+            ← Back to Video Studio
           </button>
-          <a href="/p/mudather-mohammed" target="_blank" class="btn btn-primary">
+          <a href="/p/mudather-mohammed" target="_blank" class="btn btn-primary" id="btn-studio-open-recruiter-view">
             Open Full Recruiter View 👁️
           </a>
         </div>
@@ -977,6 +882,7 @@
   <div class="toast-popup" id="studio-toast">✓ Action Completed</div>
 
   <script>
+    const totalSteps = 3;
     let currentStep = 1;
     let studioStream = null;
     let studioRecorder = null;
@@ -987,7 +893,19 @@
     let isPrompterPlaying = false;
     let currentResLinkProfile = null;
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     function goToStep(stepNumber) {
+      if (stepNumber < 1) stepNumber = 1;
+      if (stepNumber > totalSteps) stepNumber = totalSteps;
       currentStep = stepNumber;
       document.querySelectorAll('.step-pane').forEach((p, i) => {
         p.classList.toggle('active', i + 1 === stepNumber);
@@ -995,6 +913,7 @@
       document.querySelectorAll('.step-tab').forEach((t, i) => {
         t.classList.toggle('active', i + 1 === stepNumber);
         if (i + 1 < stepNumber) t.classList.add('completed');
+        else t.classList.remove('completed');
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -1006,6 +925,25 @@
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 3000);
       }
+    }
+
+    function importFromLastSearch() {
+      try {
+        const lastJobRaw = localStorage.getItem('last_discovered_job') || localStorage.getItem('selected_job');
+        if (lastJobRaw) {
+          const job = JSON.parse(lastJobRaw);
+          if (job.title) document.getElementById('studio-job-title').value = job.title;
+          if (job.company) document.getElementById('studio-company-name').value = job.company;
+          if (job.description) {
+            document.getElementById('studio-job-requirements').value = job.description;
+            updateReqWordCount();
+          }
+          showToast(`✓ Auto-filled details from ${job.company || 'Job'}`);
+          return;
+        }
+      } catch (e) {}
+      const curComp = document.getElementById('studio-company-name')?.value || 'Target Employer';
+      showToast(`✓ Target profile ready for ${curComp}`);
     }
 
     function injectReqChip(text) {
@@ -1075,7 +1013,7 @@
     }
 
     async function updateAttachedResumeTemplate() {
-      const tmpl = document.getElementById('studio-cv-template-select').value;
+      const tmpl = document.getElementById('studio-cv-template-select')?.value || 'corporate_elite';
       localStorage.setItem('selected_resume_template', tmpl);
       const slug = currentResLinkProfile?.slug || 'candidate-profile';
       const dlBtn = document.getElementById('btn-studio-test-download');
@@ -1098,11 +1036,13 @@
 
     async function saveStudioSettings() {
       if (!currentResLinkProfile) return;
-      const li = document.getElementById('studio-linkedin-input').value.trim();
-      if (!currentResLinkProfile.cta_settings) currentResLinkProfile.cta_settings = {};
-      currentResLinkProfile.cta_settings.linkedin_url = li;
-      await saveStudioProfileToServer();
-      showToast("✓ Settings updated successfully!");
+      const li = document.getElementById('studio-linkedin-input')?.value?.trim();
+      if (li) {
+        if (!currentResLinkProfile.cta_settings) currentResLinkProfile.cta_settings = {};
+        currentResLinkProfile.cta_settings.linkedin_url = li;
+        await saveStudioProfileToServer();
+        showToast("✓ Settings updated successfully!");
+      }
     }
 
     async function saveStudioProfileToServer() {
@@ -1128,34 +1068,39 @@
       
       const statusEl = document.getElementById('studio-cv-status-display');
       const nameEl = document.getElementById('studio-cv-filename-display');
-      const attNameEl = document.getElementById('studio-cv-attached-name');
-      const attStatusEl = document.getElementById('studio-cv-attached-status');
+      const candNameEl = document.getElementById('studio-cv-cand-name');
+      const candRoleEl = document.getElementById('studio-cv-cand-role');
+      const skillsChipEl = document.getElementById('studio-cv-cand-skills-chips');
 
       if (statusEl) statusEl.innerText = `⏳ Parsing ${file.name}...`;
-      if (attStatusEl) attStatusEl.innerText = `⏳ Uploading and attaching ${file.name} to ResLink...`;
+      if (nameEl) nameEl.innerText = `Uploaded Resume: ${file.name}`;
       
       try {
-        const res = await fetch('/api/v1/reslink/resume/upload', {
+        let res = await fetch('/api/v1/reslink/resume/upload', {
           method: 'POST',
           body: formData
         });
+        
+        // Fallback to /api/v1/resume/upload if reslink endpoint returns non-OK
+        if (!res.ok) {
+          res = await fetch('/api/v1/resume/upload', {
+            method: 'POST',
+            body: formData
+          });
+        }
+
         if (res.ok) {
           const data = await res.json();
-          const p = data.profile || {};
+          const p = data.profile || data.resume_profile || {};
           const fname = data.filename || file.name;
           const fsize = data.filesize || '';
 
           if (nameEl) nameEl.innerText = `Uploaded Resume: ${fname}`;
           if (statusEl) statusEl.innerText = `✓ Synced with ResLink Studio & Public Recruiter Link (${fsize})`;
-          if (attNameEl) attNameEl.innerText = `Official Attached CV: ${fname}`;
-          if (attStatusEl) attStatusEl.innerText = `✓ Active on ResLink Video Pitch & Public ATS Recruiter View (${fsize})`;
 
-          const candNameEl = document.getElementById('studio-cv-cand-name');
           if (candNameEl) candNameEl.innerText = p.full_name || 'Candidate Profile';
-          const candRoleEl = document.getElementById('studio-cv-cand-role');
           if (candRoleEl) candRoleEl.innerText = p.headline || p.target_role || 'Professional Specialist';
 
-          const skillsChipEl = document.getElementById('studio-cv-cand-skills-chips');
           if (skillsChipEl && Array.isArray(p.skills) && p.skills.length > 0) {
             skillsChipEl.innerHTML = p.skills.slice(0, 8).map(s => `
               <span class="skill-chip chip-match" style="font-size: 11px; padding: 2px 8px;">✓ ${escapeHtml(s)}</span>
@@ -1166,13 +1111,11 @@
           await loadStudioProfile();
         } else {
           if (statusEl) statusEl.innerText = `❌ Upload failed. Please try again.`;
-          if (attStatusEl) attStatusEl.innerText = `❌ Upload failed. Please try again.`;
           showToast("❌ Failed to parse resume.");
         }
       } catch (err) {
         console.error("Upload error:", err);
         if (statusEl) statusEl.innerText = `❌ Error connecting to server.`;
-        if (attStatusEl) attStatusEl.innerText = `❌ Error connecting to server.`;
       }
     }
 
@@ -1190,7 +1133,10 @@
           
           const prevLink = document.getElementById('btn-studio-preview-link');
           if (prevLink) prevLink.href = `/p/${slug}`;
-          
+
+          const recruiterViewBtn = document.getElementById('btn-studio-open-recruiter-view');
+          if (recruiterViewBtn) recruiterViewBtn.href = `/p/${slug}`;
+
           const slugTxt = document.getElementById('preview-slug-text');
           if (slugTxt) slugTxt.innerText = `/p/${slug}`;
 
@@ -1213,50 +1159,24 @@
             if (pr) pr.innerText = currentResLinkProfile.pitch_script;
           }
           
-          // Resolve currently active CV template from dashboard / storage / server
-          let rawTmpl = localStorage.getItem('selected_resume_template') || currentResLinkProfile.selected_cv_template || 'corporate_elite';
-          let activeTmpl = 'corporate_elite';
-          if (rawTmpl === 'harvard' || rawTmpl === 'harvard_consulting' || rawTmpl === 'mbb') activeTmpl = 'harvard_consulting';
-          else if (rawTmpl === 'corporate' || rawTmpl === 'corporate_elite' || rawTmpl === 'minimal' || rawTmpl === 'minimalist') activeTmpl = 'corporate_elite';
-          else if (rawTmpl === 'tech' || rawTmpl === 'tech_specialist' || rawTmpl === 'tech_innovator') activeTmpl = 'tech_specialist';
-          else activeTmpl = 'modern';
-
-          const tmplSelect = document.getElementById('studio-cv-template-select');
-          if (tmplSelect) tmplSelect.value = activeTmpl;
-          const dlBtn = document.getElementById('btn-studio-test-download');
-          if (dlBtn) dlBtn.href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(activeTmpl)}&slug=${encodeURIComponent(slug)}`;
-
-          if (currentResLinkProfile.cta_settings && currentResLinkProfile.cta_settings.linkedin_url) {
-            const li = document.getElementById('studio-linkedin-input');
-            if (li) li.value = currentResLinkProfile.cta_settings.linkedin_url;
-          }
-          if (currentResLinkProfile.linkedin_outreach_note) {
-            const noteEl = document.getElementById('studio-outreach-note-preview');
-            if (noteEl) noteEl.innerText = currentResLinkProfile.linkedin_outreach_note.replace('{reslink_url}', fullUrl);
-          }
           if (currentResLinkProfile.competency_badges) {
             const bEl = document.getElementById('studio-resume-badges');
             if (bEl) {
               bEl.innerHTML = currentResLinkProfile.competency_badges.map(b => `
-                <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${b}</span>
+                <span class="live-badge-chip" style="font-size: 10.5px; padding: 2px 7px;">${escapeHtml(b)}</span>
               `).join('');
             }
           }
 
           // Populate attached resume displays
           const rProf = currentResLinkProfile.resume_profile || currentResLinkProfile.attached_profile;
-          const attFname = currentResLinkProfile.attached_resume_filename || (rProf?.full_name ? `${rProf.full_name.replace(' ', '_')}_Resume.pdf` : 'Official Resume');
+          const attFname = currentResLinkProfile.attached_resume_filename || (rProf?.full_name ? `${rProf.full_name.replace(/\s+/g, '_')}_Resume.pdf` : 'Candidate Resume.pdf');
           const attFsize = currentResLinkProfile.attached_resume_size || 'Active';
 
           const nameEl = document.getElementById('studio-cv-filename-display');
           if (nameEl) nameEl.innerText = `Uploaded Resume: ${attFname}`;
           const statusEl = document.getElementById('studio-cv-status-display');
           if (statusEl) statusEl.innerText = `✓ Synced with ResLink Studio & Public Link (${attFsize})`;
-
-          const step3NameEl = document.getElementById('studio-cv-attached-name');
-          if (step3NameEl) step3NameEl.innerText = `Attached CV: ${attFname}`;
-          const step3StatusEl = document.getElementById('studio-cv-attached-status');
-          if (step3StatusEl) step3StatusEl.innerText = `✓ Active on ResLink Video Pitch & Public ATS Recruiter View (${attFsize})`;
 
           if (rProf) {
             const candNameEl = document.getElementById('studio-cv-cand-name');
