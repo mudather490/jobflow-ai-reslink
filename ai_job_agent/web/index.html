@@ -368,11 +368,15 @@
             </button>
           </div>
 
-          <!-- Single One-Click Word Template Download Action -->
-          <div style="margin-top: 14px;">
-            <button class="btn btn-emerald" id="btn-download-docx" style="width: 100%; padding: 13px; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
+          <!-- Direct Word Template Download & ResLink Live Preview Buttons -->
+          <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+            <button class="btn btn-emerald" id="btn-download-docx" style="flex: 1.4; padding: 13px; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
               <span style="font-size: 18px;">📝</span>
-              <span>Download Editable Template (<span id="lbl-docx-template">Corporate Elite</span> .docx)</span>
+              <span>Download Word Template (<span id="lbl-docx-template">Wharton WSO</span> .docx)</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-open-reslink-preview" style="flex: 1; padding: 13px; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; font-weight: 800; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="window.openTemplatePreviewModal()">
+              <span>👁️</span>
+              <span>ResLink Live Style Preview</span>
             </button>
           </div>
         </div>
@@ -571,6 +575,47 @@
       </div>
     </div>
 
+    <!-- Interactive ResLink Live Style Preview Modal -->
+    <div class="modal-backdrop" id="modal-template-preview">
+      <div class="modal-dialog" style="max-width: 880px; max-height: 92vh; display: flex; flex-direction: column;">
+        <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 22px;">🎨</span>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 800; margin: 0;" id="modal-preview-title">ResLink Live Style Preview</h3>
+              <div style="font-size: 12px; color: var(--text-dim);" id="modal-preview-subtitle">Check color palette, font typography, and layout live</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-template-preview')">✕</button>
+        </div>
+
+        <!-- Quick Switcher Bar inside Modal -->
+        <div style="padding: 10px 16px; background: rgba(15, 23, 42, 0.85); border-bottom: 1px solid rgba(56, 189, 248, 0.15); display: flex; gap: 8px; overflow-x: auto; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(212, 175, 55, 0.4); color: #D4AF37;" onclick="window.selectTemplateAndPreview('corporate_elite')">👑 Wharton WSO</button>
+          <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;" onclick="window.selectTemplateAndPreview('harvard_consulting')">🏛️ Harvard MCS</button>
+          <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(168, 85, 247, 0.4); color: #C084FC;" onclick="window.selectTemplateAndPreview('tech_specialist')">⚡ Stanford BEAM</button>
+          <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(37, 99, 235, 0.4); color: #60A5FA;" onclick="window.selectTemplateAndPreview('modern')">💎 Google FAANG</button>
+        </div>
+
+        <div class="modal-body" style="overflow-y: auto; padding: 20px; background: #0B0F19;">
+          <div id="modal-preview-sheet" style="background: #FFFFFF; color: #0F172A; border-radius: 8px; padding: 36px 40px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); min-height: 480px;">
+            <!-- Dynamic Live Rendered Template Sheet -->
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-emerald" style="font-weight: 800; display: inline-flex; align-items: center; gap: 6px;" onclick="window.downloadSelectedStarterDocx()">
+            <span>📝</span> Download This Template (.docx / Word)
+          </button>
+          <div style="display: flex; gap: 8px;">
+            <a id="btn-modal-open-reslink" href="/reslink" target="_blank" class="btn btn-secondary" style="color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+              <span>🚀</span> View in ResLink Studio ↗
+            </a>
+            <button class="btn btn-secondary" onclick="closeModal('modal-template-preview')">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Autonomous Easy Apply Modal -->
     <div class="modal-backdrop" id="modal-auto-apply">

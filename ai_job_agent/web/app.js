@@ -159,6 +159,211 @@ function closeModal(id) {
   if (modal) modal.classList.remove('active');
 }
 
+window.openTemplatePreviewModal = function() {
+  const currentTmpl = window.selectedTemplateId || 'corporate_elite';
+  window.renderTemplatePreviewSheet(currentTmpl);
+  openModal('modal-template-preview');
+};
+
+window.selectTemplateAndPreview = function(templateId) {
+  window.selectTemplate(templateId);
+  window.renderTemplatePreviewSheet(templateId);
+};
+
+window.downloadSelectedStarterDocx = function() {
+  const tmpl = window.selectedTemplateId || 'corporate_elite';
+  showToast(`📥 Downloading ${templateNames[tmpl] || 'Corporate Elite'} Editable Word Template...`);
+  window.open(`/api/v1/resume/download-docx?template_id=${encodeURIComponent(tmpl)}&mode=template&t=${Date.now()}`, '_blank');
+};
+
+window.renderTemplatePreviewSheet = function(templateId) {
+  const sheet = document.getElementById('modal-preview-sheet');
+  const titleEl = document.getElementById('modal-preview-title');
+  const subEl = document.getElementById('modal-preview-subtitle');
+  if (!sheet) return;
+
+  const tmpl = templateId || window.selectedTemplateId || 'corporate_elite';
+  const name = templateNames[tmpl] || 'Wharton & WSO Executive Standard';
+  if (titleEl) titleEl.innerText = `${name} • Live Preview`;
+  if (subEl) subEl.innerText = `Official Style Structure • ${templateShortNames[tmpl] || 'Standard'}`;
+
+  // Theme palettes and styles
+  let prim = '#1A3A5C';
+  let sec = '#D4AF37';
+  let fontFam = "Calibri, Arial, sans-serif";
+  let isCentered = false;
+
+  if (tmpl === 'harvard_consulting' || tmpl === 'harvard') {
+    prim = '#0F2A47';
+    sec = '#111827';
+    fontFam = "'Times New Roman', Times, Georgia, serif";
+    isCentered = true;
+  } else if (tmpl === 'tech_specialist' || tmpl === 'tech') {
+    prim = '#7C3AED';
+    sec = '#0284C7';
+    fontFam = "'Segoe UI', Roboto, 'Helvetica Neue', sans-serif";
+  } else if (tmpl === 'modern') {
+    prim = '#2563EB';
+    sec = '#1D4ED8';
+    fontFam = "Arial, Helvetica, sans-serif";
+  }
+
+  // Profile data
+  const p = currentProfile || {
+    full_name: "ALEXANDER RIVERA",
+    headline: "Senior AI Engineer & Distributed Systems Specialist",
+    contact: {
+      email: "alex.rivera@example.com",
+      phone: "+1 (555) 012-3456",
+      location: "San Francisco, CA / Worldwide Remote",
+      linkedin: "https://linkedin.com/in/alex-rivera",
+      github: "https://github.com/alexrivera"
+    },
+    summary: "High-impact AI Engineer with 6+ years of experience architecting distributed multi-agent systems, low-latency LLM inference pipelines, and enterprise machine learning infrastructure.",
+    skills: ["Python", "PyTorch", "FastAPI", "Docker", "SQL", "Scikit-learn", "LLM APIs", "Redis", "Supabase", "Git"],
+    categorized_skills: {
+      "Languages & Core": ["Python", "C++", "SQL", "TypeScript", "Bash / Linux", "Go"],
+      "Machine Learning & AI": ["PyTorch", "TensorFlow", "Scikit-learn", "Transformers", "LLM APIs", "Prompt Engineering", "RAG Systems"],
+      "Backend & Distributed Systems": ["FastAPI", "gRPC", "Docker", "Kubernetes", "Redis", "Celery", "RESTful APIs"],
+      "Databases & Storage": ["PostgreSQL", "Supabase", "Vector Databases (ChromaDB / Pinecone / pgvector)", "Redis"],
+      "Cloud & DevOps": ["AWS (EC2, S3, Lambda)", "GCP", "GitHub Actions CI/CD", "Linux CLI", "vLLM Inference"]
+    },
+    projects: [
+      {
+        name: "Autonomous Multi-Agent Workflow Orchestrator",
+        technologies: ["Python", "FastAPI", "PyTorch", "Redis", "Docker"],
+        repository: "https://github.com/alexrivera/autonomous-ai-agent",
+        bullets: [
+          "Architected asynchronous event-driven workflow engine processing 10,000+ simulated jobs daily with sub-250ms latency.",
+          "Implemented in-memory Redis caching layer, reducing database compute load by 45% across distributed worker nodes."
+        ]
+      }
+    ],
+    experience: [
+      {
+        role: "Senior AI Engineer",
+        company: "Global Enterprise Technologies",
+        duration: "2021 – Present",
+        location: "San Francisco, CA / Remote",
+        bullets: [
+          "Accomplished 40% reduction in API response latency (from 180ms to 108ms) by redesigning backend data serialization in FastAPI and implementing Redis memory caching.",
+          "Engineered distributed data ingestion pipelines handling 50M+ monthly events with 99.9% uptime."
+        ]
+      }
+    ],
+    certifications: [
+      { name: "Deep Learning Specialization", issuer: "DeepLearning.AI", status: "Completed" },
+      { name: "AWS Certified Solutions Architect", issuer: "Amazon Web Services", status: "Completed" }
+    ],
+    education: [
+      { institution: "University of California, Berkeley", degree: "B.S. in Computer Science", year: "2017 – 2021" }
+    ]
+  };
+
+  const candName = p.full_name || "ALEXANDER RIVERA";
+  const candHead = p.headline || p.target_role || "Senior AI Engineer";
+  const contacts = [];
+  if (p.contact?.email) contacts.push(p.contact.email.replace("mailto:", ""));
+  if (p.contact?.phone) contacts.push(p.contact.phone);
+  if (p.contact?.location) contacts.push(p.contact.location);
+  if (p.contact?.linkedin) contacts.push(`LinkedIn: ${p.contact.linkedin}`);
+  if (p.contact?.github) contacts.push(`GitHub: ${p.contact.github}`);
+
+  let headerHtml = '';
+  if (isCentered) {
+    headerHtml = `
+      <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ${prim}; padding-bottom: 14px;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: ${prim}; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(candName)}</h1>
+        <div style="font-size: 13px; font-weight: 700; color: #475569; margin: 4px 0 8px 0;">${escapeHtml(candHead)}</div>
+        <div style="font-size: 12px; color: #64748B;">${contacts.map(c => escapeHtml(c)).join(' • ')}</div>
+      </div>
+    `;
+  } else {
+    headerHtml = `
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; border-bottom: 2.5px solid ${prim}; padding-bottom: 14px;">
+        <div>
+          <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: ${prim}; letter-spacing: -0.5px;">${escapeHtml(candName)}</h1>
+          <div style="font-size: 14px; font-weight: 700; color: ${sec}; margin-top: 4px;">${escapeHtml(candHead)}</div>
+        </div>
+        <div style="text-align: right; font-size: 12px; color: #475569; line-height: 1.45;">
+          ${contacts.map(c => `<div>${escapeHtml(c)}</div>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Skills
+  let skillsHtml = '';
+  const cats = (p.categorized_skills && Object.keys(p.categorized_skills).length > 0) ? p.categorized_skills : { "Skills & Core Competencies": p.skills || [] };
+  for (const [cat, sks] of Object.entries(cats)) {
+    if (sks && sks.length > 0) {
+      skillsHtml += `<div style="font-size: 12.5px; margin-bottom: 5px; color: #334155;"><strong style="color: ${prim};">${escapeHtml(cat)}:</strong> ${escapeHtml(sks.join(', '))}</div>`;
+    }
+  }
+
+  sheet.style.fontFamily = fontFam;
+  sheet.innerHTML = `
+    ${headerHtml}
+    
+    <!-- Summary -->
+    <div style="margin-bottom: 18px;">
+      <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin: 0 0 8px 0; letter-spacing: 0.5px;">Executive Summary</h3>
+      <p style="font-size: 12.5px; line-height: 1.55; color: #334155; margin: 0;">${escapeHtml(p.summary || '')}</p>
+    </div>
+
+    <!-- Skills -->
+    <div style="margin-bottom: 18px;">
+      <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin: 0 0 8px 0; letter-spacing: 0.5px;">Technical Skills & Core Competencies</h3>
+      ${skillsHtml}
+    </div>
+
+    <!-- Projects -->
+    <div style="margin-bottom: 18px;">
+      <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin: 0 0 8px 0; letter-spacing: 0.5px;">Practical & Open-Source Projects</h3>
+      ${(p.projects || []).map(proj => `
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="font-size: 13px; color: #0F172A;">${escapeHtml(proj.name)}</strong>
+            ${proj.repository ? `<a href="${sanitizeUrl(proj.repository)}" target="_blank" style="font-size: 11.5px; color: ${prim}; text-decoration: none; font-weight: 700;">🔗 Code Repo ↗</a>` : ''}
+          </div>
+          ${proj.technologies && proj.technologies.length > 0 ? `<div style="font-size: 11.5px; color: ${sec}; font-weight: 700; margin: 2px 0;">Tech: ${escapeHtml(proj.technologies.join(', '))}</div>` : ''}
+          <ul style="margin: 4px 0 0 16px; padding: 0; font-size: 12px; line-height: 1.5; color: #334155;">
+            ${(proj.bullets || []).map(b => `<li>${escapeHtml(b)}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Experience -->
+    <div style="margin-bottom: 18px;">
+      <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin: 0 0 8px 0; letter-spacing: 0.5px;">Professional Experience</h3>
+      ${(p.experience || []).map(exp => `
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div><strong style="font-size: 13px; color: #0F172A;">${escapeHtml(exp.role || "Software Engineer")}</strong> <span style="color: #64748B;">— ${escapeHtml(exp.company || "Enterprise")}</span></div>
+            <div style="font-size: 12px; color: #64748B; font-weight: 600;">${escapeHtml(exp.duration || "Recent")}</div>
+          </div>
+          <ul style="margin: 4px 0 0 16px; padding: 0; font-size: 12px; line-height: 1.5; color: #334155;">
+            ${(exp.bullets || []).map(b => `<li>${escapeHtml(b)}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Education & Certifications -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div>
+        <h3 style="font-size: 12.5px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin: 0 0 6px 0;">Certifications</h3>
+        ${(p.certifications || []).map(c => `<div style="font-size: 12px; margin-bottom: 4px; color: #334155;"><strong>${escapeHtml(c.name)}</strong> — ${escapeHtml(c.issuer || "Accredited")}</div>`).join('')}
+      </div>
+      <div>
+        <h3 style="font-size: 12.5px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin: 0 0 6px 0;">Education</h3>
+        ${(p.education || []).map(edu => `<div style="font-size: 12px; margin-bottom: 4px; color: #334155;"><strong>${escapeHtml(edu.institution)}</strong> (${escapeHtml(edu.degree)})</div>`).join('')}
+      </div>
+    </div>
+  `;
+};
+
 // Attach Modal Listeners
 document.getElementById('btn-pricing-modal')?.addEventListener('click', () => openModal('modal-pricing'));
 document.getElementById('btn-settings-modal')?.addEventListener('click', async () => {
