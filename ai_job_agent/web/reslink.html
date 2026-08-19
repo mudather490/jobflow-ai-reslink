@@ -1258,27 +1258,47 @@
     // ── 5. Data Fetching & Sync ──
     async function loadCandidateProfileData() {
       try {
+        const urlParams = new URLSearchParams(window.location.search);
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
         const currentSlug = (pathSegments.length > 0 && pathSegments[0] === 'p') ? pathSegments[1] : ((pathSegments.length > 1 && pathSegments[0] === 'reslink') ? pathSegments[1] : '');
+        const mode = urlParams.get('mode');
+        const reqTmpl = urlParams.get('template') || urlParams.get('t') || 'corporate_elite';
         
-        const reslinkUrl = currentSlug ? `/api/v1/reslink?slug=${encodeURIComponent(currentSlug)}` : '/api/v1/reslink';
-        const resumeUrl = currentSlug ? `/api/v1/resume/current?slug=${encodeURIComponent(currentSlug)}` : '/api/v1/resume/current';
-
-        const [reslinkRes, resumeRes] = await Promise.all([
-          fetch(reslinkUrl).catch(() => null),
-          fetch(resumeUrl).catch(() => null)
-        ]);
-
-        if (reslinkRes && reslinkRes.ok) {
-          reslinkProfile = await reslinkRes.json();
-          if (reslinkProfile.resume_profile) {
-            resumeProfile = reslinkProfile.resume_profile;
+        // If template preview mode is requested, load the official starter template
+        if (mode === 'template' || mode === 'starter') {
+          try {
+            const starterRes = await fetch(`/api/v1/resume/starter?template_id=${encodeURIComponent(reqTmpl)}`);
+            if (starterRes && starterRes.ok) {
+              const starterData = await starterRes.json();
+              if (starterData.profile) {
+                resumeProfile = starterData.profile;
+              }
+            }
+          } catch (e) {
+            console.warn("Starter template load fallback active:", e);
           }
         }
 
-        if (!resumeProfile && resumeRes && resumeRes.ok) {
-          const resData = await resumeRes.json();
-          resumeProfile = resData.profile;
+        if (!resumeProfile) {
+          const reslinkUrl = currentSlug ? `/api/v1/reslink?slug=${encodeURIComponent(currentSlug)}` : '/api/v1/reslink';
+          const resumeUrl = currentSlug ? `/api/v1/resume/current?slug=${encodeURIComponent(currentSlug)}` : '/api/v1/resume/current';
+
+          const [reslinkRes, resumeRes] = await Promise.all([
+            fetch(reslinkUrl).catch(() => null),
+            fetch(resumeUrl).catch(() => null)
+          ]);
+
+          if (reslinkRes && reslinkRes.ok) {
+            reslinkProfile = await reslinkRes.json();
+            if (reslinkProfile.resume_profile) {
+              resumeProfile = reslinkProfile.resume_profile;
+            }
+          }
+
+          if (!resumeProfile && resumeRes && resumeRes.ok) {
+            const resData = await resumeRes.json();
+            resumeProfile = resData.profile;
+          }
         }
 
         applyProfileToUI();
@@ -1289,6 +1309,7 @@
     }
 
     function applyProfileToUI() {
+      const urlParams = new URLSearchParams(window.location.search);
       // 1. Resolve Candidate Details
       const p = reslinkProfile || {};
       const r = resumeProfile || {};
@@ -1334,8 +1355,8 @@
         }
       }
 
-      // 5. Check Template Selection
-      let rawTmpl = p.selected_cv_template || 'corporate_elite';
+      // 5. Check Template Selection (Respect URL parameter first)
+      let rawTmpl = urlParams.get('template') || urlParams.get('t') || p.selected_cv_template || 'corporate_elite';
       if (rawTmpl === 'minimal' || rawTmpl === 'corporate') rawTmpl = 'corporate_elite';
       if (rawTmpl === 'harvard' || rawTmpl === 'mbb') rawTmpl = 'harvard_consulting';
       if (rawTmpl === 'tech' || rawTmpl === 'tech_innovator') rawTmpl = 'tech_specialist';

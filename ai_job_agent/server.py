@@ -256,6 +256,18 @@ async def serve_reslink_studio():
         return f.read()
 
 
+@app.get("/api/v1/resume/starter")
+async def get_starter_profile_endpoint(template_id: str = "corporate_elite"):
+    """Returns official starter profile data model for the specified template."""
+    clean_tmpl = SecurityShield.sanitize_string(template_id, "Template ID")
+    prof = ResumeDocumentGenerator.get_starter_profile(template_id=clean_tmpl)
+    return {
+        "status": "success",
+        "template_id": clean_tmpl,
+        "profile": prof.model_dump(),
+    }
+
+
 @app.get("/api/v1/resume/current")
 async def get_current_profile(email: Optional[str] = None, slug: Optional[str] = None):
     global active_profile, active_resume_filename, active_resume_size

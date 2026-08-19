@@ -169,6 +169,13 @@ function closeModal(id) {
   if (modal) modal.classList.remove('active');
 }
 
+window.openTemplateInResLink = function(templateId) {
+  const tmpl = templateId || window.selectedTemplateId || 'corporate_elite';
+  showToast(`🚀 Opening ${templateNames[tmpl] || 'Template'} live on ResLink...`);
+  const targetUrl = `/reslink?template=${encodeURIComponent(tmpl)}&mode=template`;
+  window.open(targetUrl, '_blank');
+};
+
 window.openTemplatePreviewModal = function() {
   const currentTmpl = window.selectedTemplateId || 'corporate_elite';
   window.renderTemplatePreviewSheet(currentTmpl);
