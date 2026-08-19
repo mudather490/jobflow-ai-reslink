@@ -768,10 +768,25 @@ window.onJobCardClick = function(idx) {
 async function selectJob(job) {
   selectedJob = job;
   try {
+    let userEmail = '';
+    try {
+      const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
+      if (user && user.email) userEmail = user.email.trim().toLowerCase();
+      else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
+    } catch (e) {}
+
     const res = await fetch('/api/v1/jobs/match', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ job_id: job.job_id, job_title: job.title, company: job.company, location: job.location, job_url: job.job_url })
+      body: JSON.stringify({
+        job_id: job.job_id,
+        job_title: job.title,
+        company: job.company,
+        location: job.location,
+        job_url: job.job_url,
+        candidate_profile: currentProfile || null,
+        user_email: userEmail || null
+      })
     });
     currentMatchReport = await res.json();
     renderMatchReport(currentMatchReport);
@@ -844,22 +859,18 @@ window.addSkillFromBridge = async function(skillName) {
       body: JSON.stringify({ skill: skillName })
     });
     if (res.ok) {
-      const data = await res.json();
       if (currentProfile) {
-        currentProfile.skills = data.skills;
-        renderActiveFileCard(
-          document.getElementById('file-display-name').innerText,
-          document.getElementById('file-size-display').innerText,
-          currentProfile
-        );
+        if (!currentProfile.skills) currentProfile.skills = [];
+        if (!currentProfile.skills.includes(skillName)) currentProfile.skills.push(skillName);
       }
-      if (data.match) {
-        currentMatchReport = data.match;
-        renderMatchReport(currentMatchReport);
+      renderActiveFileCard(null, null, currentProfile);
+      showToast(`✨ Added "${skillName}" to Resume! Re-evaluating ATS Score...`);
+      if (selectedJob) {
+        await selectJob(selectedJob);
       }
     }
-  } catch (e) {
-    console.error('Failed to add bridge skill:', e);
+  } catch (err) {
+    console.error("Failed to bridge skill:", err);
   }
 };
 

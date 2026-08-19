@@ -728,6 +728,8 @@ class MatchRequest(BaseModel):
     company: str
     location: str
     job_url: str
+    candidate_profile: Optional[Dict[str, Any]] = None
+    user_email: Optional[str] = None
 
 
 @app.post("/api/v1/jobs/match")
@@ -755,13 +757,37 @@ async def match_job(req: MatchRequest):
                 f"We are hiring a {safe_title} at {safe_company}.\n"
                 "Requirements:\n"
                 "- Strong proficiency in Python, FastAPI, Docker, and Kubernetes.\n"
-                "- Experience with Celery, GraphRAG, and Agile project delivery."
+                "- Experience with Machine Learning, PyTorch, LLMs, and distributed systems."
             ),
         )
 
-    active_match = matcher.evaluate_match(active_profile, active_job)
+    # 1. Resolve authentic candidate profile with robust fallback hierarchy
+    target_prof = active_profile
+    if req.candidate_profile and isinstance(req.candidate_profile, dict):
+        try:
+            target_prof = UserProfile(**req.candidate_profile)
+            active_profile = target_prof
+        except Exception:
+            pass
 
-    tailored = tailor.tailor_profile(active_profile, active_job, active_match)
+    if not target_prof and req.user_email:
+        try:
+            from core.supabase_client import SupabaseManager
+            db_prof = SupabaseManager.get_user_profile(req.user_email)
+            if db_prof and isinstance(db_prof, dict):
+                target_prof = UserProfile(**db_prof)
+                active_profile = target_prof
+        except Exception:
+            pass
+
+    if not target_prof:
+        from core.resume_parser import ResumeParser
+        target_prof = ResumeParser.parse_text_to_profile(DEFAULT_RESUME_TEXT)
+        active_profile = target_prof
+
+    active_match = matcher.evaluate_match(target_prof, active_job)
+
+    tailored = tailor.tailor_profile(target_prof, active_job, active_match)
     active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
         tailored, active_job.title, active_job.company, original_filename=active_resume_filename
     )

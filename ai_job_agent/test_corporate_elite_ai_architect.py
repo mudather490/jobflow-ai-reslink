@@ -296,6 +296,73 @@ class TestCorporateEliteAIArchitect(unittest.TestCase):
         self.assertEqual(res_pdf.status_code, 200)
         self.assertIn("JobFlow_Starter_Template", res_pdf.headers.get("content-disposition", ""))
 
+    def test_11_real_time_ats_gap_analysis_bjak_high_match(self):
+        """Verify that Applied AI Engineer at BJAK achieves > 85% ATS match against candidate's profile."""
+        from core.matcher import JobMatcher
+        from core.scraper import JobDetails
+
+        matcher = JobMatcher(use_llm=False)
+        bjak_job = JobDetails(
+            job_id="3890123456",
+            title="Applied AI Engineer",
+            company="BJAK",
+            location="Worldwide Remote",
+            posted_date="Recent",
+            job_url="https://www.linkedin.com/jobs/view/3890123456",
+            description="""
+            About BJAK:
+            BJAK is looking for an Applied AI Engineer to join our core AI intelligence team.
+            
+            Requirements:
+            - Strong hands-on proficiency in Python programming.
+            - Solid foundation in Machine Learning and Deep Learning architectures.
+            - Experience building and fine-tuning models with PyTorch.
+            - Practical expertise with Large Language Models (LLMs), RAG systems, and AI Agents.
+            - Proven track record building robust backend microservices using FastAPI.
+            - Experience with Docker containerization, Relational Databases (SQL / PostgreSQL), and Redis.
+            """
+        )
+
+        report = matcher.evaluate_match(self.raw_profile, bjak_job)
+
+        self.assertGreaterEqual(report.match_score, 85.0)
+        self.assertGreaterEqual(len(report.matched_skills), 6)
+
+        matched_str = " ".join(report.matched_skills).lower()
+        self.assertIn("python", matched_str)
+        self.assertIn("machine learning", matched_str)
+        self.assertIn("deep learning", matched_str)
+        self.assertIn("pytorch", matched_str)
+        self.assertIn("fastapi", matched_str)
+        self.assertIn("docker", matched_str)
+
+        self.assertNotIn("0 of 7", report.experience_assessment)
+
+    def test_12_fastapi_match_endpoint_with_candidate_payload(self):
+        """Verify the /api/v1/jobs/match endpoint processes candidate_profile in JSON payload."""
+        from fastapi.testclient import TestClient
+        from server import app
+
+        client = TestClient(app)
+        res = client.post(
+            "/api/v1/jobs/match",
+            json={
+                "job_id": "3890123456",
+                "job_title": "Applied AI Engineer",
+                "company": "BJAK",
+                "location": "Worldwide Remote",
+                "job_url": "https://www.linkedin.com/jobs/view/3890123456",
+                "candidate_profile": self.raw_profile.model_dump()
+            }
+        )
+
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("match_score", data)
+        self.assertGreaterEqual(data["match_score"], 85.0)
+        self.assertIn("matched_skills", data)
+        self.assertGreaterEqual(len(data["matched_skills"]), 6)
+
 
 if __name__ == "__main__":
     unittest.main()
