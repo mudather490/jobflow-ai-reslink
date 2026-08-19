@@ -314,15 +314,19 @@
           </div>
         </div>
 
-        <!-- 2. CV Template Style & Export Studio -->
+        <!-- 2. Starter CV Template Download Hub -->
         <div class="glass-card" style="margin-bottom: 24px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
             <h2 style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-              <span>🎨</span> Choose CV Template Style
+              <span>📥</span> Download Starter CV Templates (Fill & Upload)
             </h2>
             <span id="active-template-badge" class="nav-badge" style="color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
               Modern Executive
             </span>
+          </div>
+
+          <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
+            Pick a template design below to download a clean, fillable starter CV. Open it in Word or Google Docs, fill in your details, and upload it in <strong>Step 1</strong> to activate <strong>Real-Time ATS Analytics</strong> & <strong>Auto-Apply</strong>.
           </div>
 
           <!-- 4 Clean Template Selection Buttons -->
@@ -364,18 +368,28 @@
             </button>
           </div>
 
-          <!-- Direct Download Action Bar with Clean Formatted Style Pill -->
+          <!-- Direct Starter Template Download Buttons -->
           <div class="download-action-row" style="display: flex; gap: 12px; margin-top: 16px;">
-            <button class="btn btn-emerald download-action-btn" id="btn-download-pdf">
-              <span>📥</span>
-              <span>Download PDF</span>
-              <span class="download-style-pill" id="lbl-pdf-template">Modern</span>
-            </button>
-            <button class="btn btn-secondary download-action-btn" id="btn-download-docx">
+            <button class="btn btn-secondary download-action-btn" id="btn-download-docx" style="flex: 1; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;">
               <span>📝</span>
-              <span>Download DOCX</span>
+              <span>Download Template (DOCX / Word)</span>
               <span class="download-style-pill" id="lbl-docx-template">Modern</span>
             </button>
+            <button class="btn btn-emerald download-action-btn" id="btn-download-pdf" style="flex: 1;">
+              <span>📄</span>
+              <span>Download Template (PDF)</span>
+              <span class="download-style-pill" id="lbl-pdf-template">Modern</span>
+            </button>
+          </div>
+
+          <!-- Live Preview & ResLink Bridge Bar -->
+          <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary" style="flex: 1; border-color: rgba(168, 85, 247, 0.4); color: #C084FC; font-weight: 700;" onclick="window.openTemplatePreviewModal()">
+              <span>👁️</span> Live Template Visual Preview
+            </button>
+            <a id="btn-link-to-reslink-preview" href="/reslink" target="_blank" class="btn btn-secondary" style="flex: 1; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+              <span>🚀</span> View in ResLink Studio ↗
+            </a>
           </div>
         </div>
 
@@ -568,6 +582,39 @@
           <div style="display: flex; gap: 8px;">
             <button class="btn btn-secondary" onclick="closeModal('modal-settings')">Cancel</button>
             <button class="btn btn-primary" id="btn-save-settings">💾 Save Preferences</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Live CV Template Preview Modal -->
+    <div class="modal-backdrop" id="modal-template-preview">
+      <div class="modal-dialog" style="max-width: 860px; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">🎨</span>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 800; margin: 0;" id="modal-preview-title">Modern Executive Template Preview</h3>
+              <div style="font-size: 12px; color: var(--text-dim);" id="modal-preview-subtitle">Tech & AI Signature Standard</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-template-preview')">✕</button>
+        </div>
+        <div class="modal-body" style="overflow-y: auto; padding: 20px; background: #0B0F19;">
+          <div id="modal-preview-sheet" style="background: #FFFFFF; color: #0F172A; border-radius: 8px; padding: 32px 36px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <!-- Dynamic Live Rendered Template Sheet -->
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="window.downloadSelectedStarterDocx()">📝 Download DOCX</button>
+            <button class="btn btn-emerald" onclick="window.downloadSelectedStarterPdf()">📄 Download PDF</button>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <a id="btn-modal-open-reslink" href="/reslink" target="_blank" class="btn btn-secondary" style="color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+              🚀 Open in ResLink Studio ↗
+            </a>
+            <button class="btn btn-secondary" onclick="closeModal('modal-template-preview')">Close</button>
           </div>
         </div>
       </div>

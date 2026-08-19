@@ -266,6 +266,36 @@ class TestCorporateEliteAIArchitect(unittest.TestCase):
             self.assertNotIn("lead professional", exp["role_title"].lower())
             self.assertNotIn("professional role", exp["role_title"].lower())
 
+    def test_09_starter_template_generation_all_4_styles(self):
+        """Verify that clean starter templates in DOCX and PDF generate cleanly across all 4 styles."""
+        templates = ["corporate_elite", "harvard_consulting", "tech_specialist", "modern"]
+        for tmpl in templates:
+            docx_out = str(OUTPUT_DIR / f"JobFlow_Starter_Template_{tmpl}.docx")
+            pdf_out = str(OUTPUT_DIR / f"JobFlow_Starter_Template_{tmpl}.pdf")
+
+            ResumeDocumentGenerator.generate_starter_template(tmpl, docx_out, format="docx")
+            ResumeDocumentGenerator.generate_starter_template(tmpl, pdf_out, format="pdf")
+
+            self.assertTrue(Path(docx_out).exists())
+            self.assertGreater(Path(docx_out).stat().st_size, 1000)
+
+            self.assertTrue(Path(pdf_out).exists())
+            self.assertGreater(Path(pdf_out).stat().st_size, 1000)
+
+    def test_10_download_starter_template_endpoints(self):
+        """Verify direct download of clean starter templates via FastAPI endpoints."""
+        from fastapi.testclient import TestClient
+        from server import app
+
+        client = TestClient(app)
+        res_docx = client.get("/api/v1/resume/download-docx?template_id=corporate_elite&mode=template")
+        self.assertEqual(res_docx.status_code, 200)
+        self.assertIn("JobFlow_Starter_Template", res_docx.headers.get("content-disposition", ""))
+
+        res_pdf = client.get("/api/v1/resume/download-pdf?template_id=corporate_elite&mode=template")
+        self.assertEqual(res_pdf.status_code, 200)
+        self.assertIn("JobFlow_Starter_Template", res_pdf.headers.get("content-disposition", ""))
+
 
 if __name__ == "__main__":
     unittest.main()

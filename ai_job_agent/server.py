@@ -841,14 +841,27 @@ async def get_templates():
     }
 
 
+@app.get("/api/v1/templates/download/pdf")
 @app.get("/api/v1/resume/download/pdf")
 @app.get("/api/v1/resume/download-pdf")
-async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = None):
+async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = None, mode: Optional[str] = None):
     global active_pdf_path, active_profile, active_job, active_match, active_resume_filename, active_template
     
     target_tmpl = template_id or active_template or "modern"
     safe_template_id = SecurityShield.sanitize_string(target_tmpl, "Template ID") or "modern"
     
+    # Check if user requested a clean starter CV template to fill out
+    if mode == "template" or not active_profile:
+        starter_filename = f"JobFlow_Starter_Template_{safe_template_id.replace('_', ' ').title().replace(' ', '_')}.pdf"
+        starter_path = OUTPUT_DIR / starter_filename
+        ResumeDocumentGenerator.generate_starter_template(safe_template_id, str(starter_path), format="pdf")
+        return FileResponse(
+            str(starter_path),
+            media_type="application/pdf",
+            filename=starter_filename,
+            headers={"Content-Disposition": f"attachment; filename={starter_filename}"}
+        )
+
     target_prof = active_profile
     target_filename = active_resume_filename
     
@@ -858,10 +871,6 @@ async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = 
             target_prof = u_prof
             target_filename = f"{u_prof.full_name.replace(' ', '_')}_Resume.pdf"
             
-    if not target_prof:
-        target_prof = ResumeParser.parse_text_to_profile(DEFAULT_RESUME_TEXT)
-        target_filename = "Candidate_Resume.pdf"
-        
     # Strictly export authentic user profile in selected template style without distortion
     _, out_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
         target_prof, "", "", original_filename=target_filename, template_id=safe_template_id
@@ -882,14 +891,27 @@ async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = 
     )
 
 
+@app.get("/api/v1/templates/download/docx")
 @app.get("/api/v1/resume/download/docx")
 @app.get("/api/v1/resume/download-docx")
-async def download_docx(template_id: Optional[str] = None, slug: Optional[str] = None):
+async def download_docx(template_id: Optional[str] = None, slug: Optional[str] = None, mode: Optional[str] = None):
     global active_docx_path, active_profile, active_job, active_match, active_resume_filename, active_template
     
     target_tmpl = template_id or active_template or "modern"
     safe_template_id = SecurityShield.sanitize_string(target_tmpl, "Template ID") or "modern"
     
+    # Check if user requested a clean starter CV template to fill out
+    if mode == "template" or not active_profile:
+        starter_filename = f"JobFlow_Starter_Template_{safe_template_id.replace('_', ' ').title().replace(' ', '_')}.docx"
+        starter_path = OUTPUT_DIR / starter_filename
+        ResumeDocumentGenerator.generate_starter_template(safe_template_id, str(starter_path), format="docx")
+        return FileResponse(
+            str(starter_path),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            filename=starter_filename,
+            headers={"Content-Disposition": f"attachment; filename={starter_filename}"}
+        )
+
     target_prof = active_profile
     target_filename = active_resume_filename
     
@@ -899,10 +921,6 @@ async def download_docx(template_id: Optional[str] = None, slug: Optional[str] =
             target_prof = u_prof
             target_filename = f"{u_prof.full_name.replace(' ', '_')}_Resume.docx"
 
-    if not target_prof:
-        target_prof = ResumeParser.parse_text_to_profile(DEFAULT_RESUME_TEXT)
-        target_filename = "Candidate_Resume.docx"
-        
     # Strictly export authentic user profile in selected template style without distortion
     out_docx_path, _ = ResumeDocumentGenerator.export_tailored_documents(
         target_prof, "", "", original_filename=target_filename, template_id=safe_template_id

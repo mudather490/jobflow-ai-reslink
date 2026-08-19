@@ -691,3 +691,155 @@ class ResumeDocumentGenerator:
         cls.generate_pdf(profile, pdf_path, template_id=template_id)
 
         return docx_path, pdf_path
+
+    @classmethod
+    def get_starter_profile(cls, template_id: str = "modern") -> UserProfile:
+        """
+        Returns a clean, beautifully formatted starter profile with clear XYZ bullet guidance
+        for candidates to download, edit, and upload.
+        """
+        from core.resume_parser import ContactInfo, Project, WorkExperience, Education, Certification
+
+        if template_id == "corporate_elite":
+            name = "[YOUR FULL NAME]"
+            headline = "Executive AI Architect & Senior Engineering Leader"
+            summary = "Strategic, results-oriented AI Engineering Leader with extensive experience architecting production-grade machine learning pipelines, distributed backend microservices, and autonomous multi-agent systems delivering measurable enterprise impact."
+            skills = {
+                "Programming & Core Tools": ["Python", "SQL", "Linux/Bash", "Git", "GitHub", "C++", "TypeScript"],
+                "Machine Learning & Statistics": ["Scikit-learn", "Supervised/Unsupervised Learning", "Regression", "Classification", "Decision Trees", "Feature Engineering", "Evaluation Metrics (MSE, R2, ROC-AUC, F1-Score)"],
+                "Deep Learning & Neural Networks": ["Neural Networks", "PyTorch", "TensorFlow", "CNNs", "Transformers", "Attention Mechanisms"],
+                "AI Engineering & LLM Systems": ["LLM APIs", "AI Agents", "Prompt Engineering", "Retrieval-Augmented Generation (RAG)", "Vector Databases"],
+                "Backend, Cloud & Databases": ["FastAPI", "REST APIs", "Supabase (PostgreSQL)", "Docker", "Vercel", "Redis"],
+                "Data & Math": ["NumPy", "Pandas", "Matplotlib", "Linear Algebra", "Calculus", "Probability & Statistics"]
+            }
+        elif template_id == "harvard_consulting":
+            name = "[YOUR FULL NAME]"
+            headline = "Management Consultant & Strategy Analyst"
+            summary = "High-impact Management Consultant specializing in quantitative business analytics, enterprise digital transformation, and executive strategy. Proven track record driving operational efficiency and multi-million-dollar growth for global clients."
+            skills = {
+                "Programming & Core Tools": ["Python", "SQL", "Advanced Excel / VBA", "Power BI", "Git"],
+                "Machine Learning & Statistics": ["Predictive Analytics", "Hypothesis Testing", "Regression Analysis", "Econometrics", "Time Series"],
+                "Deep Learning & Neural Networks": ["Deep Learning Foundations", "Natural Language Processing", "Automated Insights"],
+                "AI Engineering & LLM Systems": ["Executive AI Strategy", "Generative AI Integration", "Process Automation Agents"],
+                "Backend, Cloud & Databases": ["Cloud Analytics", "PostgreSQL", "Data Warehousing", "Tableau Server"],
+                "Data & Math": ["Financial Modeling", "Valuation", "Cost Optimization", "Decision Science"]
+            }
+        elif template_id == "tech_specialist":
+            name = "[YOUR FULL NAME]"
+            headline = "Senior AI & Cloud Systems Engineer"
+            summary = "Hands-on AI & Cloud Systems Engineer building resilient distributed microservices, GPU-accelerated machine learning pipelines, and autonomous AI agents. Passionate about open-source engineering and low-latency system design."
+            skills = {
+                "Programming & Core Tools": ["Python", "Rust", "Go", "C++", "Linux", "Git", "GitHub Actions"],
+                "Machine Learning & Statistics": ["PyTorch", "TensorFlow", "CUDA", "Distributed Training", "MLOps"],
+                "Deep Learning & Neural Networks": ["Transformers", "Diffusion Models", "Vision Transformers", "LLM Fine-Tuning"],
+                "AI Engineering & LLM Systems": ["LangChain", "LlamaIndex", "Vector Search", "ChromaDB", "vLLM Inference"],
+                "Backend, Cloud & Databases": ["FastAPI", "gRPC", "Docker", "Kubernetes", "Redis", "PostgreSQL", "AWS"],
+                "Data & Math": ["NumPy", "Pandas", "Linear Algebra", "Matrix Decompositions", "High-Performance Compute"]
+            }
+        else: # modern
+            name = "[YOUR FULL NAME]"
+            headline = "AI Engineer & Full-Stack Developer"
+            summary = "Versatile AI Engineer & Full-Stack Developer experienced in building end-to-end intelligent web platforms, scalable REST APIs, and production LLM integrations with modern user experiences."
+            skills = {
+                "Programming & Core Tools": ["Python", "JavaScript", "TypeScript", "SQL", "Git", "GitHub"],
+                "Machine Learning & Statistics": ["Scikit-learn", "Regression", "Classification", "Clustering", "Model Evaluation"],
+                "Deep Learning & Neural Networks": ["PyTorch", "TensorFlow", "Neural Networks", "Computer Vision", "NLP"],
+                "AI Engineering & LLM Systems": ["LLM APIs", "AI Agents", "Prompt Engineering", "RAG Systems", "Vector Embeddings"],
+                "Backend, Cloud & Databases": ["FastAPI", "Node.js", "Supabase", "PostgreSQL", "Docker", "Vercel"],
+                "Data & Math": ["NumPy", "Pandas", "Matplotlib", "Data Visualization", "Applied Statistics"]
+            }
+
+        flat_skills = [s for sub in skills.values() for s in sub]
+
+        contact = ContactInfo(
+            email="your.email@example.com",
+            phone="+1 (555) 012-3456",
+            location="City, State / Worldwide Remote",
+            linkedin="https://linkedin.com/in/yourprofile",
+            github="https://github.com/yourhandle"
+        )
+
+        projects = [
+            Project(
+                name="Autonomous Multi-Agent Orchestrator",
+                subtitle="Distributed AI Workflow Pipeline",
+                technologies=["Python", "FastAPI", "PyTorch", "Redis", "Docker"],
+                repository="https://github.com/yourhandle/autonomous-ai-agent",
+                bullets=[
+                    "Accomplished sub-second execution latency, as measured by 10,000+ simulated jobs daily, by designing async event-driven queues.",
+                    "Engineered custom memory cache with Redis, cutting RAM consumption by 45% across containerized workers."
+                ]
+            ),
+            Project(
+                name="Enterprise Semantic Search & RAG Engine",
+                subtitle="High-Precision Retrieval System",
+                technologies=["Python", "LangChain", "ChromaDB", "FastAPI", "OpenAI API"],
+                repository="https://github.com/yourhandle/semantic-search-rag",
+                bullets=[
+                    "Indexed 500,000+ domain documents with sub-100ms vector lookup, improving factual answering accuracy to 94%.",
+                    "Integrated cross-encoder reranking algorithms, eliminating hallucinations across multi-turn reasoning queries."
+                ]
+            )
+        ]
+
+        experience = [
+            WorkExperience(
+                company="Global Enterprise Technologies",
+                role="Senior AI Engineer",
+                duration="2021 – Present",
+                location="San Francisco, CA / Remote",
+                subtitle="Core Machine Learning & Infrastructure Squad",
+                bullets=[
+                    "Spearheaded enterprise AI agent deployment across 12 services, reducing operational cycle time by 60%.",
+                    "Architected high-throughput data processing pipelines handling 50M+ requests monthly with 99.9% uptime.",
+                    "Mentored junior engineers and instituted automated testing and linting standards across the codebase."
+                ]
+            )
+        ]
+
+        certifications = [
+            Certification(
+                name="Deep Learning Specialization",
+                issuer="DeepLearning.AI",
+                status="Completed",
+                details="Neural Networks, CNNs, Sequence Models, and Hyperparameter Optimization."
+            ),
+            Certification(
+                name="AWS Certified Solutions Architect",
+                issuer="Amazon Web Services",
+                status="Completed",
+                details="Cloud Architecture, High-Availability Infrastructure, and Serverless Systems."
+            )
+        ]
+
+        education = [
+            Education(
+                institution="University / Institute of Technology",
+                degree="Bachelor of Science in Computer Science / Engineering",
+                year="2017 – 2021",
+                details="Graduated with Honors. Core coursework: Distributed Systems, Algorithms, Machine Learning, Operating Systems."
+            )
+        ]
+
+        return UserProfile(
+            full_name=name,
+            headline=headline,
+            contact=contact,
+            summary=summary,
+            skills=flat_skills,
+            categorized_skills=skills,
+            projects=projects,
+            experience=experience,
+            certifications=certifications,
+            education=education
+        )
+
+    @classmethod
+    def generate_starter_template(cls, template_id: str, output_path: str, format: str = "docx") -> str:
+        """
+        Generates a clean starter template in DOCX or PDF format for the specified design style.
+        """
+        starter_prof = cls.get_starter_profile(template_id=template_id)
+        if format.lower() == "pdf":
+            return cls.generate_pdf(starter_prof, output_path, template_id=template_id)
+        return cls.generate_docx(starter_prof, output_path, template_id=template_id)
