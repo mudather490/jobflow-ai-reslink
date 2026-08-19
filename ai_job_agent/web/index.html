@@ -314,28 +314,28 @@
           </div>
         </div>
 
-        <!-- 2. Starter CV Template Download Hub -->
+        <!-- 2. Clean Starter CV Template Download Hub -->
         <div class="glass-card" style="margin-bottom: 24px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-            <h2 style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-              <span>📥</span> Download Starter CV Templates (Fill & Upload)
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <h2 style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <span>📥</span> Download Editable CV Templates (.docx / Word)
             </h2>
-            <span id="active-template-badge" class="nav-badge" style="color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">
-              Modern Executive
+            <span id="active-template-badge" class="nav-badge" style="color: #D4AF37; border-color: rgba(212, 175, 55, 0.4); font-weight: 700;">
+              Corporate Elite
             </span>
           </div>
 
           <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
-            Pick a template design below to download a clean, fillable starter CV. Open it in Word or Google Docs, fill in your details, and upload it in <strong>Step 1</strong> to activate <strong>Real-Time ATS Analytics</strong> & <strong>Auto-Apply</strong>.
+            Select an industry standard design below and download the clean, editable Word template. Open it in Microsoft Word or Google Docs, add your authentic experience, and upload it in <strong>Step 1</strong> to run Real-Time ATS Analytics.
           </div>
 
-          <!-- 4 Clean Template Selection Buttons -->
+          <!-- 4 Official Style Selection Cards -->
           <div class="template-selector-grid" id="templates-container">
-            <button type="button" class="template-btn active" id="btn-tmpl-modern" data-template-id="modern" onclick="window.selectTemplate('modern')">
-              <span class="tmpl-dot" style="background: #2563EB; box-shadow: 0 0 10px #2563EB;"></span>
+            <button type="button" class="template-btn active" id="btn-tmpl-corporate_elite" data-template-id="corporate_elite" onclick="window.selectTemplate('corporate_elite')">
+              <span class="tmpl-dot" style="background: #D4AF37; box-shadow: 0 0 10px #D4AF37;"></span>
               <div class="tmpl-info">
-                <span class="tmpl-label">Modern Executive</span>
-                <span class="tmpl-sub">Tech & AI (Signature)</span>
+                <span class="tmpl-label">Corporate Elite</span>
+                <span class="tmpl-sub">Fortune 500 & Executive Standard</span>
               </div>
               <span class="tmpl-check">✓</span>
             </button>
@@ -344,16 +344,7 @@
               <span class="tmpl-dot" style="background: #0F2A47; border: 1px solid #38BDF8; box-shadow: 0 0 10px #38BDF8;"></span>
               <div class="tmpl-info">
                 <span class="tmpl-label">Harvard Consulting</span>
-                <span class="tmpl-sub">MBB & Strategy Standard</span>
-              </div>
-              <span class="tmpl-check">✓</span>
-            </button>
-
-            <button type="button" class="template-btn" id="btn-tmpl-corporate_elite" data-template-id="corporate_elite" onclick="window.selectTemplate('corporate_elite')">
-              <span class="tmpl-dot" style="background: #D4AF37; box-shadow: 0 0 10px #D4AF37;"></span>
-              <div class="tmpl-info">
-                <span class="tmpl-label">Corporate Elite</span>
-                <span class="tmpl-sub">Leadership & Gold Accent</span>
+                <span class="tmpl-sub">Official MBB & Strategy Ivy League</span>
               </div>
               <span class="tmpl-check">✓</span>
             </button>
@@ -362,34 +353,27 @@
               <span class="tmpl-dot" style="background: #7C3AED; box-shadow: 0 0 10px #A855F7;"></span>
               <div class="tmpl-info">
                 <span class="tmpl-label">Tech Specialist</span>
-                <span class="tmpl-sub">Silicon Valley & Cloud</span>
+                <span class="tmpl-sub">Silicon Valley & AI Engineering</span>
+              </div>
+              <span class="tmpl-check">✓</span>
+            </button>
+
+            <button type="button" class="template-btn" id="btn-tmpl-modern" data-template-id="modern" onclick="window.selectTemplate('modern')">
+              <span class="tmpl-dot" style="background: #2563EB; box-shadow: 0 0 10px #2563EB;"></span>
+              <div class="tmpl-info">
+                <span class="tmpl-label">Modern Executive</span>
+                <span class="tmpl-sub">Contemporary Tech & Product</span>
               </div>
               <span class="tmpl-check">✓</span>
             </button>
           </div>
 
-          <!-- Direct Starter Template Download Buttons -->
-          <div class="download-action-row" style="display: flex; gap: 12px; margin-top: 16px;">
-            <button class="btn btn-secondary download-action-btn" id="btn-download-docx" style="flex: 1; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;">
-              <span>📝</span>
-              <span>Download Template (DOCX / Word)</span>
-              <span class="download-style-pill" id="lbl-docx-template">Modern</span>
+          <!-- Single One-Click Word Template Download Action -->
+          <div style="margin-top: 14px;">
+            <button class="btn btn-emerald" id="btn-download-docx" style="width: 100%; padding: 13px; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
+              <span style="font-size: 18px;">📝</span>
+              <span>Download Editable Template (<span id="lbl-docx-template">Corporate Elite</span> .docx)</span>
             </button>
-            <button class="btn btn-emerald download-action-btn" id="btn-download-pdf" style="flex: 1;">
-              <span>📄</span>
-              <span>Download Template (PDF)</span>
-              <span class="download-style-pill" id="lbl-pdf-template">Modern</span>
-            </button>
-          </div>
-
-          <!-- Live Preview & ResLink Bridge Bar -->
-          <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-secondary" style="flex: 1; border-color: rgba(168, 85, 247, 0.4); color: #C084FC; font-weight: 700;" onclick="window.openTemplatePreviewModal()">
-              <span>👁️</span> Live Template Visual Preview
-            </button>
-            <a id="btn-link-to-reslink-preview" href="/reslink" target="_blank" class="btn btn-secondary" style="flex: 1; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-              <span>🚀</span> View in ResLink Studio ↗
-            </a>
           </div>
         </div>
 
@@ -587,38 +571,6 @@
       </div>
     </div>
 
-    <!-- Interactive Live CV Template Preview Modal -->
-    <div class="modal-backdrop" id="modal-template-preview">
-      <div class="modal-dialog" style="max-width: 860px; max-height: 90vh; display: flex; flex-direction: column;">
-        <div class="modal-header">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">🎨</span>
-            <div>
-              <h3 style="font-size: 16px; font-weight: 800; margin: 0;" id="modal-preview-title">Modern Executive Template Preview</h3>
-              <div style="font-size: 12px; color: var(--text-dim);" id="modal-preview-subtitle">Tech & AI Signature Standard</div>
-            </div>
-          </div>
-          <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-template-preview')">✕</button>
-        </div>
-        <div class="modal-body" style="overflow-y: auto; padding: 20px; background: #0B0F19;">
-          <div id="modal-preview-sheet" style="background: #FFFFFF; color: #0F172A; border-radius: 8px; padding: 32px 36px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-            <!-- Dynamic Live Rendered Template Sheet -->
-          </div>
-        </div>
-        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary" onclick="window.downloadSelectedStarterDocx()">📝 Download DOCX</button>
-            <button class="btn btn-emerald" onclick="window.downloadSelectedStarterPdf()">📄 Download PDF</button>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <a id="btn-modal-open-reslink" href="/reslink" target="_blank" class="btn btn-secondary" style="color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-              🚀 Open in ResLink Studio ↗
-            </a>
-            <button class="btn btn-secondary" onclick="closeModal('modal-template-preview')">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Autonomous Easy Apply Modal -->
     <div class="modal-backdrop" id="modal-auto-apply">

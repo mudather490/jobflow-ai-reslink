@@ -94,28 +94,15 @@ const templateShortNames = {
   corporate_elite: 'Minimal'
 };
 
-window.selectedTemplateId = localStorage.getItem('selected_resume_template') || 'modern';
+window.selectedTemplateId = localStorage.getItem('selected_resume_template') || 'corporate_elite';
 
 window.selectTemplate = function(templateId) {
-  const normId = (templateId === 'harvard_consulting' ? 'harvard' : (templateId === 'tech_specialist' ? 'tech' : (templateId === 'corporate_elite' ? 'minimal' : templateId))) || 'modern';
+  const normId = (templateId === 'harvard_consulting' ? 'harvard' : (templateId === 'tech_specialist' ? 'tech' : (templateId === 'corporate_elite' ? 'corporate_elite' : templateId))) || 'corporate_elite';
   
-  const currentTier = (localStorage.getItem('user_subscription_tier') || 'free').toLowerCase();
-  let user = null;
-  try { user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null'); } catch(e) {}
-  const isOwner = (currentTier === 'owner' || (user && user.email && user.email.toLowerCase() === 'mudatherkbyer@gmail.com'));
-
-  if (!isOwner && (currentTier === 'free' || currentTier === 'starter')) {
-    if (normId !== 'modern') {
-      showToast("🔒 Premium Template: Upgrade to Pro or Executive to unlock all ATS templates!");
-      openModal('modal-pricing');
-      return;
-    }
-  }
-
   window.selectedTemplateId = templateId || normId;
   localStorage.setItem('selected_resume_template', templateId || normId);
 
-  // Sync with server and ResLink profile
+  // Sync with server
   try {
     fetch('/api/v1/templates/active', {
       method: 'POST',
@@ -137,18 +124,28 @@ window.selectTemplate = function(templateId) {
     }
   });
 
-  // Update active badge label
+  // Update active badge label and color
   const badge = document.getElementById('active-template-badge');
   if (badge) {
-    badge.innerText = templateNames[templateId] || templateNames[normId] || 'Modern Executive';
+    badge.innerText = templateNames[templateId] || templateNames[normId] || 'Corporate Elite';
+    if (templateId === 'corporate_elite') {
+      badge.style.color = '#D4AF37';
+      badge.style.borderColor = 'rgba(212, 175, 55, 0.4)';
+    } else if (templateId === 'harvard_consulting') {
+      badge.style.color = '#38BDF8';
+      badge.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+    } else if (templateId === 'tech_specialist') {
+      badge.style.color = '#A855F7';
+      badge.style.borderColor = 'rgba(168, 85, 247, 0.4)';
+    } else {
+      badge.style.color = '#2563EB';
+      badge.style.borderColor = 'rgba(37, 99, 235, 0.4)';
+    }
   }
 
-  // Update download button label indicators
-  const pdfLbl = document.getElementById('lbl-pdf-template');
-  if (pdfLbl) pdfLbl.innerText = templateShortNames[templateId] || templateShortNames[normId] || 'Modern';
-
+  // Update download button label
   const docxLbl = document.getElementById('lbl-docx-template');
-  if (docxLbl) docxLbl.innerText = templateShortNames[templateId] || templateShortNames[normId] || 'Modern';
+  if (docxLbl) docxLbl.innerText = templateShortNames[templateId] || templateShortNames[normId] || 'Corporate Elite';
 };
 
 // Modal Controls
@@ -161,208 +158,6 @@ function closeModal(id) {
   const modal = document.getElementById(id);
   if (modal) modal.classList.remove('active');
 }
-
-window.openTemplatePreviewModal = function() {
-  const currentTmpl = window.selectedTemplateId || 'modern';
-  window.renderTemplatePreviewSheet(currentTmpl);
-  openModal('modal-template-preview');
-};
-
-window.downloadSelectedStarterDocx = function() {
-  const tmpl = window.selectedTemplateId || 'modern';
-  window.open(`/api/v1/resume/download-docx?template_id=${encodeURIComponent(tmpl)}&mode=template&t=${Date.now()}`, '_blank');
-};
-
-window.downloadSelectedStarterPdf = function() {
-  const tmpl = window.selectedTemplateId || 'modern';
-  window.open(`/api/v1/resume/download-pdf?template_id=${encodeURIComponent(tmpl)}&mode=template&t=${Date.now()}`, '_blank');
-};
-
-window.renderTemplatePreviewSheet = function(templateId) {
-  const sheet = document.getElementById('modal-preview-sheet');
-  const titleEl = document.getElementById('modal-preview-title');
-  const subEl = document.getElementById('modal-preview-subtitle');
-  if (!sheet) return;
-
-  const tmpl = templateId || window.selectedTemplateId || 'modern';
-  const name = templateNames[tmpl] || 'Modern Executive';
-  if (titleEl) titleEl.innerText = `${name} Visual Template Preview`;
-  if (subEl) subEl.innerText = `Full ATS Style Structure • ${templateShortNames[tmpl] || 'Standard'}`;
-
-  // Theme palettes and styles
-  let prim = '#2563EB';
-  let sec = '#1D4ED8';
-  let fontFam = "Helvetica, Arial, sans-serif";
-  let isCentered = false;
-
-  if (tmpl === 'corporate_elite') {
-    prim = '#1A3A5C';
-    sec = '#D4AF37';
-  } else if (tmpl === 'harvard_consulting') {
-    prim = '#0F2A47';
-    sec = '#111827';
-    fontFam = "'Times New Roman', Times, serif";
-    isCentered = true;
-  } else if (tmpl === 'tech_specialist') {
-    prim = '#7C3AED';
-    sec = '#0284C7';
-  }
-
-  // Profile data (use currentProfile if available, else starter data)
-  const p = currentProfile || {
-    full_name: "ALEXANDER RIVERA",
-    headline: "Senior AI Engineer & Distributed Systems Specialist",
-    contact: {
-      email: "alex.rivera@example.com",
-      phone: "+1 (555) 012-3456",
-      location: "San Francisco, CA / Worldwide Remote",
-      linkedin: "https://linkedin.com/in/alex-rivera",
-      github: "https://github.com/alexrivera"
-    },
-    summary: "Strategic, high-impact AI Engineer with 6+ years of experience architecting distributed multi-agent systems, low-latency LLM inference pipelines, and enterprise machine learning infrastructure.",
-    skills: ["Python", "PyTorch", "FastAPI", "Docker", "SQL", "Scikit-learn", "LLM APIs", "Redis", "Supabase", "Git"],
-    categorized_skills: {
-      "Programming & Core Tools": ["Python", "SQL", "Linux/Bash", "Git", "GitHub", "C++", "TypeScript"],
-      "Machine Learning & Statistics": ["Scikit-learn", "Regression", "Classification", "Decision Trees", "Feature Engineering"],
-      "Deep Learning & Neural Networks": ["Neural Networks", "PyTorch", "TensorFlow", "CNNs", "Transformers"],
-      "AI Engineering & LLM Systems": ["LLM APIs", "AI Agents", "Prompt Engineering", "RAG Systems", "Vector Databases"],
-      "Backend, Cloud & Databases": ["FastAPI", "REST APIs", "Supabase (PostgreSQL)", "Docker", "Redis"],
-      "Data & Math": ["NumPy", "Pandas", "Matplotlib", "Linear Algebra", "Calculus"]
-    },
-    projects: [
-      {
-        name: "Autonomous Multi-Agent JobFlow Orchestrator",
-        technologies: ["Python", "FastAPI", "PyTorch", "Redis", "Docker"],
-        repository: "https://github.com/alexrivera/jobflow-orchestrator",
-        bullets: [
-          "Accomplished sub-second execution latency across 10,000+ daily workflows by architecting async event queues.",
-          "Optimized RAM consumption by 45% using in-memory Redis caching for distributed agents."
-        ]
-      }
-    ],
-    experience: [
-      {
-        role: "Senior AI Engineer",
-        company: "Global Tech Innovations",
-        duration: "2021 – Present",
-        location: "San Francisco, CA",
-        bullets: [
-          "Spearheaded enterprise AI infrastructure deployment across 12 microservices, reducing query latency by 40%.",
-          "Engineered high-throughput ML pipelines processing 50M+ requests monthly with 99.9% uptime."
-        ]
-      }
-    ],
-    certifications: [
-      { name: "Deep Learning Specialization", issuer: "DeepLearning.AI", status: "Completed" }
-    ],
-    education: [
-      { institution: "University of California, Berkeley", degree: "B.S. in Computer Science", year: "2017 – 2021" }
-    ]
-  };
-
-  const candName = p.full_name || "ALEXANDER RIVERA";
-  const candHead = p.headline || p.target_role || "Senior AI Engineer";
-  const contacts = [];
-  if (p.contact?.email) contacts.push(p.contact.email);
-  if (p.contact?.phone) contacts.push(p.contact.phone);
-  if (p.contact?.location) contacts.push(p.contact.location);
-  if (p.contact?.linkedin) contacts.push(`LinkedIn: ${p.contact.linkedin}`);
-  if (p.contact?.github) contacts.push(`GitHub: ${p.contact.github}`);
-
-  let headerHtml = '';
-  if (isCentered) {
-    headerHtml = `
-      <div style="text-align: center; margin-bottom: 18px; border-bottom: 2px solid ${prim}; padding-bottom: 12px;">
-        <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: ${prim}; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(candName)}</h1>
-        <div style="font-size: 13px; font-weight: 700; color: #475569; margin: 3px 0 6px 0;">${escapeHtml(candHead)}</div>
-        <div style="font-size: 11.5px; color: #64748B;">${contacts.map(c => escapeHtml(c)).join(' • ')}</div>
-      </div>
-    `;
-  } else {
-    headerHtml = `
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 2.5px solid ${prim}; padding-bottom: 12px;">
-        <div>
-          <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: ${prim}; letter-spacing: -0.5px;">${escapeHtml(candName)}</h1>
-          <div style="font-size: 14px; font-weight: 700; color: ${sec}; margin-top: 3px;">${escapeHtml(candHead)}</div>
-        </div>
-        <div style="text-align: right; font-size: 11.5px; color: #475569; line-height: 1.4;">
-          ${contacts.map(c => `<div>${escapeHtml(c)}</div>`).join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  // Skills
-  let skillsHtml = '';
-  const cats = p.categorized_skills || {};
-  for (const [cat, sks] of Object.entries(cats)) {
-    if (sks && sks.length > 0) {
-      skillsHtml += `<div style="font-size: 12.5px; margin-bottom: 4px; color: #334155;"><strong style="color: ${prim};">${escapeHtml(cat)}:</strong> ${escapeHtml(sks.join(', '))}</div>`;
-    }
-  }
-
-  sheet.style.fontFamily = fontFam;
-  sheet.innerHTML = `
-    ${headerHtml}
-    
-    <!-- Summary -->
-    <div style="margin-bottom: 16px;">
-      <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 3px; margin: 0 0 6px 0; letter-spacing: 0.5px;">Executive Summary</h3>
-      <p style="font-size: 12.5px; line-height: 1.5; color: #334155; margin: 0;">${escapeHtml(p.summary || '')}</p>
-    </div>
-
-    <!-- Skills -->
-    <div style="margin-bottom: 16px;">
-      <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 3px; margin: 0 0 6px 0; letter-spacing: 0.5px;">Technical Skills & Core Competencies</h3>
-      ${skillsHtml}
-    </div>
-
-    <!-- Projects -->
-    <div style="margin-bottom: 16px;">
-      <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 3px; margin: 0 0 6px 0; letter-spacing: 0.5px;">Practical & Open-Source Projects</h3>
-      ${(p.projects || []).map(proj => `
-        <div style="margin-bottom: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong style="font-size: 13px; color: #0F172A;">${escapeHtml(proj.name)}</strong>
-            ${proj.repository ? `<a href="${sanitizeUrl(proj.repository)}" target="_blank" style="font-size: 11.5px; color: ${prim}; text-decoration: none; font-weight: 700;">🔗 Code Repo ↗</a>` : ''}
-          </div>
-          ${proj.technologies && proj.technologies.length > 0 ? `<div style="font-size: 11px; color: ${sec}; font-weight: 700; margin: 2px 0;">Tech: ${escapeHtml(proj.technologies.join(', '))}</div>` : ''}
-          <ul style="margin: 4px 0 0 16px; padding: 0; font-size: 12px; line-height: 1.45; color: #334155;">
-            ${(proj.bullets || []).map(b => `<li>${escapeHtml(b)}</li>`).join('')}
-          </ul>
-        </div>
-      `).join('')}
-    </div>
-
-    <!-- Experience -->
-    <div style="margin-bottom: 16px;">
-      <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 3px; margin: 0 0 6px 0; letter-spacing: 0.5px;">Professional Experience</h3>
-      ${(p.experience || []).map(exp => `
-        <div style="margin-bottom: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div><strong style="font-size: 13px; color: #0F172A;">${escapeHtml(exp.role || "Software Engineer")}</strong> <span style="color: #64748B;">— ${escapeHtml(exp.company || "Enterprise")}</span></div>
-            <div style="font-size: 11.5px; color: #64748B; font-weight: 600;">${escapeHtml(exp.duration || "Recent")}</div>
-          </div>
-          <ul style="margin: 4px 0 0 16px; padding: 0; font-size: 12px; line-height: 1.45; color: #334155;">
-            ${(exp.bullets || []).map(b => `<li>${escapeHtml(b)}</li>`).join('')}
-          </ul>
-        </div>
-      `).join('')}
-    </div>
-
-    <!-- Education & Certifications -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-      <div>
-        <h3 style="font-size: 12.5px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 3px; margin: 0 0 6px 0;">Certifications</h3>
-        ${(p.certifications || []).map(c => `<div style="font-size: 12px; margin-bottom: 3px; color: #334155;"><strong>${escapeHtml(c.name)}</strong> — ${escapeHtml(c.issuer || "Accredited")}</div>`).join('')}
-      </div>
-      <div>
-        <h3 style="font-size: 12.5px; font-weight: 800; text-transform: uppercase; color: ${prim}; border-bottom: 1px solid #E2E8F0; padding-bottom: 3px; margin: 0 0 6px 0;">Education</h3>
-        ${(p.education || []).map(edu => `<div style="font-size: 12px; margin-bottom: 3px; color: #334155;"><strong>${escapeHtml(edu.institution)}</strong> (${escapeHtml(edu.degree)})</div>`).join('')}
-      </div>
-    </div>
-  `;
-};
 
 // Attach Modal Listeners
 document.getElementById('btn-pricing-modal')?.addEventListener('click', () => openModal('modal-pricing'));
@@ -924,16 +719,11 @@ document.getElementById('btn-submit-gap-answers')?.addEventListener('click', asy
   }
 });
 
-// Step 5: Starter Template Downloads (DOCX & PDF)
-document.getElementById('btn-download-pdf')?.addEventListener('click', (e) => {
-  e.preventDefault();
-  const tmpl = window.selectedTemplateId || 'modern';
-  window.open(`/api/v1/resume/download-pdf?template_id=${encodeURIComponent(tmpl)}&mode=template&t=${Date.now()}`, '_blank');
-});
-
+// Step 5: Starter CV Template Download Machine (DOCX / Word)
 document.getElementById('btn-download-docx')?.addEventListener('click', (e) => {
   e.preventDefault();
-  const tmpl = window.selectedTemplateId || 'modern';
+  const tmpl = window.selectedTemplateId || 'corporate_elite';
+  showToast(`📥 Downloading ${templateNames[tmpl] || 'Corporate Elite'} Editable Word Template...`);
   window.open(`/api/v1/resume/download-docx?template_id=${encodeURIComponent(tmpl)}&mode=template&t=${Date.now()}`, '_blank');
 });
 
