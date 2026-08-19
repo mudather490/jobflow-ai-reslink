@@ -1218,7 +1218,8 @@
       // Update Download PDF CTA button URL
       const downloadBtn = document.getElementById('btn-download-pdf-cta');
       if (downloadBtn) {
-        downloadBtn.href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(tmplId)}`;
+        const slug = reslinkProfile?.slug || '';
+        downloadBtn.href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(tmplId)}${slug ? `&slug=${encodeURIComponent(slug)}` : ''}`;
       }
 
       // Re-render ATS canvas

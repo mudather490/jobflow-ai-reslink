@@ -92,7 +92,7 @@ BLOCKED_PATHS = {
 }
 
 MAX_BODY_SIZE = 10 * 1024 * 1024  # 10MB
-FILE_UPLOAD_PATHS = {"/api/v1/resume/upload", "/api/v1/reslink/video/upload"}
+FILE_UPLOAD_PATHS = {"/api/v1/resume/upload", "/api/v1/reslink/resume/upload", "/api/v1/reslink/video/upload"}
 
 @app.middleware("http")
 async def csrf_ssrf_backdoor_middleware(request: Request, call_next):
@@ -346,6 +346,74 @@ async def upload_resume(file: UploadFile = File(...), user_email: Optional[str] 
         "profile": active_profile.model_dump(),
         "match_report": active_match.model_dump() if active_match else None,
     }
+
+
+@app.post("/api/v1/reslink/resume/upload")
+async def upload_reslink_resume(
+    file: UploadFile = File(...),
+    slug: Optional[str] = Form(None),
+    user_email: Optional[str] = Form(None)
+):
+    """
+    Dedicated ResLink Resume Vault Upload Endpoint:
+    Allows candidates to upload their authentic, externally created official resume
+    specifically for their ResLink Video Pitch & Recruiter Profile (/p/{slug})
+    without modifying or cross-contaminating the Dashboard's active tailored job session.
+    """
+    from core.supabase_client import SupabaseManager
+
+    content = await file.read()
+    SecurityShield.validate_resume_upload(file.filename, content, max_size_mb=15)
+
+    # Save to data directory
+    save_path = SecurityShield.sanitize_filepath(file.filename, DATA_DIR)
+    ext = save_path.suffix.lower()
+    if ext not in [".docx", ".pdf", ".txt", ".md"]:
+        raise HTTPException(status_code=400, detail="Unsupported file format. Please upload .docx, .pdf, or .txt")
+
+    with open(save_path, "wb") as buffer:
+        buffer.write(content)
+
+    size_kb = round(save_path.stat().st_size / 1024, 1)
+    filename_val = save_path.name
+    filesize_val = f"{size_kb} KB"
+
+    try:
+        parsed_profile = ResumeParser.parse_file(str(save_path))
+        
+        # Sync ResLink profile 100% with this authentic uploaded CV
+        reslink_profile = ResLinkManager.sync_with_user_profile(
+            parsed_profile,
+            filename=filename_val,
+            filesize=filesize_val,
+            save_user_cache=True
+        )
+
+        # Generate initial PDF preview for this candidate's chosen template
+        chosen_tmpl = reslink_profile.selected_cv_template or "corporate_elite"
+        clean_name = re.sub(r'[^\w\-]', '', parsed_profile.full_name.replace(' ', '_')).strip('_') or 'Candidate'
+        pdf_out_path = OUTPUT_DIR / f"{clean_name}_ResLink_Resume_{chosen_tmpl}.pdf"
+        ResumeDocumentGenerator.generate_pdf(parsed_profile, str(pdf_out_path), template_id=chosen_tmpl)
+
+        # Save to Supabase if email available
+        target_email = user_email or (parsed_profile.contact.email if parsed_profile.contact else None)
+        if target_email:
+            try:
+                SupabaseManager.save_user_profile(target_email, parsed_profile.model_dump(), filename=filename_val)
+            except Exception:
+                pass
+
+        return {
+            "status": "success",
+            "message": f"Authentic CV '{filename_val}' attached to ResLink Studio!",
+            "filename": filename_val,
+            "filesize": filesize_val,
+            "profile": parsed_profile.model_dump(),
+            "reslink_profile": reslink_profile.model_dump(),
+        }
+    except Exception as e:
+        print(f"Failed to parse ResLink resume: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to parse resume.")
 
 
 class SkillRequest(BaseModel):
@@ -766,27 +834,37 @@ async def get_templates():
 
 @app.get("/api/v1/resume/download/pdf")
 @app.get("/api/v1/resume/download-pdf")
-async def download_pdf(template_id: Optional[str] = None):
+async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = None):
     global active_pdf_path, active_profile, active_job, active_match, active_resume_filename, active_template
     
     target_tmpl = template_id or active_template or "modern"
     safe_template_id = SecurityShield.sanitize_string(target_tmpl, "Template ID") or "modern"
-    if not active_profile:
-        active_profile = ResumeParser.parse_text_to_profile(DEFAULT_RESUME_TEXT)
-        active_resume_filename = "Candidate_Resume.pdf"
+    
+    target_prof = active_profile
+    target_filename = active_resume_filename
+    
+    if slug:
+        _, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
+        if u_prof:
+            target_prof = u_prof
+            target_filename = f"{u_prof.full_name.replace(' ', '_')}_Resume.pdf"
+            
+    if not target_prof:
+        target_prof = ResumeParser.parse_text_to_profile(DEFAULT_RESUME_TEXT)
+        target_filename = "Candidate_Resume.pdf"
         
     # Strictly export authentic user profile in selected template style without distortion
-    _, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
-        active_profile, "", "", original_filename=active_resume_filename, template_id=safe_template_id
+    _, out_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
+        target_prof, "", "", original_filename=target_filename, template_id=safe_template_id
     )
 
-    if not active_pdf_path or not Path(active_pdf_path).exists():
+    if not out_pdf_path or not Path(out_pdf_path).exists():
         raise HTTPException(status_code=500, detail="Failed to generate PDF")
     
     # Clean recruiter-friendly filename
-    cand_name = (getattr(active_profile, 'full_name', None) or 'Candidate').replace(' ', '_')
+    cand_name = (getattr(target_prof, 'full_name', None) or 'Candidate').replace(' ', '_')
     cand_name = re.sub(r'[^\w\-]', '', cand_name).strip('_') or 'Candidate'
-    safe_path = SecurityShield.sanitize_filepath(Path(active_pdf_path).name, OUTPUT_DIR)
+    safe_path = SecurityShield.sanitize_filepath(Path(out_pdf_path).name, OUTPUT_DIR)
     return FileResponse(
         str(safe_path),
         media_type="application/pdf",
@@ -797,26 +875,36 @@ async def download_pdf(template_id: Optional[str] = None):
 
 @app.get("/api/v1/resume/download/docx")
 @app.get("/api/v1/resume/download-docx")
-async def download_docx(template_id: Optional[str] = None):
+async def download_docx(template_id: Optional[str] = None, slug: Optional[str] = None):
     global active_docx_path, active_profile, active_job, active_match, active_resume_filename, active_template
     
     target_tmpl = template_id or active_template or "modern"
     safe_template_id = SecurityShield.sanitize_string(target_tmpl, "Template ID") or "modern"
-    if not active_profile:
-        active_profile = ResumeParser.parse_text_to_profile(DEFAULT_RESUME_TEXT)
-        active_resume_filename = "Candidate_Resume.pdf"
+    
+    target_prof = active_profile
+    target_filename = active_resume_filename
+    
+    if slug:
+        _, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
+        if u_prof:
+            target_prof = u_prof
+            target_filename = f"{u_prof.full_name.replace(' ', '_')}_Resume.docx"
+
+    if not target_prof:
+        target_prof = ResumeParser.parse_text_to_profile(DEFAULT_RESUME_TEXT)
+        target_filename = "Candidate_Resume.docx"
         
     # Strictly export authentic user profile in selected template style without distortion
-    active_docx_path, _ = ResumeDocumentGenerator.export_tailored_documents(
-        active_profile, "", "", original_filename=active_resume_filename, template_id=safe_template_id
+    out_docx_path, _ = ResumeDocumentGenerator.export_tailored_documents(
+        target_prof, "", "", original_filename=target_filename, template_id=safe_template_id
     )
 
-    if not active_docx_path or not Path(active_docx_path).exists():
+    if not out_docx_path or not Path(out_docx_path).exists():
         raise HTTPException(status_code=500, detail="Failed to generate DOCX")
     
-    cand_name = (getattr(active_profile, 'full_name', None) or 'Candidate').replace(' ', '_')
+    cand_name = (getattr(target_prof, 'full_name', None) or 'Candidate').replace(' ', '_')
     cand_name = re.sub(r'[^\w\-]', '', cand_name).strip('_') or 'Candidate'
-    safe_path = SecurityShield.sanitize_filepath(Path(active_docx_path).name, OUTPUT_DIR)
+    safe_path = SecurityShield.sanitize_filepath(Path(out_docx_path).name, OUTPUT_DIR)
     return FileResponse(
         str(safe_path),
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
