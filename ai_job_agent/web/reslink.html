@@ -1072,39 +1072,22 @@
       <span id="company-banner-text">Personalized Pitch & Tailored Resume for Hiring Team</span>
     </div>
 
-    <!-- Control Toolbar (View Mode Toggle + ATS Template Switcher + Score Badge) -->
+    <!-- Control Toolbar (Original PDF Viewer Mode) -->
     <div class="canvas-control-toolbar">
       <div class="template-selector-container">
-        <span class="toolbar-label">View Mode:</span>
-        <div class="template-pill-group">
-          <button type="button" id="btn-view-ats-canvas" class="tmpl-pill active" onclick="switchViewMode('canvas')">
-            <span>📄</span> Interactive ATS Resume
-          </button>
-          <button type="button" id="btn-view-pdf-frame" class="tmpl-pill" onclick="switchViewMode('pdf')">
-            <span>📁</span> Original PDF Viewer
-          </button>
-        </div>
-
-        <div id="template-pill-group-container" class="template-pill-group" style="margin-left: 12px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px;">
-          <span class="toolbar-label">Template:</span>
-          <button type="button" class="tmpl-pill active" data-template="corporate_elite" onclick="switchResumeTemplate('corporate_elite')">Corporate Elite</button>
-          <button type="button" class="tmpl-pill" data-template="harvard_consulting" onclick="switchResumeTemplate('harvard_consulting')">Harvard MBB</button>
-          <button type="button" class="tmpl-pill" data-template="tech_specialist" onclick="switchResumeTemplate('tech_specialist')">Tech Specialist</button>
-          <button type="button" class="tmpl-pill" data-template="modern" onclick="switchResumeTemplate('modern')">Modern Exec</button>
-        </div>
+        <span class="toolbar-label" style="font-weight: 700; color: #38BDF8; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+          <span>📁</span> Original PDF Resume Viewer Mode
+        </span>
       </div>
 
       <div class="ats-status-badge">
-        <span>✓</span> 100% ATS Parsed & Verified
+        <span>✓</span> 100% Verified Step 1 PDF Document
       </div>
     </div>
 
-    <!-- Center ATS Resume Paper Document & PDF Viewer Fallback -->
+    <!-- Center Original PDF Viewer -->
     <div class="resume-canvas-wrapper">
-      <article class="ats-resume-document template-corporate_elite" id="ats-resume-sheet">
-        <!-- Rendered dynamically by renderATSResumeCanvas() with 100% security -->
-      </article>
-      <iframe id="pdf-viewer-frame" class="ats-pdf-iframe" src="" title="Original Candidate Resume PDF" style="display: none;"></iframe>
+      <iframe id="pdf-viewer-frame" class="ats-pdf-iframe" src="" title="Original Candidate Resume PDF" style="display: block;"></iframe>
     </div>
   </main>
 
