@@ -1017,6 +1017,24 @@ window.addSkillFromBridge = async function(skillName) {
   }
 };
 
+window.autoFillGapInput = function(skill, defaultText) {
+  const input = document.querySelector(`.gap-answer-input[data-skill="${CSS.escape(skill)}"]`);
+  if (input) {
+    input.value = defaultText;
+    input.style.borderColor = '#10B981';
+    setTimeout(() => { input.style.borderColor = ''; }, 1500);
+    showToast(`✨ Filled experience for ${skill}!`);
+  }
+};
+
+function formatQuestionText(text) {
+  if (!text) return '';
+  let clean = escapeHtml(text);
+  // Convert markdown **text** to <strong>text</strong>
+  clean = clean.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #FFF;">$1</strong>');
+  return clean;
+}
+
 // Step 4: AI Gap Questioning Agent
 document.getElementById('btn-bridge-gaps')?.addEventListener('click', async () => {
   if (!currentMatchReport || currentMatchReport.missing_critical_skills.length === 0) {
@@ -1034,17 +1052,25 @@ document.getElementById('btn-bridge-gaps')?.addEventListener('click', async () =
       const data = await res.json();
       const questions = data.questions || [];
       if (questions.length > 0) {
-        container.innerHTML = questions.map(q => `
+        container.innerHTML = questions.map(q => {
+          const autoText = `Built automated features & production workflows with ${q.skill_name} in a past role and project.`;
+          return `
           <div style="background: rgba(7, 9, 19, 0.6); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-glass);">
-            <label style="font-weight: 700; font-size: 13px; color: var(--accent-cyan); display: block; margin-bottom: 6px;">
-              ${escapeHtml(q.skill_name)} Experience
-            </label>
-            <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
-              ${escapeHtml(q.question_text)}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="font-weight: 700; font-size: 13px; color: var(--accent-cyan); margin: 0;">
+                ${escapeHtml(q.skill_name)} Experience
+              </label>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.autoFillGapInput('${escapeHtml(q.skill_name)}', '${escapeHtml(autoText)}')" style="font-size: 11px; padding: 3px 8px; color: #10B981; border-color: rgba(16, 185, 129, 0.4);">
+                ✨ 1-Click Fill
+              </button>
             </div>
-            <input type="text" class="input-field gap-answer-input" data-skill="${escapeHtml(q.skill_name)}" placeholder="e.g. Built automated features with ${escapeHtml(q.skill_name)} in a past role or side project (or leave blank)">
+            <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px; line-height: 1.5;">
+              ${formatQuestionText(q.question_text)}
+            </div>
+            <input type="text" class="input-field gap-answer-input" data-skill="${escapeHtml(q.skill_name)}" placeholder="e.g. ${autoText}">
           </div>
-        `).join('');
+        `;
+        }).join('');
         return;
       }
     }
@@ -1053,17 +1079,25 @@ document.getElementById('btn-bridge-gaps')?.addEventListener('click', async () =
   }
 
   // Fallback if backend fetch fails
-  container.innerHTML = currentMatchReport.missing_critical_skills.slice(0, 4).map(skill => `
+  container.innerHTML = currentMatchReport.missing_critical_skills.slice(0, 4).map(skill => {
+    const autoText = `Built automated features & production workflows with ${skill} in a past role and project.`;
+    return `
     <div style="background: rgba(7, 9, 19, 0.6); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-glass);">
-      <label style="font-weight: 700; font-size: 13px; color: var(--accent-cyan); display: block; margin-bottom: 6px;">
-        ${escapeHtml(skill)} Experience
-      </label>
-      <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
-        Required by ${escapeHtml(currentMatchReport.company)}. Describe any freelance work, side projects, or tools used:
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <label style="font-weight: 700; font-size: 13px; color: var(--accent-cyan); margin: 0;">
+          ${escapeHtml(skill)} Experience
+        </label>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.autoFillGapInput('${escapeHtml(skill)}', '${escapeHtml(autoText)}')" style="font-size: 11px; padding: 3px 8px; color: #10B981; border-color: rgba(16, 185, 129, 0.4);">
+          ✨ 1-Click Fill
+        </button>
       </div>
-      <input type="text" class="input-field gap-answer-input" data-skill="${escapeHtml(skill)}" placeholder="e.g. Built automated pipelines with ${escapeHtml(skill)} in a project (or leave blank)">
+      <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px; line-height: 1.5;">
+        Required by <strong style="color: #FFF;">${escapeHtml(currentMatchReport.company)}</strong>. Describe any freelance work, side projects, or tools used:
+      </div>
+      <input type="text" class="input-field gap-answer-input" data-skill="${escapeHtml(skill)}" placeholder="e.g. ${autoText}">
     </div>
-  `).join('');
+  `;
+  }).join('');
 });
 
 document.getElementById('btn-submit-gap-answers')?.addEventListener('click', async () => {

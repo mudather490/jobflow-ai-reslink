@@ -515,12 +515,12 @@
 
     <!-- AI Gap Questioning Modal -->
     <div class="modal-backdrop" id="modal-gap-agent">
-      <div class="modal-dialog">
-        <div class="modal-header">
+      <div class="modal-dialog" style="max-width: 600px; max-height: 85vh; display: flex; flex-direction: column;">
+        <div class="modal-header" style="flex-shrink: 0;">
           <h3 style="font-size: 16px; font-weight: 800;">🤖 AI Gap Bridge Agent</h3>
           <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-gap-agent')">✕</button>
         </div>
-        <div class="modal-body" id="gap-questions-container">
+        <div class="modal-body" id="gap-questions-container" style="overflow-y: auto; max-height: 55vh; padding-right: 8px; flex: 1;">
           <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
             The target job requires competencies not currently emphasized in your base resume. Share any freelance projects or side experiences to ground the resume update truthfully:
           </p>
@@ -528,7 +528,7 @@
             <!-- Dynamic Questions Generated Here -->
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="flex-shrink: 0; padding-top: 14px; border-top: 1px solid var(--border-glass);">
           <button class="btn btn-secondary" onclick="closeModal('modal-gap-agent')">Cancel</button>
           <button class="btn btn-primary" id="btn-submit-gap-answers">Apply & Recalculate Score</button>
         </div>
