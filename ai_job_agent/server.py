@@ -341,15 +341,19 @@ async def upload_resume(file: UploadFile = File(...), user_email: Optional[str] 
     content = await file.read()
     SecurityShield.validate_resume_upload(file.filename, content, max_size_mb=15)
 
-    # Security check 2: Path traversal guard
-    save_path = SecurityShield.sanitize_filepath(file.filename, DATA_DIR)
-    
-    ext = save_path.suffix.lower()
-    if ext not in [".docx", ".pdf", ".txt", ".md"]:
-        raise HTTPException(status_code=400, detail="Unsupported file format. Please upload .docx, .pdf, or .txt")
+    # Security check 2: Path traversal guard & safe unique file path
+    safe_name = SecurityShield.sanitize_filepath(file.filename, DATA_DIR).name
+    save_path = DATA_DIR / safe_name
 
-    with open(save_path, "wb") as buffer:
-        buffer.write(content)
+    try:
+        with open(save_path, "wb") as buffer:
+            buffer.write(content)
+    except PermissionError:
+        import time
+        safe_name = f"{Path(safe_name).stem}_{int(time.time())}{Path(safe_name).suffix}"
+        save_path = DATA_DIR / safe_name
+        with open(save_path, "wb") as buffer:
+            buffer.write(content)
 
     size_kb = round(save_path.stat().st_size / 1024, 1)
     active_resume_filename = save_path.name
@@ -413,14 +417,20 @@ async def upload_reslink_resume(
     if ext not in [".docx", ".pdf", ".txt", ".md"]:
         raise HTTPException(status_code=400, detail="Unsupported file format. Please upload .docx, .pdf, or .txt")
 
-    filename_val = f"reslink_resume_{clean_slug}{ext}"
-    if not slug:
-        filename_val = file.filename
+    import time
+    timestamp_str = int(time.time())
+    safe_orig_name = SecurityShield.sanitize_filepath(file.filename, DATA_DIR).name
+    filename_val = f"reslink_resume_{clean_slug}_{timestamp_str}_{safe_orig_name}"
+    save_path = DATA_DIR / filename_val
 
-    save_path = SecurityShield.sanitize_filepath(filename_val, DATA_DIR)
-
-    with open(save_path, "wb") as buffer:
-        buffer.write(content)
+    try:
+        with open(save_path, "wb") as buffer:
+            buffer.write(content)
+    except PermissionError:
+        filename_val = f"reslink_resume_{clean_slug}_{int(time.time() * 1000)}_{safe_orig_name}"
+        save_path = DATA_DIR / filename_val
+        with open(save_path, "wb") as buffer:
+            buffer.write(content)
 
     size_kb = round(save_path.stat().st_size / 1024, 1)
     filesize_val = f"{size_kb} KB"
