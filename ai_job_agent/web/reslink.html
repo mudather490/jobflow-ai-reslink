@@ -1394,7 +1394,6 @@
       switchResumeTemplate(rawTmpl);
 
       // 6. Check Company Personalization Query Parameter
-      const urlParams = new URLSearchParams(window.location.search);
       const companyParam = urlParams.get('company') || urlParams.get('c');
       if (companyParam) {
         const safeComp = escapeHtml(companyParam);
