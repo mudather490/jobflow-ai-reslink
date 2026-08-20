@@ -123,17 +123,9 @@ class ResLinkManager:
             try:
                 with open(cls.PROFILE_PATH, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    p = ResLinkProfile(**data)
-                    # If fallback_profile exists and disk profile has placeholder name, sync automatically
-                    if fallback_profile and (p.full_name in ["Alex Rivera", "Candidate", "Candidate Name", ""]):
-                        return cls.sync_with_user_profile(fallback_profile)
-                    return p
+                    return ResLinkProfile(**data)
             except Exception as e:
                 print(f"[Warning] Failed to parse ResLink profile from disk: {e}")
-
-        # Initialize from candidate profile if available
-        if fallback_profile:
-            return cls.sync_with_user_profile(fallback_profile)
 
         slug = "candidate-profile"
         name = "Candidate Profile"
@@ -198,9 +190,9 @@ class ResLinkManager:
                     except Exception:
                         pass
 
-        # 3. Fallback to main profile
-        res_prof = cls.load_profile(fallback_profile=fallback_profile)
-        u_prof = res_prof.attached_profile or fallback_profile
+        # 3. Fallback to main ResLink profile
+        res_prof = cls.load_profile()
+        u_prof = UserProfile(**res_prof.attached_profile) if res_prof.attached_profile else None
         return res_prof, u_prof
 
     @classmethod

@@ -402,11 +402,7 @@ async def upload_reslink_resume(
     filesize_val = f"{size_kb} KB"
 
     try:
-        global active_profile, active_resume_filename, active_resume_size
         parsed_profile = ResumeParser.parse_file(str(save_path))
-        active_profile = parsed_profile
-        active_resume_filename = filename_val
-        active_resume_size = filesize_val
         
         # Sync ResLink profile 100% with this authentic uploaded CV
         reslink_profile = ResLinkManager.sync_with_user_profile(
@@ -1873,20 +1869,14 @@ async def gumroad_webhook(request: Request):
 
 @app.get("/api/v1/reslink")
 async def get_reslink_profile_endpoint(slug: Optional[str] = None):
-    global active_profile
     if slug:
-        profile, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
-        res_data = profile.model_dump()
-        target_u_prof = u_prof or getattr(profile, "attached_profile", None) or active_profile
-        if target_u_prof:
-            u_dict = target_u_prof.model_dump() if not isinstance(target_u_prof, dict) else target_u_prof
-            res_data["resume_profile"] = u_dict
-            res_data["attached_profile"] = u_dict
-        return res_data
+        profile, u_prof = ResLinkManager.load_profile_by_slug(slug)
+    else:
+        profile = ResLinkManager.load_profile()
+        u_prof = None
 
-    profile = ResLinkManager.load_profile(fallback_profile=active_profile)
     res_data = profile.model_dump()
-    target_u_prof = getattr(profile, "attached_profile", None) or active_profile
+    target_u_prof = u_prof or getattr(profile, "attached_profile", None)
     if target_u_prof:
         u_dict = target_u_prof.model_dump() if not isinstance(target_u_prof, dict) else target_u_prof
         res_data["resume_profile"] = u_dict

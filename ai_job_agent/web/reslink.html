@@ -1280,56 +1280,12 @@
         }
 
         const reslinkUrl = currentSlug ? `/api/v1/reslink?slug=${encodeURIComponent(currentSlug)}` : '/api/v1/reslink';
-        const resumeUrl = currentSlug ? `/api/v1/resume/current?slug=${encodeURIComponent(currentSlug)}` : '/api/v1/resume/current';
 
-        const [reslinkRes, resumeRes] = await Promise.all([
-          fetch(reslinkUrl).catch(() => null),
-          fetch(resumeUrl).catch(() => null)
-        ]);
+        const reslinkRes = await fetch(reslinkUrl).catch(() => null);
 
         if (reslinkRes && reslinkRes.ok) {
           reslinkProfile = await reslinkRes.json();
-          if (reslinkProfile.resume_profile) {
-            resumeProfile = reslinkProfile.resume_profile;
-          } else if (reslinkProfile.attached_profile) {
-            resumeProfile = reslinkProfile.attached_profile;
-          }
-        }
-
-        if (resumeRes && resumeRes.ok) {
-          const resData = await resumeRes.json();
-          const mainProfile = resData.profile;
-          if (mainProfile) {
-            if (!resumeProfile) {
-              resumeProfile = mainProfile;
-            } else {
-              // Deep merge missing sections from main parsed profile to ensure 100% fidelity
-              if ((!resumeProfile.skills || resumeProfile.skills.length === 0) && mainProfile.skills) {
-                resumeProfile.skills = mainProfile.skills;
-              }
-              if ((!resumeProfile.categorized_skills || Object.keys(resumeProfile.categorized_skills).length === 0) && mainProfile.categorized_skills) {
-                resumeProfile.categorized_skills = mainProfile.categorized_skills;
-              }
-              if ((!resumeProfile.experience || resumeProfile.experience.length === 0) && mainProfile.experience) {
-                resumeProfile.experience = mainProfile.experience;
-              }
-              if ((!resumeProfile.projects || resumeProfile.projects.length === 0) && mainProfile.projects) {
-                resumeProfile.projects = mainProfile.projects;
-              }
-              if ((!resumeProfile.education || resumeProfile.education.length === 0) && mainProfile.education) {
-                resumeProfile.education = mainProfile.education;
-              }
-              if ((!resumeProfile.certifications || resumeProfile.certifications.length === 0) && mainProfile.certifications) {
-                resumeProfile.certifications = mainProfile.certifications;
-              }
-              if (!resumeProfile.summary && mainProfile.summary) {
-                resumeProfile.summary = mainProfile.summary;
-              }
-              if (!resumeProfile.full_name && mainProfile.full_name) {
-                resumeProfile.full_name = mainProfile.full_name;
-              }
-            }
-          }
+          resumeProfile = reslinkProfile.resume_profile || reslinkProfile.attached_profile || {};
         }
 
         applyProfileToUI();
