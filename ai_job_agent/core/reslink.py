@@ -244,7 +244,17 @@ class ResLinkManager:
         
         # Load existing profile to preserve custom video if already recorded
         existing = None
-        if cls.PROFILE_PATH.exists():
+        user_cache_file = DATA_DIR / "users" / f"{clean_slug}_profile.json"
+        if user_cache_file.exists():
+            try:
+                with open(user_cache_file, "r", encoding="utf-8") as f:
+                    u_data = json.load(f)
+                    if "reslink" in u_data and isinstance(u_data["reslink"], dict):
+                        existing = ResLinkProfile(**u_data["reslink"])
+            except Exception:
+                existing = None
+
+        if not existing and cls.PROFILE_PATH.exists():
             try:
                 with open(cls.PROFILE_PATH, "r", encoding="utf-8") as f:
                     existing = ResLinkProfile(**json.load(f))
@@ -461,7 +471,7 @@ class ResLinkManager:
         ]
 
         # LinkedIn Outreach Note
-        slug = re.sub(r'-+', '-', re.sub(r'[^a-zA-Z0-9-]', '', full_name.lower().replace(' ', '-'))).strip('-') or "candidate-profile"
+        slug = re.sub(r'[^a-zA-Z0-9-]', '', full_name.lower().replace(' ', '-')) or "alex-rivera"
         outreach_note = (
             f"{greeting_written}\n\n"
             f"I came across the {title_clean} role at {company_clean} and wanted to reach out directly. "
@@ -469,6 +479,26 @@ class ResLinkManager:
             f"👉 http://127.0.0.1:8000/p/{slug}\n\n"
             f"It highlights my direct experience in {skill_1} and {skill_2}, along with key deliverables from my time at {top_company}. "
             f"I would love to connect and discuss how I can add immediate value to {company_clean}!\n\n"
+            f"Best regards,\n{full_name}"
+        )
+
+        # Dynamic badges for video overlays
+        competency_badges = [
+            f"⚡ {matched_skills[0]} Specialist" if len(matched_skills) > 0 else "⚡ Technical Specialist",
+            f"🚀 {top_role} @ {top_company}",
+            f"🎯 Matched for {title_clean}",
+            f"🌍 Worldwide Remote & Immediate Impact"
+        ]
+
+        # LinkedIn Outreach Note
+        slug = re.sub(r'[^a-zA-Z0-9-]', '', full_name.lower().replace(' ', '-')) or "alex-rivera"
+        outreach_note = (
+            f"Hi Hiring Team,\n\n"
+            f"I came across the {title_clean} role at {company_clean} and was very impressed by your team's mission. "
+            f"Rather than just sending a flat resume, I put together a 60-second video pitch and interactive project link tailored to your requirements:\n\n"
+            f"👉 http://127.0.0.1:8000/p/{slug}\n\n"
+            f"It covers my direct experience in {', '.join(matched_skills[:2])} and key accomplishments at {top_company}. "
+            f"Would love to connect and discuss how I can contribute to {company_clean}!\n\n"
             f"Best regards,\n{full_name}"
         )
 
@@ -646,8 +676,7 @@ class ResLinkManager:
         
         clean_company = re.sub(r'[^a-zA-Z0-9]', '', data.get("company_name", "General"))
         data["custom_param"] = clean_company
-        cand_slug = cls.load_profile().slug or "mudather-mohammed"
-        data["reslink_url"] = f"/p/{cand_slug}?company={clean_company}"
+        data["reslink_url"] = f"/p/mudather-mohammed?company={clean_company}"
         
         if "status" not in data:
             data["status"] = "Link Generated & Ready"

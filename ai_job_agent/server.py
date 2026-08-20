@@ -14,7 +14,7 @@ if sys.platform == "win32":
         pass
 
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request, Response
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request, Response, Query
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -241,8 +241,26 @@ async def serve_reslink_page(slug: str = "alex-rivera"):
     reslink_html = WEB_DIR / "reslink.html"
     if not reslink_html.exists():
         raise HTTPException(status_code=404, detail="ResLink page not found")
+    
+    cand_name = "Candidate Profile"
+    cand_headline = "Engineering Specialist"
+    if slug:
+        try:
+            res_prof, _ = ResLinkManager.load_profile_by_slug(slug)
+            if res_prof:
+                if res_prof.full_name:
+                    cand_name = res_prof.full_name
+                if res_prof.tagline:
+                    cand_headline = res_prof.tagline
+        except Exception as e:
+            print(f"Failed to load profile for SSR meta tags: {e}")
+
     with open(reslink_html, "r", encoding="utf-8") as f:
-        return f.read()
+        html_content = f.read()
+
+    html_content = html_content.replace("{{CANDIDATE_NAME}}", cand_name)
+    html_content = html_content.replace("{{CANDIDATE_HEADLINE}}", cand_headline)
+    return HTMLResponse(content=html_content)
 
 
 @app.get("/reslink", response_class=HTMLResponse)
@@ -450,62 +468,98 @@ async def upload_reslink_resume(
         raise HTTPException(status_code=500, detail="Failed to parse resume.")
 
 @app.get("/api/v1/reslink/pdf/raw")
-async def get_reslink_pdf_raw(slug: Optional[str] = None):
+async def get_reslink_pdf_raw(slug: Optional[str] = Query(None)):
     """
-    Returns the authentic PDF file uploaded in Step 1 of ResLink Studio for the requested candidate.
+    Serve the attached or dynamically generated PDF file matching the slug or candidate name from the profile.
     """
-    reslink_prof = None
+    res_prof = None
     u_prof = None
     if slug:
-        reslink_prof, u_prof = ResLinkManager.load_profile_by_slug(slug)
-    if not reslink_prof:
-        reslink_prof = ResLinkManager.load_profile()
-        u_prof = UserProfile(**reslink_prof.attached_profile) if reslink_prof.attached_profile else None
+        res_prof, u_prof = ResLinkManager.load_profile_by_slug(slug)
+    else:
+        res_prof = ResLinkManager.load_profile()
+        if res_prof and res_prof.attached_profile:
+            try:
+                u_prof = UserProfile(**res_prof.attached_profile)
+            except Exception:
+                u_prof = None
 
-    # 1. Check attached resume filepath or filename
-    pdf_path = None
-    att_filename = getattr(reslink_prof, "attached_resume_filename", None)
-    att_filepath = getattr(reslink_prof, "attached_resume_filepath", None)
+    raw_cand_name = getattr(res_prof, "full_name", None) or (u_prof.full_name if u_prof else "Candidate")
+    cand_name = raw_cand_name.replace(" ", "_")
+    cand_name = re.sub(r'[^\w\-]', '', cand_name).strip('_') or "Candidate"
 
-    if att_filepath:
-        candidate_path = Path(att_filepath)
-        if candidate_path.exists():
-            pdf_path = candidate_path
+    # Step A: Check if attached_resume_filepath or attached_resume_filename exists in DATA_DIR and is a .pdf file
+    file_path = None
+    if res_prof:
+        if getattr(res_prof, "attached_resume_filepath", None):
+            candidate_path = Path(res_prof.attached_resume_filepath)
+            if candidate_path.exists() and candidate_path.suffix.lower() == ".pdf":
+                file_path = candidate_path
+        if not file_path and getattr(res_prof, "attached_resume_filename", None):
+            att_name = res_prof.attached_resume_filename
+            if att_name.lower().endswith(".pdf"):
+                possible_path = DATA_DIR / att_name
+                if possible_path.exists():
+                    file_path = possible_path
 
-    if not pdf_path and att_filename:
-        candidate_path = DATA_DIR / att_filename
-        if candidate_path.exists():
-            pdf_path = candidate_path
+    if file_path:
+        return FileResponse(
+            str(file_path),
+            media_type="application/pdf",
+            filename=f"{cand_name}_Resume.pdf",
+            headers={"Content-Disposition": f"inline; filename={cand_name}_Resume.pdf"}
+        )
 
-    # 2. Check candidate slug matching file in DATA_DIR
-    if not pdf_path and slug:
+    # Step B: If candidate uploaded a .docx or if only parsed attached_profile / UserProfile exists, generate pristine PDF on-the-fly
+    if u_prof:
+        try:
+            target_template = getattr(res_prof, "selected_cv_template", None) or "corporate_elite"
+            _, out_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
+                u_prof, "", "", template_id=target_template
+            )
+            if out_pdf_path and Path(out_pdf_path).exists():
+                return FileResponse(
+                    str(out_pdf_path),
+                    media_type="application/pdf",
+                    filename=f"{cand_name}_Resume.pdf",
+                    headers={"Content-Disposition": f"inline; filename={cand_name}_Resume.pdf"}
+                )
+        except Exception as e:
+            print(f"Failed to generate dynamic PDF for {cand_name}: {e}")
+
+    # Step C: Fall back to searching DATA_DIR for any PDF matching candidate name or return first .pdf
+    if slug:
         clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', slug.lower()).strip('-')
-        slug_condensed = re.sub(r'[^a-zA-Z0-9]', '', clean_slug)
-        for f in DATA_DIR.glob("*.pdf"):
-            f_name_condensed = re.sub(r'[^a-zA-Z0-9]', '', f.stem.lower())
-            if len(slug_condensed) > 4 and slug_condensed in f_name_condensed:
-                pdf_path = f
-                break
+        possible_pdf = DATA_DIR / f"reslink_resume_{clean_slug}.pdf"
+        if possible_pdf.exists():
+            return FileResponse(
+                str(possible_pdf),
+                media_type="application/pdf",
+                filename=f"{cand_name}_Resume.pdf",
+                headers={"Content-Disposition": f"inline; filename={cand_name}_Resume.pdf"}
+            )
 
-    # 3. If file is docx/txt or missing, generate ATS PDF dynamically for this candidate
-    if not pdf_path or not pdf_path.exists():
-        if u_prof or reslink_prof.attached_profile:
-            p_to_render = u_prof or UserProfile(**reslink_prof.attached_profile)
-            clean_name = re.sub(r'[^\w\-]', '', p_to_render.full_name.replace(' ', '_')).strip('_') or 'Candidate'
-            chosen_tmpl = reslink_prof.selected_cv_template or "corporate_elite"
-            pdf_out_path = OUTPUT_DIR / f"{clean_name}_ResLink_Resume_{chosen_tmpl}.pdf"
-            ResumeDocumentGenerator.generate_pdf(p_to_render, str(pdf_out_path), template_id=chosen_tmpl)
-            pdf_path = pdf_out_path
+    name_parts = cand_name.lower().split('_')
+    for f in DATA_DIR.glob("*.pdf"):
+        f_stem = f.stem.lower()
+        if any(part in f_stem for part in name_parts if len(part) > 2):
+            return FileResponse(
+                str(f),
+                media_type="application/pdf",
+                filename=f"{cand_name}_Resume.pdf",
+                headers={"Content-Disposition": f"inline; filename={cand_name}_Resume.pdf"}
+            )
 
-    if not pdf_path or not pdf_path.exists():
-        raise HTTPException(status_code=404, detail="No resume PDF found for this candidate.")
+    all_pdfs = list(DATA_DIR.glob("*.pdf"))
+    if all_pdfs:
+        return FileResponse(
+            str(all_pdfs[0]),
+            media_type="application/pdf",
+            filename=f"{cand_name}_Resume.pdf",
+            headers={"Content-Disposition": f"inline; filename={cand_name}_Resume.pdf"}
+        )
 
-    return FileResponse(
-        str(pdf_path),
-        media_type="application/pdf",
-        filename=pdf_path.name,
-        headers={"Content-Disposition": f"inline; filename={pdf_path.name}"}
-    )
+    raise HTTPException(status_code=404, detail="No resume PDF found for this candidate.")
 
 
 class SkillRequest(BaseModel):
@@ -1059,7 +1113,6 @@ async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = 
         filename=f"{cand_name}_Resume.pdf",
         headers={"Content-Disposition": f"attachment; filename={cand_name}_Resume.pdf"}
     )
-
 
 
 @app.get("/api/v1/templates/download/docx")

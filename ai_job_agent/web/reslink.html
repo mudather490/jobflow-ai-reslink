@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title id="page-title">Candidate Profile & Video Pitch | ResLink</title>
+  <title id="page-title">{{CANDIDATE_NAME}} - {{CANDIDATE_HEADLINE}} | ResLink</title>
   
   <!-- OpenGraph & Social Preview Meta Tags -->
-  <meta property="og:title" id="og-title" content="Candidate Profile & Video Pitch | ResLink">
-  <meta property="og:description" id="og-desc" content="Watch my interactive video pitch and explore my full ATS resume.">
+  <meta property="og:title" id="og-title" content="{{CANDIDATE_NAME}} - {{CANDIDATE_HEADLINE}} | ResLink">
+  <meta property="og:description" id="og-desc" content="Watch {{CANDIDATE_NAME}}'s interactive video pitch and explore their verified resume profile.">
   <meta property="og:type" content="profile">
   <meta property="og:site_name" content="ResLink.io Candidate Career Hub">
 
@@ -1072,22 +1072,37 @@
       <span id="company-banner-text">Personalized Pitch & Tailored Resume for Hiring Team</span>
     </div>
 
-    <!-- Control Toolbar (Original PDF Viewer Mode) -->
+    <!-- Control Toolbar (ATS Template Switcher + Score Badge) -->
     <div class="canvas-control-toolbar">
       <div class="template-selector-container">
-        <span class="toolbar-label" style="font-weight: 700; color: #38BDF8; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
-          <span>📁</span> Original PDF Resume Viewer Mode
-        </span>
+        <div id="template-pill-group-container" class="template-pill-group" style="display: none;">
+          <span class="toolbar-label">Template:</span>
+          <button type="button" class="tmpl-pill active" data-template="corporate_elite" onclick="switchResumeTemplate('corporate_elite')">Corporate Elite</button>
+          <button type="button" class="tmpl-pill" data-template="harvard_consulting" onclick="switchResumeTemplate('harvard_consulting')">Harvard MBB</button>
+          <button type="button" class="tmpl-pill" data-template="tech_specialist" onclick="switchResumeTemplate('tech_specialist')">Tech Specialist</button>
+          <button type="button" class="tmpl-pill" data-template="modern" onclick="switchResumeTemplate('modern')">Modern Exec</button>
+        </div>
       </div>
 
       <div class="ats-status-badge">
-        <span>✓</span> 100% Verified Step 1 PDF Document
+        <span>✓</span> 100% ATS Parsed & Verified
       </div>
     </div>
 
-    <!-- Center Original PDF Viewer -->
+    <!-- Center ATS Resume Paper Document & PDF Viewer -->
     <div class="resume-canvas-wrapper">
-      <iframe id="pdf-viewer-frame" class="ats-pdf-iframe" src="" title="Original Candidate Resume PDF" style="display: block;"></iframe>
+      <div class="view-mode-toggle-bar" style="display: flex; gap: 10px; margin-bottom: 16px; align-items: center; justify-content: center;">
+        <button type="button" id="btn-view-pdf-frame" class="tmpl-pill active" onclick="switchResLinkViewMode('pdf')">
+          📄 Original Uploaded CV
+        </button>
+        <button type="button" id="btn-view-ats-canvas" class="tmpl-pill" onclick="switchResLinkViewMode('ats')">
+          📊 Verified ATS Canvas
+        </button>
+      </div>
+      <iframe id="original-pdf-frame" class="ats-pdf-iframe" src="" title="Original Uploaded Candidate Resume" style="display: block; width: 100%; min-height: 900px; border: none; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></iframe>
+      <article class="ats-resume-document template-corporate_elite" id="ats-resume-sheet" style="display: none;">
+        <!-- Rendered dynamically by renderATSResumeCanvas() with 100% security -->
+      </article>
     </div>
   </main>
 
@@ -1221,31 +1236,37 @@
     }
 
     // ── 3. View Mode & Template Switcher ──
-    function switchViewMode(mode) {
+    function switchResLinkViewMode(mode) {
       const atsSheet = document.getElementById('ats-resume-sheet');
-      const pdfFrame = document.getElementById('pdf-viewer-frame');
+      const pdfFrame = document.getElementById('original-pdf-frame');
       const btnAts = document.getElementById('btn-view-ats-canvas');
       const btnPdf = document.getElementById('btn-view-pdf-frame');
       const tmplContainer = document.getElementById('template-pill-group-container');
 
       const currentSlug = getCurrentSlug();
 
-      if (mode === 'pdf') {
-        if (atsSheet) atsSheet.style.display = 'none';
-        if (pdfFrame) {
-          pdfFrame.style.display = 'block';
-          pdfFrame.src = `/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(currentSlug)}#toolbar=0&navpanes=0&scrollbar=1`;
-        }
-        if (btnAts) btnAts.classList.remove('active');
-        if (btnPdf) btnPdf.classList.add('active');
-        if (tmplContainer) tmplContainer.style.display = 'none';
-      } else {
+      if (mode === 'ats' || mode === 'canvas') {
         if (pdfFrame) pdfFrame.style.display = 'none';
         if (atsSheet) atsSheet.style.display = 'block';
         if (btnPdf) btnPdf.classList.remove('active');
         if (btnAts) btnAts.classList.add('active');
         if (tmplContainer) tmplContainer.style.display = 'flex';
+        renderATSResumeCanvas();
+      } else {
+        // Mode 'pdf' (default)
+        if (atsSheet) atsSheet.style.display = 'none';
+        if (pdfFrame) {
+          pdfFrame.style.display = 'block';
+          pdfFrame.src = "/api/v1/reslink/pdf/raw?slug=" + encodeURIComponent(currentSlug) + "#toolbar=0&navpanes=0&scrollbar=1";
+        }
+        if (btnAts) btnAts.classList.remove('active');
+        if (btnPdf) btnPdf.classList.add('active');
+        if (tmplContainer) tmplContainer.style.display = 'none';
       }
+    }
+
+    function switchViewMode(mode) {
+      switchResLinkViewMode(mode);
     }
 
     function switchResumeTemplate(tmplId) {
@@ -1409,8 +1430,8 @@
         downloadBtn.href = `/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(currentSlug)}`;
       }
 
-      // 5. Set PDF Document Viewer Fallback Frame
-      const pdfFrame = document.getElementById('pdf-viewer-frame');
+      // 5. Set PDF Document Viewer Frame
+      const pdfFrame = document.getElementById('original-pdf-frame');
       if (pdfFrame) {
         pdfFrame.src = `/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(currentSlug)}#toolbar=0&navpanes=0&scrollbar=1`;
       }
@@ -1421,6 +1442,10 @@
       if (rawTmpl === 'harvard' || rawTmpl === 'mbb') rawTmpl = 'harvard_consulting';
       if (rawTmpl === 'tech' || rawTmpl === 'tech_innovator') rawTmpl = 'tech_specialist';
       switchResumeTemplate(rawTmpl);
+
+      // 6b. Set Initial View Mode (Default: 'pdf')
+      const initialViewMode = urlParams.get('mode') || 'pdf';
+      switchResLinkViewMode(initialViewMode);
 
       // 7. Check Company Personalization Query Parameter
       const companyParam = urlParams.get('company') || urlParams.get('c');
@@ -1631,10 +1656,11 @@
             <div class="resume-entry">
               <div class="entry-header">
                 <div>
-                  <span class="entry-title">${escapeHtml(exp.role || "Professional Experience")}</span>
-                  ${exp.company ? `<span style="color: #64748B;"> at </span><span class="entry-company">${escapeHtml(exp.company)}</span>` : ''}
+                  <span class="entry-title">${escapeHtml(exp.role || "Software Engineer")}</span>
+                  <span style="color: #64748B;"> at </span>
+                  <span class="entry-company">${escapeHtml(exp.company || "Independent")}</span>
                 </div>
-                ${exp.duration ? `<div class="entry-date">${escapeHtml(exp.duration)}</div>` : ''}
+                <div class="entry-date">${escapeHtml(exp.duration || "Recent")}</div>
               </div>
               ${exp.subtitle ? `<div class="entry-subtitle">${escapeHtml(exp.subtitle)} ${exp.location ? `• ${escapeHtml(exp.location)}` : ''}</div>` : ''}
               ${exp.summary ? `<p class="resume-paragraph" style="margin-bottom: 4px;">${escapeHtml(exp.summary)}</p>` : ''}
