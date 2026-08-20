@@ -420,6 +420,23 @@
       width: 100%;
     }
 
+    .ats-pdf-iframe {
+      width: 100%;
+      max-width: 850px;
+      height: 1100px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      background: #FFFFFF;
+      margin: 0 auto;
+      display: block;
+    }
+    @media (max-width: 768px) {
+      .ats-pdf-iframe {
+        height: 750px;
+      }
+    }
+
     .ats-resume-document {
       background: #FFFFFF;
       color: #0F172A;
@@ -1055,12 +1072,39 @@
       <span id="company-banner-text">Personalized Pitch & Tailored Resume for Hiring Team</span>
     </div>
 
+    <!-- Control Toolbar (View Mode Toggle + ATS Template Switcher + Score Badge) -->
+    <div class="canvas-control-toolbar">
+      <div class="template-selector-container">
+        <span class="toolbar-label">View Mode:</span>
+        <div class="template-pill-group">
+          <button type="button" id="btn-view-ats-canvas" class="tmpl-pill active" onclick="switchViewMode('canvas')">
+            <span>📄</span> Interactive ATS Resume
+          </button>
+          <button type="button" id="btn-view-pdf-frame" class="tmpl-pill" onclick="switchViewMode('pdf')">
+            <span>📁</span> Original PDF Viewer
+          </button>
+        </div>
 
-    <!-- Center ATS Resume Paper Document -->
+        <div id="template-pill-group-container" class="template-pill-group" style="margin-left: 12px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px;">
+          <span class="toolbar-label">Template:</span>
+          <button type="button" class="tmpl-pill active" data-template="corporate_elite" onclick="switchResumeTemplate('corporate_elite')">Corporate Elite</button>
+          <button type="button" class="tmpl-pill" data-template="harvard_consulting" onclick="switchResumeTemplate('harvard_consulting')">Harvard MBB</button>
+          <button type="button" class="tmpl-pill" data-template="tech_specialist" onclick="switchResumeTemplate('tech_specialist')">Tech Specialist</button>
+          <button type="button" class="tmpl-pill" data-template="modern" onclick="switchResumeTemplate('modern')">Modern Exec</button>
+        </div>
+      </div>
+
+      <div class="ats-status-badge">
+        <span>✓</span> 100% ATS Parsed & Verified
+      </div>
+    </div>
+
+    <!-- Center ATS Resume Paper Document & PDF Viewer Fallback -->
     <div class="resume-canvas-wrapper">
       <article class="ats-resume-document template-corporate_elite" id="ats-resume-sheet">
         <!-- Rendered dynamically by renderATSResumeCanvas() with 100% security -->
       </article>
+      <iframe id="pdf-viewer-frame" class="ats-pdf-iframe" src="" title="Original Candidate Resume PDF" style="display: none;"></iframe>
     </div>
   </main>
 
@@ -1113,6 +1157,22 @@
     let resumeProfile = null;
     let currentTemplate = 'corporate_elite';
     let isVideoPlayedTelemetrySent = false;
+
+    // Helper: Extract current candidate slug from URL or fallback
+    function getCurrentSlug() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('slug')) {
+        return urlParams.get('slug');
+      }
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      if (pathSegments.length > 0 && pathSegments[0] === 'p' && pathSegments[1]) {
+        return pathSegments[1];
+      }
+      if (pathSegments.length > 1 && pathSegments[0] === 'reslink' && pathSegments[1]) {
+        return pathSegments[1];
+      }
+      return reslinkProfile?.slug || 'mudather-mohammed';
+    }
 
     // ── 1. Safe String & HTML Sanitization ──
     function escapeHtml(str) {
@@ -1177,14 +1237,41 @@
       }
     }
 
-    // ── 3. Template Switcher ──
+    // ── 3. View Mode & Template Switcher ──
+    function switchViewMode(mode) {
+      const atsSheet = document.getElementById('ats-resume-sheet');
+      const pdfFrame = document.getElementById('pdf-viewer-frame');
+      const btnAts = document.getElementById('btn-view-ats-canvas');
+      const btnPdf = document.getElementById('btn-view-pdf-frame');
+      const tmplContainer = document.getElementById('template-pill-group-container');
+
+      const currentSlug = getCurrentSlug();
+
+      if (mode === 'pdf') {
+        if (atsSheet) atsSheet.style.display = 'none';
+        if (pdfFrame) {
+          pdfFrame.style.display = 'block';
+          pdfFrame.src = `/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(currentSlug)}#toolbar=0&navpanes=0&scrollbar=1`;
+        }
+        if (btnAts) btnAts.classList.remove('active');
+        if (btnPdf) btnPdf.classList.add('active');
+        if (tmplContainer) tmplContainer.style.display = 'none';
+      } else {
+        if (pdfFrame) pdfFrame.style.display = 'none';
+        if (atsSheet) atsSheet.style.display = 'block';
+        if (btnPdf) btnPdf.classList.remove('active');
+        if (btnAts) btnAts.classList.add('active');
+        if (tmplContainer) tmplContainer.style.display = 'flex';
+      }
+    }
+
     function switchResumeTemplate(tmplId) {
       const valid = ['corporate_elite', 'harvard_consulting', 'tech_specialist', 'modern'];
       if (!valid.includes(tmplId)) tmplId = 'corporate_elite';
       currentTemplate = tmplId;
 
       // Update Toolbar Pills
-      document.querySelectorAll('.tmpl-pill').forEach(btn => {
+      document.querySelectorAll('.tmpl-pill[data-template]').forEach(btn => {
         if (btn.getAttribute('data-template') === tmplId) {
           btn.classList.add('active');
         } else {
@@ -1195,8 +1282,8 @@
       // Update Download PDF CTA button URL
       const downloadBtn = document.getElementById('btn-download-pdf-cta');
       if (downloadBtn) {
-        const slug = reslinkProfile?.slug || '';
-        downloadBtn.href = `/api/v1/resume/download-pdf?template_id=${encodeURIComponent(tmplId)}${slug ? `&slug=${encodeURIComponent(slug)}` : ''}`;
+        const slug = getCurrentSlug();
+        downloadBtn.href = `/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(slug)}`;
       }
 
       // Re-render ATS canvas
@@ -1209,11 +1296,12 @@
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const companyParam = urlParams.get('company') || urlParams.get('c') || 'Direct Link';
+        const currentSlug = getCurrentSlug();
         await fetch('/api/v1/reslink/track-view', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            slug: reslinkProfile?.slug || 'candidate',
+            slug: reslinkProfile?.slug || currentSlug || 'candidate',
             event_type: eventType,
             metadata: {
               ...metadata,
@@ -1236,8 +1324,7 @@
     function downloadOriginalUploadedPDF(e) {
       if (e) e.preventDefault();
       trackCVDownload();
-      const pathSegments = window.location.pathname.split('/').filter(Boolean);
-      const currentSlug = (pathSegments.length > 0 && pathSegments[0] === 'p') ? pathSegments[1] : (reslinkProfile?.slug || 'mudather-mohammed');
+      const currentSlug = getCurrentSlug();
       window.open(`/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(currentSlug)}`, '_blank');
     }
 
@@ -1245,8 +1332,7 @@
     async function loadCandidateProfileData() {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const pathSegments = window.location.pathname.split('/').filter(Boolean);
-        const currentSlug = (pathSegments.length > 0 && pathSegments[0] === 'p') ? pathSegments[1] : ((pathSegments.length > 1 && pathSegments[0] === 'reslink') ? pathSegments[1] : '');
+        const currentSlug = getCurrentSlug();
         const mode = urlParams.get('mode');
         const reqTmpl = urlParams.get('template') || urlParams.get('t') || 'corporate_elite';
         
@@ -1265,7 +1351,7 @@
           }
         }
 
-        const reslinkUrl = currentSlug ? `/api/v1/reslink?slug=${encodeURIComponent(currentSlug)}` : '/api/v1/reslink';
+        const reslinkUrl = `/api/v1/reslink?slug=${encodeURIComponent(currentSlug)}`;
 
         const reslinkRes = await fetch(reslinkUrl).catch(() => null);
 
@@ -1283,6 +1369,8 @@
 
     function applyProfileToUI() {
       const urlParams = new URLSearchParams(window.location.search);
+      const currentSlug = getCurrentSlug();
+
       // 1. Resolve Candidate Details
       const p = reslinkProfile || {};
       const r = resumeProfile || {};
@@ -1297,8 +1385,12 @@
       const linkedinUrl = p.cta_settings?.linkedin_url || r.contact?.linkedin || "";
 
       // 2. Set Header Elements (Safe text insertion)
-      document.getElementById('prof-name').textContent = fullName.toUpperCase();
-      document.getElementById('prof-tagline').textContent = tagline;
+      const nameEl = document.getElementById('prof-name');
+      if (nameEl) nameEl.textContent = fullName.toUpperCase();
+      
+      const taglineEl = document.getElementById('prof-tagline');
+      if (taglineEl) taglineEl.textContent = tagline;
+      
       const locEl = document.getElementById('prof-location');
       if (locEl) {
         locEl.textContent = location;
@@ -1307,7 +1399,8 @@
 
       // Initials for avatar badge
       const initials = fullName.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'CV';
-      document.getElementById('prof-avatar').textContent = initials;
+      const avatarEl = document.getElementById('prof-avatar');
+      if (avatarEl) avatarEl.textContent = initials;
 
       // 3. Set Video Source
       const videoElem = document.getElementById('reslink-video-element');
@@ -1328,14 +1421,25 @@
         }
       }
 
-      // 5. Check Template Selection (Respect URL parameter first)
+      const downloadBtn = document.getElementById('btn-download-pdf-cta');
+      if (downloadBtn) {
+        downloadBtn.href = `/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(currentSlug)}`;
+      }
+
+      // 5. Set PDF Document Viewer Fallback Frame
+      const pdfFrame = document.getElementById('pdf-viewer-frame');
+      if (pdfFrame) {
+        pdfFrame.src = `/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(currentSlug)}#toolbar=0&navpanes=0&scrollbar=1`;
+      }
+
+      // 6. Check Template Selection (Respect URL parameter first)
       let rawTmpl = urlParams.get('template') || urlParams.get('t') || p.selected_cv_template || 'corporate_elite';
       if (rawTmpl === 'minimal' || rawTmpl === 'corporate') rawTmpl = 'corporate_elite';
       if (rawTmpl === 'harvard' || rawTmpl === 'mbb') rawTmpl = 'harvard_consulting';
       if (rawTmpl === 'tech' || rawTmpl === 'tech_innovator') rawTmpl = 'tech_specialist';
       switchResumeTemplate(rawTmpl);
 
-      // 6. Check Company Personalization Query Parameter
+      // 7. Check Company Personalization Query Parameter
       const companyParam = urlParams.get('company') || urlParams.get('c');
       if (companyParam) {
         const safeComp = escapeHtml(companyParam);
@@ -1350,7 +1454,7 @@
         document.title = `${fullName} • Video Pitch & Verified Portfolio | ResLink`;
       }
 
-      // 7. Update Dock Pitch Badges if available
+      // 8. Update Dock Pitch Badges if available
       if (p.competency_badges && Array.isArray(p.competency_badges) && p.competency_badges.length > 0) {
         const badgeContainer = document.getElementById('dock-pitch-badges');
         if (badgeContainer) {
