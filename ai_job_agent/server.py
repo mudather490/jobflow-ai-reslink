@@ -402,14 +402,19 @@ async def upload_reslink_resume(
     filesize_val = f"{size_kb} KB"
 
     try:
+        global active_profile, active_resume_filename, active_resume_size
         parsed_profile = ResumeParser.parse_file(str(save_path))
+        active_profile = parsed_profile
+        active_resume_filename = filename_val
+        active_resume_size = filesize_val
         
         # Sync ResLink profile 100% with this authentic uploaded CV
         reslink_profile = ResLinkManager.sync_with_user_profile(
             parsed_profile,
             filename=filename_val,
             filesize=filesize_val,
-            save_user_cache=True
+            save_user_cache=True,
+            save_global=True
         )
 
         # Generate initial PDF preview for this candidate's chosen template

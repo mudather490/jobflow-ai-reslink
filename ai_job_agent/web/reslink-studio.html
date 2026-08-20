@@ -371,9 +371,9 @@
       </div>
       <div class="studio-nav-bar">
         <a href="/app" class="btn btn-secondary" style="font-size: 13px;">← Back to Job Radar</a>
-        <a href="/p/alex-rivera" target="_blank" class="btn btn-primary" id="btn-studio-preview-link" style="font-size: 13px;">
+        <button type="button" class="btn btn-primary" id="btn-studio-preview-link" onclick="openPublicResLinkPage()" style="font-size: 13px;">
           👁️ Open My Public ResLink
-        </a>
+        </button>
       </div>
     </header>
 
@@ -815,9 +815,9 @@
           <button type="button" class="btn btn-secondary" onclick="goToStep(2)">
             ← Back to Video Studio
           </button>
-          <a href="/p/mudather-mohammed" target="_blank" class="btn btn-primary" id="btn-studio-open-recruiter-view">
+          <button type="button" class="btn btn-primary" id="btn-studio-open-recruiter-view" onclick="openPublicResLinkPage()">
             Open Full Recruiter View 👁️
-          </a>
+          </button>
         </div>
       </section>
     </div>
@@ -913,6 +913,11 @@
         else t.classList.remove('completed');
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openPublicResLinkPage() {
+      const slug = currentResLinkProfile?.slug || 'mudather-mohammed';
+      window.open('/p/' + slug, '_blank');
     }
 
     function showToast(msg) {
