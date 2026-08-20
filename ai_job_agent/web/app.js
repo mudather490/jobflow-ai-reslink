@@ -1739,14 +1739,17 @@ document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async
       const results = data.results || {};
       const applied = results.applied_count || 0;
       const pending = results.needs_input_count || 0;
+      const skipped = results.skipped_count || 0;
+      const minScore = data.min_score_threshold || 80;
       
       resultsDiv.innerHTML = `
-        <div style="padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px;">
-          <div style="color: #10B981; font-weight: 700; font-size: 14px; margin-bottom: 8px;">✓ Batch Auto-Apply Complete</div>
+        <div style="padding: 14px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px;">
+          <div style="color: #10B981; font-weight: 800; font-size: 14px; margin-bottom: 8px;">✓ High-Probability Batch Auto-Apply Complete</div>
           <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
-            <div>📊 Applied: <b style="color: #10B981;">${applied}</b> jobs</div>
+            <div>⚡ Auto-Applied (Score ≥ ${minScore}%): <b style="color: #10B981;">${applied}</b> jobs</div>
             <div>⏳ Pending Answers: <b style="color: #F59E0B;">${pending}</b> jobs</div>
-            <div>📋 Total Easy Apply: <b>${data.total_easy_apply || 0}</b></div>
+            <div>⚠️ Skipped (Score < ${minScore}%): <b style="color: var(--accent-rose);">${skipped}</b> jobs (Use AI Gap Agent to boost)</div>
+            <div>📋 Total Easy Apply Scanned: <b>${data.total_easy_apply || 0}</b></div>
           </div>
         </div>
       `;

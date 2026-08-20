@@ -261,6 +261,53 @@ class JobApplier:
         return record
 
     @classmethod
+    def filter_high_probability_easy_apply_jobs(
+        cls,
+        jobs: List[JobDetails],
+        profile: UserProfile,
+        min_score: float = 80.0,
+        matcher: Optional[Any] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        High-Probability Easy Apply Filter Engine:
+        Evaluates candidate resume against all discovered Easy Apply jobs and returns
+        only those with high probability of selection (ATS Match Score >= 80%).
+        """
+        from core.matcher import JobMatcher
+        m = matcher or JobMatcher()
+        high_prob_jobs = []
+
+        for job in jobs:
+            if not getattr(job, 'is_easy_apply', False):
+                continue
+            
+            report = m.evaluate_match(profile, job)
+            score = round(report.match_score, 1)
+
+            if score >= min_score:
+                high_prob_jobs.append({
+                    "job_id": job.job_id,
+                    "job_title": job.title,
+                    "company": job.company,
+                    "location": job.location,
+                    "job_url": job.job_url,
+                    "posted_date": getattr(job, 'posted_date', 'Recent'),
+                    "workplace_badge": getattr(job, 'workplace_badge', '🏡 Remote Only'),
+                    "employment_badge": getattr(job, 'employment_badge', '💼 Full-Time'),
+                    "international_badge": getattr(job, 'international_badge', '🌐 Worldwide'),
+                    "ats_match_score": score,
+                    "matched_skills": report.matched_skills,
+                    "missing_critical_skills": report.missing_critical_skills,
+                    "eligibility_notes": report.eligibility_notes,
+                    "is_easy_apply": True,
+                    "is_high_probability": True,
+                })
+
+        # Sort descending by ATS Match Score
+        high_prob_jobs.sort(key=lambda x: x["ats_match_score"], reverse=True)
+        return high_prob_jobs
+
+    @classmethod
     def batch_auto_apply(
         cls,
         jobs: List[JobDetails],
@@ -270,9 +317,11 @@ class JobApplier:
         memory_bank: Optional[QuestionnaireMemoryBank] = None,
         notifier: Optional[NotificationManager] = None,
         channels: Optional[List[str]] = None,
+        min_score_threshold: float = 80.0,
     ) -> Dict[str, Any]:
         """
         Processes batch auto-applications across multiple jobs in 1 click.
+        Strictly filters for High-Probability Easy Apply jobs (ATS score >= min_score_threshold).
         Returns summary of applied jobs and jobs requiring input.
         """
         from core.matcher import JobMatcher
@@ -289,15 +338,15 @@ class JobApplier:
         for job in jobs:
             match = matcher.evaluate_match(profile, job)
 
-            # ATS Score Gate: Skip jobs under 75% match threshold
-            if match.match_score < 75.0:
+            # High-Probability ATS Score Gate (Default 80.0%)
+            if match.match_score < min_score_threshold:
                 skipped_records.append({
                     "job_id": job.job_id,
                     "job_title": job.title,
                     "company": job.company,
                     "ats_match_score": round(match.match_score, 1),
                     "status": "skipped",
-                    "reason": f"ATS match score ({round(match.match_score, 1)}%) below 75.0% threshold. Use AI Gap Agent to boost score."
+                    "reason": f"ATS match score ({round(match.match_score, 1)}%) below high-probability threshold ({min_score_threshold}%). Use AI Gap Agent to boost score."
                 })
                 continue
 
@@ -322,7 +371,7 @@ class JobApplier:
         # Dispatch aggregate summary notification for auto-applied jobs
         if notifier and applied_records:
             notifier.dispatch_all(
-                job_title=f"⚡ Batch Auto-Applied ({len(applied_records)} High-Match Jobs)",
+                job_title=f"⚡ Batch Auto-Applied ({len(applied_records)} High-Probability Jobs ≥ {min_score_threshold}%)",
                 company="Multiple Employers",
                 match_score=94.5,
                 job_url="http://127.0.0.1:8000/app",
@@ -334,6 +383,7 @@ class JobApplier:
             "applied_count": len(applied_records),
             "needs_input_count": len(needs_input_records),
             "skipped_count": len(skipped_records),
+            "min_score_threshold": min_score_threshold,
             "applied_records": applied_records,
             "needs_input_records": needs_input_records,
             "skipped_records": skipped_records,

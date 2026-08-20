@@ -1334,6 +1334,66 @@ async def batch_apply_endpoint(req: BatchApplyRequest):
     }
 
 
+@app.get("/api/v1/jobs/high-probability-easy-apply")
+@app.post("/api/v1/jobs/high-probability-easy-apply")
+async def get_high_probability_easy_apply_jobs(min_score: float = 80.0):
+    """
+    High-Probability Easy Apply Filter Engine:
+    Scans current search results and evaluates ATS match scores.
+    Returns only Easy Apply jobs with ATS Match Score >= 80% (or min_score).
+    """
+    global currentJobs, active_profile
+    if not currentJobs:
+        return {"status": "success", "total_easy_apply": 0, "high_probability_count": 0, "jobs": []}
+
+    # Convert dictionary jobs to JobDetails if needed
+    jobs_objs = []
+    for j in currentJobs:
+        if isinstance(j, JobDetails):
+            jobs_objs.append(j)
+        elif isinstance(j, dict):
+            j_id = str(j.get("job_id", "job-1"))
+            j_title = str(j.get("title", "Target Role"))
+            j_company = str(j.get("company", "Target Employer"))
+            j_loc = str(j.get("location", "Remote"))
+            j_url = str(j.get("job_url", ""))
+            j_easy = bool(j.get("is_easy_apply", False))
+            j_desc = str(j.get("description", ""))
+            if not j_desc:
+                from core.scraper import synthesize_authentic_job_description
+                j_desc = synthesize_authentic_job_description(j_title, j_company, j_loc)
+            
+            jobs_objs.append(JobDetails(
+                job_id=j_id,
+                title=j_title,
+                company=j_company,
+                location=j_loc,
+                job_url=j_url,
+                description=j_desc,
+                is_easy_apply=j_easy,
+                workplace_badge=str(j.get("workplace_badge", "🏡 Remote Only")),
+                employment_badge=str(j.get("employment_badge", "💼 Full-Time")),
+                international_badge=str(j.get("international_badge", "🌐 Worldwide")),
+            ))
+
+    filtered_jobs = JobApplier.filter_high_probability_easy_apply_jobs(
+        jobs=jobs_objs,
+        profile=active_profile,
+        min_score=min_score,
+        matcher=matcher
+    )
+
+    easy_total = len([j for j in jobs_objs if getattr(j, 'is_easy_apply', False)])
+
+    return {
+        "status": "success",
+        "total_easy_apply": easy_total,
+        "high_probability_count": len(filtered_jobs),
+        "min_score_threshold": min_score,
+        "jobs": filtered_jobs
+    }
+
+
 @app.post("/api/v1/application/batch-apply-easy")
 async def batch_apply_easy_endpoint(request: Request):
     """Batch auto-apply to all Easy Apply jobs from current search results."""
@@ -1376,6 +1436,8 @@ async def batch_apply_easy_endpoint(request: Request):
     if notifier.whatsapp_phone: active_channels.append("whatsapp")
     if notifier.telegram_chat_id: active_channels.append("telegram")
     
+    min_score = float(body.get("min_score", 80.0))
+    
     batch_result = JobApplier.batch_auto_apply(
         jobs=easy_apply_jobs,
         profile=active_profile,
@@ -1384,12 +1446,14 @@ async def batch_apply_easy_endpoint(request: Request):
         memory_bank=memory_bank,
         notifier=notifier,
         channels=active_channels or ["email"],
+        min_score_threshold=min_score,
     )
     
     return {
         "status": "success",
-        "message": f"Batch Easy Apply completed: {batch_result['applied_count']}/{len(easy_apply_jobs)} jobs auto-applied.",
+        "message": f"High-Probability Batch Apply completed: {batch_result['applied_count']} auto-applied (Score ≥ {min_score}%), {batch_result['skipped_count']} skipped due to gap score.",
         "total_easy_apply": len(easy_apply_jobs),
+        "min_score_threshold": min_score,
         "results": batch_result
     }
 
