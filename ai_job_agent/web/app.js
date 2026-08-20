@@ -391,14 +391,17 @@ document.getElementById('btn-open-reslink-preview')?.addEventListener('click', (
   window.openTemplatePreviewModal();
 });
 
-// Step 1: Initialize Base Resume & Cross-Device Cloud Sync
-async function loadInitialProfile() {
-  let userEmail = '';
+function getCurrentUserEmail() {
   try {
     const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
-    if (user && user.email) userEmail = user.email.trim().toLowerCase();
-    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
+    if (user && user.email) return user.email.trim().toLowerCase();
   } catch (e) {}
+  return '';
+}
+
+// Step 1: Initialize Base Resume & Cross-Device Cloud Sync
+async function loadInitialProfile() {
+  const userEmail = getCurrentUserEmail();
 
   try {
     // 1. Sync full user session bundle from Supabase
@@ -571,12 +574,7 @@ async function handleFileUpload(file) {
   const formData = new FormData();
   formData.append('file', file);
 
-  let userEmail = '';
-  try {
-    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
-    if (user && user.email) userEmail = user.email.trim().toLowerCase();
-    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
-  } catch (e) {}
+  const userEmail = getCurrentUserEmail();
 
   if (userEmail) {
     formData.append('user_email', userEmail);
@@ -788,12 +786,7 @@ window.onJobCardClick = function(idx) {
 async function selectJob(job) {
   selectedJob = job;
   try {
-    let userEmail = '';
-    try {
-      const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
-      if (user && user.email) userEmail = user.email.trim().toLowerCase();
-      else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
-    } catch (e) {}
+    const userEmail = getCurrentUserEmail();
 
     const res = await fetch('/api/v1/jobs/match', {
       method: 'POST',
@@ -968,12 +961,7 @@ window.questionnaireData = [
 window.activeMissingQuestions = [];
 
 window.loadQuestionnaireBank = async function() {
-  let userEmail = '';
-  try {
-    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
-    if (user && user.email) userEmail = user.email.trim().toLowerCase();
-    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
-  } catch (e) {}
+  const userEmail = getCurrentUserEmail();
 
   try {
     const url = userEmail ? `/api/v1/questionnaire?email=${encodeURIComponent(userEmail)}` : '/api/v1/questionnaire';
@@ -1030,12 +1018,7 @@ window.saveAllQuestionnaireAnswers = async function() {
     }
   });
 
-  let userEmail = '';
-  try {
-    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
-    if (user && user.email) userEmail = user.email.trim().toLowerCase();
-    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
-  } catch (e) {}
+  const userEmail = getCurrentUserEmail();
 
   try {
     if (btn) {
@@ -1557,12 +1540,7 @@ document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async
 
 // Step 9: Notification Channels & Alert Settings Controller
 async function loadNotificationSettings() {
-  let userEmail = '';
-  try {
-    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
-    if (user && user.email) userEmail = user.email.trim().toLowerCase();
-    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
-  } catch (e) {}
+  const userEmail = getCurrentUserEmail();
 
   try {
     const url = userEmail ? `/api/v1/settings/notifications?email=${encodeURIComponent(userEmail)}` : '/api/v1/settings/notifications';
@@ -1588,12 +1566,7 @@ document.getElementById('btn-save-settings')?.addEventListener('click', async ()
   const tg = document.getElementById('setting-telegram').value.trim();
   const msgEl = document.getElementById('settings-save-msg');
 
-  let userEmail = email;
-  try {
-    const user = JSON.parse(localStorage.getItem('jobflow_auth_user') || 'null');
-    if (user && user.email) userEmail = user.email.trim().toLowerCase();
-    else if (localStorage.getItem('user_subscription_tier') === 'owner') userEmail = 'mudatherkbyer@gmail.com';
-  } catch (e) {}
+  const userEmail = email || getCurrentUserEmail();
 
   msgEl.innerHTML = '<span style="color: var(--accent-cyan)">Saving preferences to Supabase...</span>';
 
@@ -2352,8 +2325,8 @@ window.openUserProfileModal = function() {
   } catch (e) {}
 
   const tier = (localStorage.getItem('user_subscription_tier') || 'free').toLowerCase();
-  const email = user?.email || (tier === 'owner' ? 'mudatherkbyer@gmail.com' : 'Guest User');
-  const name = user?.full_name || (tier === 'owner' ? 'Mudather Mohammed' : (email.includes('@') ? email.split('@')[0] : 'Guest User'));
+  const email = user?.email || 'Guest User';
+  const name = user?.full_name || (email.includes('@') ? email.split('@')[0] : 'Guest User');
   const initial = (name[0] || 'U').toUpperCase();
 
   const avatarEl = document.getElementById('modal-user-avatar');

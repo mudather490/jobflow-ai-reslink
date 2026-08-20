@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "ai_job_agent/api/index.py",
+      "src": "api/index.py",
       "use": "@vercel/python"
     },
     {
@@ -17,43 +17,43 @@
     },
     {
       "src": "/videos/(.*)",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/p/(.*)",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/reslink/(.*)",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/reslink-studio",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/reslink",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/studio",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/app",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/landing",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/api/(.*)",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/",
-      "dest": "/ai_job_agent/api/index.py"
+      "dest": "/api/index.py"
     }
   ]
 }

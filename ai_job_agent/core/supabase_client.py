@@ -138,20 +138,22 @@ class SupabaseAdapter:
         print(f"[SaaS Manager] User {clean_email} active on tier: {clean_tier} (License: {license_key})")
         return True
 
-    OWNER_EMAIL = "mudatherkbyer@gmail.com"
+    @classmethod
+    def get_owner_email(cls) -> str:
+        return os.getenv("OWNER_EMAIL", "mudatherkbyer@gmail.com").strip().lower()
 
     @classmethod
     def get_user_tier(cls, email: str) -> str:
         """
         Retrieves user subscription tier ('free', 'pro', 'executive', 'owner').
-        ONLY 'mudatherkbyer@gmail.com' (case-insensitive exact match) gets 'owner'.
+        ONLY configured owner email (case-insensitive exact match) gets 'owner'.
         Any other account defaults strictly to 'free' unless active in Supabase profiles.
         """
         clean_email = (email or "").strip().lower()
         if not clean_email:
             return "free"
 
-        if clean_email == cls.OWNER_EMAIL:
+        if clean_email == cls.get_owner_email():
             return "owner"
 
         client = cls.get_client()
@@ -501,7 +503,7 @@ class SupabaseAdapter:
         return {
             "email": clean_email,
             "tier": tier,
-            "is_owner": clean_email == cls.OWNER_EMAIL,
+            "is_owner": clean_email == cls.get_owner_email(),
             "profile": profile_bundle.get("profile") if profile_bundle else None,
             "resume_filename": profile_bundle.get("filename") if profile_bundle else None,
             "notifications": notifications,

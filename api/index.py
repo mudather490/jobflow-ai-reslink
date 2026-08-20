@@ -1,9 +1,9 @@
 import sys
 from pathlib import Path
 
-# Add ai_job_agent and root directory to sys.path for Vercel serverless environment
-AGENT_DIR = Path(__file__).resolve().parent.parent
-ROOT_DIR = AGENT_DIR.parent
+# Add project root and ai_job_agent directory to sys.path for Vercel serverless environment
+ROOT_DIR = Path(__file__).resolve().parent.parent
+AGENT_DIR = ROOT_DIR / "ai_job_agent"
 
 if str(AGENT_DIR) not in sys.path:
     sys.path.insert(0, str(AGENT_DIR))

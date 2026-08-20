@@ -295,7 +295,7 @@ async def get_current_profile(email: Optional[str] = None, slug: Optional[str] =
                 active_resume_size = "Verified (Cloud Synced)"
             except Exception as e:
                 print(f"[Supabase] Error parsing stored user profile: {e}")
-        elif clean_email == SupabaseManager.OWNER_EMAIL:
+        elif clean_email == SupabaseManager.get_owner_email():
             # For owner, check master uploaded CV files
             owner_cv_path = DATA_DIR / "Mudather_Mohammed_Resume_1_Resume__1_.pdf"
             if owner_cv_path.exists():
@@ -1676,7 +1676,7 @@ async def get_user_status_endpoint(request: Request, email: Optional[str] = None
 
     from core.supabase_client import SupabaseAdapter
     tier = SupabaseAdapter.get_user_tier(clean_email)
-    is_owner = (tier == "owner" and clean_email == SupabaseAdapter.OWNER_EMAIL)
+    is_owner = (tier == "owner" and clean_email == SupabaseAdapter.get_owner_email())
 
     limits = {
         "daily_searches": "unlimited" if tier in ["owner", "executive"] else (50 if tier == "pro" else 3),

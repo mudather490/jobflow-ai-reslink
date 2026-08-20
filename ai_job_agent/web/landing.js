@@ -170,15 +170,12 @@ function parseJwtPayload(token) {
   }
 }
 
-const OWNER_EMAIL = "mudatherkbyer@gmail.com";
-
-function handleGoogleCredentialResponse(response) {
+async function handleGoogleCredentialResponse(response) {
   if (response && response.credential) {
     const payload = parseJwtPayload(response.credential);
     if (payload && payload.email) {
       const email = payload.email.trim().toLowerCase();
       const name = payload.name || payload.full_name || email.split('@')[0];
-      const isOwner = (email === OWNER_EMAIL);
       
       // Account isolation: Clear stale localStorage if switched accounts
       const currentStored = localStorage.getItem('jobflow_auth_user');
@@ -194,17 +191,27 @@ function handleGoogleCredentialResponse(response) {
         } catch (e) {}
       }
 
-      const initialTier = isOwner ? 'owner' : 'free';
+      let tier = 'free';
+      let isOwner = false;
+      try {
+        const res = await fetch(`/api/v1/auth/user-status?email=${encodeURIComponent(email)}`);
+        if (res.ok) {
+          const data = await res.json();
+          tier = data.tier || 'free';
+          isOwner = !!data.is_owner;
+        }
+      } catch (err) {}
+
       localStorage.setItem('jobflow_auth_user', JSON.stringify({
         email: email,
         full_name: name,
         role: isOwner ? 'owner' : 'user',
         is_admin: isOwner,
-        subscription_tier: initialTier,
+        subscription_tier: tier,
         provider: 'google',
         authenticated_at: new Date().toISOString()
       }));
-      localStorage.setItem('user_subscription_tier', initialTier);
+      localStorage.setItem('user_subscription_tier', tier);
       window.location.href = '/app';
     }
   }
