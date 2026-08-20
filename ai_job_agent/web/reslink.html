@@ -1031,7 +1031,7 @@
         </button>
 
         <!-- b) [📥 Download CV (PDF)] -->
-        <a id="btn-download-pdf-cta" href="/api/v1/resume/download-pdf" class="cta-btn cta-download" target="_blank" onclick="trackCVDownload()" title="Download official verified ATS resume PDF">
+        <a id="btn-download-pdf-cta" href="#" onclick="downloadOriginalUploadedPDF(event)" class="cta-btn cta-download" title="Download official verified ATS resume PDF">
           <span>📥</span>
           <span>Download CV (PDF)</span>
         </a>
@@ -1231,6 +1231,14 @@
     function trackCVDownload() {
       showToast("📥 Downloading verified ATS PDF resume...");
       sendTelemetry('cv_download', { template_id: currentTemplate });
+    }
+
+    function downloadOriginalUploadedPDF(e) {
+      if (e) e.preventDefault();
+      trackCVDownload();
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      const currentSlug = (pathSegments.length > 0 && pathSegments[0] === 'p') ? pathSegments[1] : (reslinkProfile?.slug || 'mudather-mohammed');
+      window.open(`/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(currentSlug)}`, '_blank');
     }
 
     // ── 5. Data Fetching & Sync ──

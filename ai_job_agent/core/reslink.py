@@ -229,8 +229,8 @@ class ResLinkManager:
         if not profile:
             return cls.load_profile()
 
-        clean_name = (profile.full_name or "Candidate").strip()
-        clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', clean_name.lower().replace(' ', '-')).strip('-') or "candidate"
+        clean_name = re.sub(r'\s{2,}', ' ', (profile.full_name or "Candidate").strip())
+        clean_slug = re.sub(r'-+', '-', re.sub(r'[^a-zA-Z0-9-]', '', clean_name.lower().replace(' ', '-'))).strip('-') or "candidate"
         tagline = profile.headline or profile.target_role or "AI & Software Engineering Specialist"
         location = profile.contact.location or ""
         bio = profile.summary or ""

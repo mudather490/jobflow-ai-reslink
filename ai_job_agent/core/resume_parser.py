@@ -287,16 +287,18 @@ class ResumeParser:
         Universal, domain-agnostic resume parser.
         Detects sections via regex boundaries and extracts structured data cleanly.
         """
+        raw_text = re.sub(r'[\ufffd\u2022\u25cf\u25cb\u25aa\u25a0\u2023\u2043\u2219]', '•', raw_text)
         text = cls.normalize_text_spacing(raw_text)
-        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        raw_text = re.sub(r'([^\n])•\s*', r'\1\n• ', raw_text)
+        lines = [line.strip() for line in raw_text.split("\n") if line.strip()]
         if not lines:
             return UserProfile(full_name="Candidate Name")
 
         # 1. Candidate Name & Headline Extraction
-        full_name = lines[0].strip()
+        full_name = re.sub(r'\s{2,}', ' ', lines[0].strip())
         headline = None
         if len(lines) > 1:
-            cand_head = lines[1].strip()
+            cand_head = re.sub(r'\s{2,}', ' ', lines[1].strip())
             if not any(k in cand_head.lower() for k in ["@", "http", "+1", "+44", "phone", "email", "linkedin", "github"]):
                 headline = cand_head
 
@@ -495,9 +497,10 @@ class ResumeParser:
             ]
             
             for line in p_lines:
+                clean_line = line.lstrip('•-*● ').strip()
                 is_new_proj = False
                 for pat in proj_title_patterns:
-                    if re.search(pat, line, re.I) and not line.lower().startswith(('built', 'implemented', 'applied', 'designed', 'technologies:', 'tech:', 'repository:', 'repo:', '•', '-', '*', 'experience includes', 'experience:', 'ai agent project:')):
+                    if re.search(pat, clean_line, re.I) and not clean_line.lower().startswith(('built', 'implemented', 'applied', 'designed', 'evaluated', 'currently', 'technologies:', 'tech:', 'repository:', 'repo:', 'experience includes', 'experience:', 'ai agent project:')):
                         is_new_proj = True
                         break
                 
@@ -505,6 +508,7 @@ class ResumeParser:
                     if current_proj:
                         projects_list.append(Project(**current_proj))
                     
+                    line = clean_line
                     repo = None
                     repo_m = re.search(r'(https?://github\.com/[^\s\)]+)', line)
                     if repo_m:
