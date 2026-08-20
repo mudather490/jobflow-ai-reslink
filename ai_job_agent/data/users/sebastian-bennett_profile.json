@@ -1,0 +1,27 @@
+{
+  "filename": "Sebastian_Bennett_Resume.pdf",
+  "filesize": "45.2 KB",
+  "profile": {
+    "full_name": "Sebastian Bennett",
+    "headline": "Senior Accountant | Financial Analyst",
+    "contact": {
+      "email": "sebastian.bennett@email.com"
+    },
+    "summary": "Financial analyst with expertise in accounting.",
+    "skills": [
+      "Accounting",
+      "Financial Analysis",
+      "Excel"
+    ],
+    "experience": [],
+    "projects": [],
+    "education": [],
+    "certifications": []
+  },
+  "reslink": {
+    "slug": "sebastian-bennett",
+    "full_name": "Sebastian Bennett",
+    "tagline": "Senior Accountant",
+    "location": "London, UK"
+  }
+}

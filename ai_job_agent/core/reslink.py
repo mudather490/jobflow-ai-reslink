@@ -192,7 +192,7 @@ class ResLinkManager:
             if f.suffix.lower() in [".pdf", ".docx"]:
                 f_name_condensed = re.sub(r'[^a-zA-Z0-9]', '', f.stem.lower())
                 slug_condensed = re.sub(r'[^a-zA-Z0-9]', '', clean_slug)
-                if (len(slug_condensed) > 4 and slug_condensed in f_name_condensed) or ("sebastian" in slug_condensed and "accountant" in f_name_condensed) or ("sebastian" in slug_condensed and "sebastian" in f_name_condensed):
+                if (len(slug_condensed) > 4 and slug_condensed in f_name_condensed):
                     try:
                         u_prof = ResumeParser.parse_file(str(f))
                         reslink_prof = cls.sync_with_user_profile(
