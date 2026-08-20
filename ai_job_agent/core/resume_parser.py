@@ -273,8 +273,9 @@ class ResumeParser:
                 # Normal line: collapse multiple spaces/tabs into single space
                 cleaned = re.sub(r'[ \t]{2,}', ' ', l.strip())
             
-            # Filter isolated standalone page numbers e.g. "1" or "Page 1"
-            if re.match(r'^(?:Page\s+)?\d+$', cleaned, re.I):
+            # Filter isolated standalone page numbers e.g. "1" or "Page 1" or trailing artifacts "3l4l"
+            cleaned = re.sub(r'\d+l\d+l$', '', cleaned).strip()
+            if re.match(r'^(?:Page\s+)?\d+$', cleaned, re.I) or not cleaned:
                 continue
                 
             cleaned_lines.append(cleaned)

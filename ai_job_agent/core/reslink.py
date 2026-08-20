@@ -39,6 +39,7 @@ class ResLinkProfile(BaseModel):
     pitch_script: str = ""
     linkedin_outreach_note: str = ""
     attached_resume_filename: Optional[str] = None
+    attached_resume_filepath: Optional[str] = None
     attached_resume_size: Optional[str] = None
     attached_profile: Optional[Dict[str, Any]] = None
     competency_badges: List[str] = Field(default_factory=lambda: [
@@ -183,6 +184,11 @@ class ResLinkManager:
                         reslink_prof = cls.sync_with_user_profile(
                             u_prof, filename=att_fname, filesize=att_fsize, save_user_cache=False, save_global=False
                         )
+                        # Patch filepath if possible
+                        if reslink_prof.attached_resume_filepath is None and att_fname:
+                            possible_path = DATA_DIR / att_fname
+                            if possible_path.exists():
+                                reslink_prof.attached_resume_filepath = str(possible_path)
                         return reslink_prof, u_prof
                 except Exception:
                     continue
@@ -196,7 +202,7 @@ class ResLinkManager:
                     try:
                         u_prof = ResumeParser.parse_file(str(f))
                         reslink_prof = cls.sync_with_user_profile(
-                            u_prof, filename=f.name, filesize=f"{round(f.stat().st_size/1024, 1)} KB", save_user_cache=True, save_global=False
+                            u_prof, filename=f.name, filepath=str(f), filesize=f"{round(f.stat().st_size/1024, 1)} KB", save_user_cache=True, save_global=False
                         )
                         return reslink_prof, u_prof
                     except Exception:
@@ -212,6 +218,7 @@ class ResLinkManager:
         cls,
         profile: UserProfile,
         filename: Optional[str] = None,
+        filepath: Optional[str] = None,
         filesize: Optional[str] = None,
         save_user_cache: bool = True,
         save_global: bool = True,
@@ -249,6 +256,7 @@ class ResLinkManager:
         theme = existing.theme if existing else "glassmorphic_dark"
         selected_template = existing.selected_cv_template if existing else "corporate_elite"
         att_filename = filename or (existing.attached_resume_filename if existing else None)
+        att_filepath = filepath or (existing.attached_resume_filepath if existing else None)
         att_size = filesize or (existing.attached_resume_size if existing else None)
 
         # Construct authentic competency badges from user's real skills & experience
@@ -296,6 +304,7 @@ class ResLinkManager:
             selected_cv_template=selected_template,
             target_job_title=profile.target_role or tagline,
             attached_resume_filename=att_filename,
+            attached_resume_filepath=att_filepath,
             attached_resume_size=att_size,
             attached_profile=profile.model_dump(),
             competency_badges=real_badges,
@@ -452,7 +461,7 @@ class ResLinkManager:
         ]
 
         # LinkedIn Outreach Note
-        slug = re.sub(r'[^a-zA-Z0-9-]', '', full_name.lower().replace(' ', '-')) or "alex-rivera"
+        slug = re.sub(r'-+', '-', re.sub(r'[^a-zA-Z0-9-]', '', full_name.lower().replace(' ', '-'))).strip('-') or "candidate-profile"
         outreach_note = (
             f"{greeting_written}\n\n"
             f"I came across the {title_clean} role at {company_clean} and wanted to reach out directly. "
@@ -460,26 +469,6 @@ class ResLinkManager:
             f"👉 http://127.0.0.1:8000/p/{slug}\n\n"
             f"It highlights my direct experience in {skill_1} and {skill_2}, along with key deliverables from my time at {top_company}. "
             f"I would love to connect and discuss how I can add immediate value to {company_clean}!\n\n"
-            f"Best regards,\n{full_name}"
-        )
-
-        # Dynamic badges for video overlays
-        competency_badges = [
-            f"⚡ {matched_skills[0]} Specialist" if len(matched_skills) > 0 else "⚡ Technical Specialist",
-            f"🚀 {top_role} @ {top_company}",
-            f"🎯 Matched for {title_clean}",
-            f"🌍 Worldwide Remote & Immediate Impact"
-        ]
-
-        # LinkedIn Outreach Note
-        slug = re.sub(r'[^a-zA-Z0-9-]', '', full_name.lower().replace(' ', '-')) or "alex-rivera"
-        outreach_note = (
-            f"Hi Hiring Team,\n\n"
-            f"I came across the {title_clean} role at {company_clean} and was very impressed by your team's mission. "
-            f"Rather than just sending a flat resume, I put together a 60-second video pitch and interactive project link tailored to your requirements:\n\n"
-            f"👉 http://127.0.0.1:8000/p/{slug}\n\n"
-            f"It covers my direct experience in {', '.join(matched_skills[:2])} and key accomplishments at {top_company}. "
-            f"Would love to connect and discuss how I can contribute to {company_clean}!\n\n"
             f"Best regards,\n{full_name}"
         )
 
@@ -657,7 +646,8 @@ class ResLinkManager:
         
         clean_company = re.sub(r'[^a-zA-Z0-9]', '', data.get("company_name", "General"))
         data["custom_param"] = clean_company
-        data["reslink_url"] = f"/p/mudather-mohammed?company={clean_company}"
+        cand_slug = cls.load_profile().slug or "mudather-mohammed"
+        data["reslink_url"] = f"/p/{cand_slug}?company={clean_company}"
         
         if "status" not in data:
             data["status"] = "Link Generated & Ready"

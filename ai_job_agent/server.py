@@ -388,17 +388,23 @@ async def upload_reslink_resume(
     content = await file.read()
     SecurityShield.validate_resume_upload(file.filename, content, max_size_mb=15)
 
-    # Save to data directory
-    save_path = SecurityShield.sanitize_filepath(file.filename, DATA_DIR)
-    ext = save_path.suffix.lower()
+    clean_slug = (slug or "candidate").strip()
+    clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', clean_slug.lower()).strip('-')
+
+    ext = Path(file.filename).suffix.lower()
     if ext not in [".docx", ".pdf", ".txt", ".md"]:
         raise HTTPException(status_code=400, detail="Unsupported file format. Please upload .docx, .pdf, or .txt")
+
+    filename_val = f"reslink_resume_{clean_slug}{ext}"
+    if not slug:
+        filename_val = file.filename
+
+    save_path = SecurityShield.sanitize_filepath(filename_val, DATA_DIR)
 
     with open(save_path, "wb") as buffer:
         buffer.write(content)
 
     size_kb = round(save_path.stat().st_size / 1024, 1)
-    filename_val = save_path.name
     filesize_val = f"{size_kb} KB"
 
     try:
@@ -407,11 +413,15 @@ async def upload_reslink_resume(
         # Sync ResLink profile 100% with this authentic uploaded CV
         reslink_profile = ResLinkManager.sync_with_user_profile(
             parsed_profile,
-            filename=filename_val,
+            filename=save_path.name,
+            filepath=str(save_path),
             filesize=filesize_val,
             save_user_cache=True,
             save_global=True
         )
+        
+        reslink_profile.attached_resume_filepath = str(save_path)
+        ResLinkManager.save_profile(reslink_profile)
 
         # Generate initial PDF preview for this candidate's chosen template
         chosen_tmpl = reslink_profile.selected_cv_template or "corporate_elite"
@@ -423,14 +433,14 @@ async def upload_reslink_resume(
         target_email = user_email or (parsed_profile.contact.email if parsed_profile.contact else None)
         if target_email:
             try:
-                SupabaseManager.save_user_profile(target_email, parsed_profile.model_dump(), filename=filename_val)
+                SupabaseManager.save_user_profile(target_email, parsed_profile.model_dump(), filename=save_path.name)
             except Exception:
                 pass
 
         return {
             "status": "success",
-            "message": f"Authentic CV '{filename_val}' attached to ResLink Studio!",
-            "filename": filename_val,
+            "message": f"Authentic CV '{save_path.name}' attached to ResLink Studio!",
+            "filename": save_path.name,
             "filesize": filesize_val,
             "profile": parsed_profile.model_dump(),
             "reslink_profile": reslink_profile.model_dump(),
@@ -438,6 +448,64 @@ async def upload_reslink_resume(
     except Exception as e:
         print(f"Failed to parse ResLink resume: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to parse resume.")
+
+@app.get("/api/v1/reslink/pdf/raw")
+async def get_reslink_pdf_raw(slug: Optional[str] = None):
+    """
+    Returns the authentic PDF file uploaded in Step 1 of ResLink Studio for the requested candidate.
+    """
+    reslink_prof = None
+    u_prof = None
+    if slug:
+        reslink_prof, u_prof = ResLinkManager.load_profile_by_slug(slug)
+    if not reslink_prof:
+        reslink_prof = ResLinkManager.load_profile()
+        u_prof = UserProfile(**reslink_prof.attached_profile) if reslink_prof.attached_profile else None
+
+    # 1. Check attached resume filepath or filename
+    pdf_path = None
+    att_filename = getattr(reslink_prof, "attached_resume_filename", None)
+    att_filepath = getattr(reslink_prof, "attached_resume_filepath", None)
+
+    if att_filepath:
+        candidate_path = Path(att_filepath)
+        if candidate_path.exists():
+            pdf_path = candidate_path
+
+    if not pdf_path and att_filename:
+        candidate_path = DATA_DIR / att_filename
+        if candidate_path.exists():
+            pdf_path = candidate_path
+
+    # 2. Check candidate slug matching file in DATA_DIR
+    if not pdf_path and slug:
+        clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', slug.lower()).strip('-')
+        slug_condensed = re.sub(r'[^a-zA-Z0-9]', '', clean_slug)
+        for f in DATA_DIR.glob("*.pdf"):
+            f_name_condensed = re.sub(r'[^a-zA-Z0-9]', '', f.stem.lower())
+            if len(slug_condensed) > 4 and slug_condensed in f_name_condensed:
+                pdf_path = f
+                break
+
+    # 3. If file is docx/txt or missing, generate ATS PDF dynamically for this candidate
+    if not pdf_path or not pdf_path.exists():
+        if u_prof or reslink_prof.attached_profile:
+            p_to_render = u_prof or UserProfile(**reslink_prof.attached_profile)
+            clean_name = re.sub(r'[^\w\-]', '', p_to_render.full_name.replace(' ', '_')).strip('_') or 'Candidate'
+            chosen_tmpl = reslink_prof.selected_cv_template or "corporate_elite"
+            pdf_out_path = OUTPUT_DIR / f"{clean_name}_ResLink_Resume_{chosen_tmpl}.pdf"
+            ResumeDocumentGenerator.generate_pdf(p_to_render, str(pdf_out_path), template_id=chosen_tmpl)
+            pdf_path = pdf_out_path
+
+    if not pdf_path or not pdf_path.exists():
+        raise HTTPException(status_code=404, detail="No resume PDF found for this candidate.")
+
+    return FileResponse(
+        str(pdf_path),
+        media_type="application/pdf",
+        filename=pdf_path.name,
+        headers={"Content-Disposition": f"inline; filename={pdf_path.name}"}
+    )
 
 
 class SkillRequest(BaseModel):
@@ -992,39 +1060,6 @@ async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = 
         headers={"Content-Disposition": f"attachment; filename={cand_name}_Resume.pdf"}
     )
 
-
-@app.get("/api/v1/reslink/pdf/raw")
-async def get_raw_uploaded_pdf(slug: Optional[str] = None):
-    """
-    Returns the exact original PDF file uploaded in Step 1 of ResLink Studio.
-    """
-    res_prof = None
-    if slug:
-        res_prof, _ = ResLinkManager.load_profile_by_slug(slug)
-    if not res_prof:
-        res_prof = ResLinkManager.load_profile()
-
-    att_filename = getattr(res_prof, "attached_resume_filename", None)
-    if att_filename:
-        file_path = DATA_DIR / att_filename
-        if file_path.exists():
-            return FileResponse(
-                str(file_path),
-                media_type="application/pdf" if file_path.suffix.lower() == ".pdf" else "application/octet-stream",
-                filename=att_filename,
-                headers={"Content-Disposition": f"inline; filename={att_filename}"}
-            )
-
-    # Fallback search DATA_DIR for any PDF file
-    for f in DATA_DIR.glob("*.pdf"):
-        return FileResponse(
-            str(f),
-            media_type="application/pdf",
-            filename=f.name,
-            headers={"Content-Disposition": f"inline; filename={f.name}"}
-        )
-
-    raise HTTPException(status_code=404, detail="No original uploaded PDF found for this candidate.")
 
 
 @app.get("/api/v1/templates/download/docx")

@@ -1820,7 +1820,7 @@
       const companyName = document.getElementById('modal-company-name').value.trim();
       const targetRole = document.getElementById('modal-target-role').value.trim();
       const recruiterName = document.getElementById('modal-recruiter-name').value.trim() || 'Hiring Lead';
-      const templateId = document.getElementById('modal-template-select').value;
+      const templateId = document.getElementById('modal-template-select')?.value || 'corporate_elite';
       const notes = document.getElementById('modal-company-notes').value.trim();
 
       if (!companyName || !targetRole) return;
