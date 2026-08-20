@@ -423,27 +423,27 @@
           Upload your authentic candidate resume (PDF/DOCX), specify the target company, hiring lead, and job requirements. Our AI engine personalizes your spoken script to address the recruiter directly and synchronizes it with your teleprompter.
         </p>
 
-        <!-- Candidate CV / PDF Upload Dropzone -->
-        <div style="background: rgba(14, 19, 38, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px; box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.04);">
+        <!-- Candidate CV / PDF Upload Dropzone (ResLink.io Style Drag-and-Drop + Click) -->
+        <div id="studio-cv-dropzone" onclick="document.getElementById('studio-resume-file-input').click()" style="background: rgba(14, 19, 38, 0.85); border: 2px dashed rgba(56, 189, 248, 0.4); border-radius: var(--radius-md); padding: 20px 24px; margin-bottom: 20px; box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.04); cursor: pointer; transition: all 0.25s ease;" onmouseover="this.style.borderColor='#38BDF8'; this.style.background='rgba(14, 19, 38, 0.95)';" onmouseout="this.style.borderColor='rgba(56, 189, 248, 0.4)'; this.style.background='rgba(14, 19, 38, 0.85)';">
+          <input type="file" id="studio-resume-file-input" accept=".pdf,.docx,.doc,.txt" style="display: none;" onchange="handleStudioResumeUpload(this)">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; font-size: 22px;">
-                📑
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                📥
               </div>
               <div>
                 <div style="font-weight: 800; font-size: 14px; color: #FFF; display: flex; align-items: center; gap: 8px;">
-                  <span id="studio-cv-filename-display">Candidate Resume Attached</span>
-                  <span class="live-badge-chip" style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4);" id="studio-cv-attached-badge">✓ ATS SYNCED</span>
+                  <span id="studio-cv-filename-display">Drag & Drop Resume PDF / DOCX or Click to Browse</span>
+                  <span class="live-badge-chip" style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4);" id="studio-cv-attached-badge">✓ READY</span>
                 </div>
                 <div style="font-size: 12px; color: var(--text-dim);" id="studio-cv-status-display">
-                  Synced dynamically with ResLink Video Pitch & AI Script Generator
+                  Upload authentic CV to sync with Public ResLink Recruiter Page & Teleprompter
                 </div>
               </div>
             </div>
-            <label class="btn btn-secondary" style="font-size: 12.5px; padding: 8px 18px; cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 8px; border-color: rgba(56, 189, 248, 0.45); color: #38BDF8; font-weight: 700;">
-              <span>📤 Upload / Change CV (PDF/DOCX)</span>
-              <input type="file" id="studio-resume-file-input" accept=".pdf,.docx,.doc,.txt" style="display: none;" onchange="handleStudioResumeUpload(this)">
-            </label>
+            <button type="button" class="btn btn-secondary" onclick="event.stopPropagation(); document.getElementById('studio-resume-file-input').click();" style="font-size: 12.5px; padding: 8px 18px; cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 8px; border-color: rgba(56, 189, 248, 0.45); color: #38BDF8; font-weight: 700;">
+              <span>📤 Choose CV File</span>
+            </button>
           </div>
 
           <!-- Live Candidate Details Extracted from Authentic CV -->
@@ -1054,34 +1054,43 @@
       }
     }
 
-    async function handleStudioResumeUpload(input) {
-      if (!input.files || input.files.length === 0) return;
-      const file = input.files[0];
-      const formData = new FormData();
-      formData.append('file', file);
-      if (currentResLinkProfile && currentResLinkProfile.slug) {
-        formData.append('slug', currentResLinkProfile.slug);
+    async function handleStudioResumeUpload(inputOrFile) {
+      let file = null;
+      if (inputOrFile instanceof File) {
+        file = inputOrFile;
+      } else if (inputOrFile && inputOrFile.files && inputOrFile.files.length > 0) {
+        file = inputOrFile.files[0];
       }
-      
+      if (!file) return;
+
       const statusEl = document.getElementById('studio-cv-status-display');
       const nameEl = document.getElementById('studio-cv-filename-display');
       const candNameEl = document.getElementById('studio-cv-cand-name');
       const skillsChipEl = document.getElementById('studio-cv-cand-skills-chips');
 
-      if (statusEl) statusEl.innerText = `⏳ Parsing ${file.name}...`;
+      if (statusEl) statusEl.innerText = `⏳ Parsing & Syncing ${file.name}...`;
       if (nameEl) nameEl.innerText = `Uploaded Resume: ${file.name}`;
       
+      function createFormData() {
+        const fd = new FormData();
+        fd.append('file', file);
+        if (currentResLinkProfile && currentResLinkProfile.slug) {
+          fd.append('slug', currentResLinkProfile.slug);
+        }
+        return fd;
+      }
+
       try {
         let res = await fetch('/api/v1/reslink/resume/upload', {
           method: 'POST',
-          body: formData
+          body: createFormData()
         });
         
-        // Fallback to /api/v1/resume/upload if reslink endpoint returns non-OK
+        // Fallback to /api/v1/resume/upload with a fresh FormData stream
         if (!res.ok) {
           res = await fetch('/api/v1/resume/upload', {
             method: 'POST',
-            body: formData
+            body: createFormData()
           });
         }
 
@@ -1097,7 +1106,7 @@
           if (candNameEl) candNameEl.innerText = p.full_name || 'Candidate Profile';
 
           if (skillsChipEl && Array.isArray(p.skills) && p.skills.length > 0) {
-            skillsChipEl.innerHTML = p.skills.slice(0, 8).map(s => `
+            skillsChipEl.innerHTML = p.skills.slice(0, 10).map(s => `
               <span class="skill-chip chip-match" style="font-size: 11px; padding: 2px 8px;">✓ ${escapeHtml(s)}</span>
             `).join('');
           }
@@ -1105,12 +1114,15 @@
           showToast(`✓ Official CV "${fname}" attached to ResLink Studio!`);
           await loadStudioProfile();
         } else {
-          if (statusEl) statusEl.innerText = `❌ Upload failed. Please try again.`;
-          showToast("❌ Failed to parse resume.");
+          const errData = await res.json().catch(() => ({ detail: 'Upload failed' }));
+          const errMsg = errData.detail || errData.message || 'Upload failed';
+          if (statusEl) statusEl.innerText = `❌ ${errMsg}`;
+          showToast(`❌ ${errMsg}`);
         }
       } catch (err) {
         console.error("Upload error:", err);
         if (statusEl) statusEl.innerText = `❌ Error connecting to server.`;
+        showToast("❌ Error connecting to server.");
       }
     }
 
@@ -1820,7 +1832,7 @@
       const companyName = document.getElementById('modal-company-name').value.trim();
       const targetRole = document.getElementById('modal-target-role').value.trim();
       const recruiterName = document.getElementById('modal-recruiter-name').value.trim() || 'Hiring Lead';
-      const templateId = document.getElementById('modal-template-select')?.value || 'corporate_elite';
+      const templateId = document.getElementById('modal-template-select').value;
       const notes = document.getElementById('modal-company-notes').value.trim();
 
       if (!companyName || !targetRole) return;
@@ -1900,6 +1912,38 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadStudioProfile();
       loadCompanyResLinks();
+
+      // Setup ResLink.io Drag and Drop CV File Upload
+      const dropzone = document.getElementById('studio-cv-dropzone');
+      if (dropzone) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          dropzone.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+          }, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+          dropzone.addEventListener(eventName, () => {
+            dropzone.style.borderColor = '#10B981';
+            dropzone.style.background = 'rgba(16, 185, 129, 0.1)';
+          }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          dropzone.addEventListener(eventName, () => {
+            dropzone.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+            dropzone.style.background = 'rgba(14, 19, 38, 0.85)';
+          }, false);
+        });
+
+        dropzone.addEventListener('drop', e => {
+          const dt = e.dataTransfer;
+          if (dt && dt.files && dt.files.length > 0) {
+            handleStudioResumeUpload(dt.files[0]);
+          }
+        }, false);
+      }
 
       // Check Gumroad Redirect Activation
       try {
