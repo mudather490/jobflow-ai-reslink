@@ -4,31 +4,165 @@
   "tagline": "Junior AI Engineer | Machine Learning Engineer",
   "location": "",
   "summary_bio": "Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel. Built ML models, neural networks from scratch, AI lead-discovery systems, and end-to-end software applications. Currently advancing in PyTorch and AI Engineering through professional certifications and practical projects. Seeking a remote Junior AI Engineer / Machine Learning Engineer opportunity..",
-  "video_url": "/videos/video_pitch.webm",
+  "video_url": "",
   "video_duration": 60.0,
-  "theme": "cyber_neon",
+  "theme": "glassmorphic_dark",
   "selected_cv_template": "corporate_elite",
-  "target_job_title": "Remote Junior AI Engineer / Machine Learning Engineer",
+  "target_job_title": "Junior AI Engineer | Machine Learning Engineer",
   "target_company": "Global Tech Employers",
   "senior_contact": "Hiring Team",
   "pitch_script": "",
   "linkedin_outreach_note": "",
+  "attached_resume_filename": "Mudather_Mohammed_Resume.txt",
+  "attached_resume_size": "0.9 KB",
+  "attached_profile": {
+    "full_name": "MUDATHER MOHAMMED",
+    "headline": "Junior AI Engineer | Machine Learning Engineer",
+    "contact": {
+      "email": "mudatherkbyer@gmail.com",
+      "phone": null,
+      "location": null,
+      "linkedin": "https://linkedin.com/in/Mudax-kbyer",
+      "github": "https://github.com/mudather490",
+      "portfolio": ""
+    },
+    "summary": "Junior AI Engineer with hands-on experience building Machine Learning, Deep Learning, and AI-powered applications using Python. Experienced with NumPy, Pandas, Scikit-learn, TensorFlow, LLM APIs, AI Agents, FastAPI, Supabase, and Vercel. Built ML models, neural networks from scratch, AI lead-discovery systems, and end-to-end software applications. Currently advancing in PyTorch and AI Engineering through professional certifications and practical projects. Seeking a remote Junior AI Engineer / Machine Learning Engineer opportunity..",
+    "skills": [
+      "Python",
+      "LLM APIs",
+      "AI Agents",
+      "Reddit API",
+      "NumPy",
+      "TensorFlow",
+      "weights",
+      "activations",
+      "neural network fundamentals",
+      "Built",
+      "Currently rebuilding",
+      "Applied data cleaning",
+      "EDA",
+      "feature selection",
+      "train/test splitting",
+      "Linear Regression",
+      "evaluation",
+      "visualization",
+      "R\u00b2",
+      "expenses",
+      "Implemented adding",
+      "searching",
+      "viewing",
+      "deleting",
+      "calculating expenses using Python",
+      "OOP",
+      "PyTorch",
+      "Pandas",
+      "Scikit-learn",
+      "FastAPI",
+      "Supabase",
+      "Vercel",
+      "Linux",
+      "MySQL"
+    ],
+    "categorized_skills": {
+      "Neural Network Implementations": [
+        "NumPy"
+      ],
+      "FinanceTracker \u2014 Python": [
+        "expenses"
+      ]
+    },
+    "experience": [
+      {
+        "company": "Independent / Freelance",
+        "role": "AI & Software Engineering",
+        "location": null,
+        "duration": "Recent",
+        "subtitle": null,
+        "summary": null,
+        "bullets": [
+          "Developed practical software and AI applications combining machine learning, AI APIs, backend development, databases, and deployment.",
+          "Building AI-powered applications.",
+          "Integrating LLM APIs into applications.",
+          "Developing AI agent workflows.",
+          "Building backend services using FastAPI.",
+          "Integrating applications with Supabase databases.",
+          "Deploying web applications using Vercel.",
+          "Connecting frontend applications with backend and AI services.",
+          "Developing IntentFlow, an AI-powered lead discovery concept."
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "name": "IntentFlow",
+        "subtitle": "AI Lead Discovery System Freelance / AI Engineering Project",
+        "description": null,
+        "bullets": [
+          "Built an AI agent concept that analyzes Reddit posts to identify potential buying intent and users requesting help. Designed an automated workflow for post analysis, intent detection, lead identification, and AI-generated reply suggestions.",
+          "Designed for integration with the Reddit API for automated data collection."
+        ],
+        "technologies": [],
+        "repository": ""
+      }
+    ],
+    "education": [],
+    "certifications": [
+      {
+        "name": "Machine Learning Specialization",
+        "issuer": "Stanford / DeepLearning.AI",
+        "status": "Completed",
+        "details": "Supervised Learning, Regression, Classification, Gradient Descent, Regularization, Decision Trees, Model Evaluation, and practical ML workflows."
+      },
+      {
+        "name": "PyTorch Professional Certificate",
+        "issuer": "DeepLearning.AI",
+        "status": "In Progress",
+        "details": "PyTorch fundamentals, neural networks, training workflows, deep learning, and practical model development."
+      },
+      {
+        "name": "AI Engineering Professional Certificate",
+        "issuer": "IBM",
+        "status": "In Progress",
+        "details": "AI Engineering, Machine Learning, Deep Learning, and AI application development."
+      },
+      {
+        "name": "AI Engineering",
+        "issuer": "Scrimba",
+        "status": "Completed",
+        "details": "Professional development in modern AI application development and LLM-based applications."
+      },
+      {
+        "name": "Crash Course on Python",
+        "issuer": "Google",
+        "status": "Completed",
+        "details": "Python programming fundamentals, functions, data structures, and practical programming."
+      },
+      {
+        "name": "Google Cyber Security Certificate",
+        "issuer": "Google",
+        "status": "Completed",
+        "details": "Includes Linux, MySQL, and Python hands-on labs."
+      }
+    ],
+    "additional_background": "Transitioned from a background in Veterinary Medicine into Software Engineering, Machine Learning, and Artificial Intelligence.",
+    "target_role": null
+  },
   "competency_badges": [
     "\u26a1 Core: Python, LLM APIs, AI Agents",
     "\ud83d\udcbc AI & Software Engineering at Independent / Freelance",
     "\ud83c\udf93 Machine Learning Specialization"
   ],
   "cta_settings": {
-    "calendly_url": "https://calendly.com",
+    "calendly_url": "",
     "whatsapp_number": "",
-    "telegram_username": "@career_agent",
+    "telegram_username": "",
     "direct_email": "mudatherkbyer@gmail.com",
-    "linkedin_url": "linkedin.com/in/Mudax-kbyer",
-    "github_url": "github.com/mudather490",
+    "linkedin_url": "https://linkedin.com/in/Mudax-kbyer",
+    "github_url": "https://github.com/mudather490",
     "portfolio_url": "",
     "enable_booking": true,
     "enable_cv_download": true
   },
   "is_public": true,
-  "updated_at": "2026-08-18T05:01:37.251654"
+  "updated_at": "2026-08-20T06:36:56.981003"
 }

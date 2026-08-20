@@ -447,26 +447,35 @@ class ResumeParser:
                 if ":" in schunk:
                     cat, sks = schunk.split(":", 1)
                     cat_clean = cat.strip(" •—:")
-                    tokens = [t.strip() for t in re.split(r'[,|;]|\s{2,}', sks) if t.strip()]
+                    tokens = [t.strip() for t in re.split(r'[,|;]|\b(?:and)\b|\s{2,}', sks) if t.strip()]
                     clean_tokens = []
                     for t in tokens:
                         t_clean = re.sub(r'^\W+|\W+$', '', t).strip()
                         # Reject long sentences or project contamination
-                        if t_clean and 1 < len(t_clean) < 45 and len(t_clean.split()) <= 5:
+                        if t_clean and 1 < len(t_clean) < 65 and len(t_clean.split()) <= 5:
                             if not t_clean.lower().startswith(("in progress", "completed")):
                                 if t_clean not in clean_tokens:
                                     clean_tokens.append(t_clean)
                                 if t_clean not in skills_list:
                                     skills_list.append(t_clean)
-                    if clean_tokens and len(cat_clean) < 35:
+                    if clean_tokens and len(cat_clean) < 45:
                         categorized_skills[cat_clean] = clean_tokens
                 else:
-                    tokens = [t.strip() for t in re.split(r'[,|;]|\s{2,}', schunk) if t.strip()]
+                    tokens = [t.strip() for t in re.split(r'[,|;]|\b(?:and)\b|\s{2,}', schunk) if t.strip()]
                     for t in tokens:
                         t_clean = re.sub(r'^\W+|\W+$', '', t).strip()
-                        if t_clean and 1 < len(t_clean) < 45 and len(t_clean.split()) <= 5:
+                        if t_clean and 1 < len(t_clean) < 65 and len(t_clean.split()) <= 5:
                             if t_clean not in skills_list:
                                 skills_list.append(t_clean)
+
+        # Additional skill discovery from full text
+        tech_keywords = [
+            "Python", "PyTorch", "Pandas", "Scikit-learn", "TensorFlow", "FastAPI", "Supabase", "Vercel",
+            "NumPy", "LLM APIs", "AI Agents", "Reddit API", "Linear Regression", "EDA", "Linux", "MySQL"
+        ]
+        for kw in tech_keywords:
+            if re.search(r'\b' + re.escape(kw) + r'\b', text, re.I) and kw not in skills_list:
+                skills_list.append(kw)
 
         # Standardize categorized skills if not already categorized
         from core.tailor import ResumeTailor
@@ -571,7 +580,7 @@ class ResumeParser:
         if "EXPERIENCE" in sections_dict:
             raw_exp_text = sections_dict["EXPERIENCE"]
             exp_lines = [l.strip() for l in raw_exp_text.split("\n") if l.strip()]
-            date_pat = r'(?:\||—|–|-|\(|\s)\s*((?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|Present|Current|\d{4})|\b(?:19|20)\d{2}\b)\)?\s*$'
+            date_pat = r'(?:\||—|–|-|\(|\s)\s*((?:19|20)\d{2}\s*[-–—]\s*(?:(?:19|20)\d{2}|Present|Current|Recent|Ongoing|\d{4})|\b(?:19|20)\d{2}\b|Recent|Present|Current|Ongoing)\)?\s*$'
             
             headers = []
             roles = []
@@ -657,9 +666,10 @@ class ResumeParser:
                         if current_exp["role"] == "Professional Role" and len(line) < 40 and not line.startswith("•") and not line.lower().startswith("lorem"):
                             current_exp["role"] = line.strip(" •:")
                         else:
-                            clean_b = line.lstrip("•-* ").strip()
-                            if clean_b and not clean_b.lower().startswith("experience includes:"):
-                                current_exp["bullets"].append(clean_b)
+                            sub_bullets = [b.strip() for b in re.split(r'[\u2022\u2023\u25e6\u2043\u2219•]', line) if b.strip()]
+                            for sb in sub_bullets:
+                                if sb and not sb.lower().startswith("experience includes:"):
+                                    current_exp["bullets"].append(sb)
                 if current_exp:
                     experience_list.append(WorkExperience(**current_exp))
             else:
@@ -681,7 +691,9 @@ class ResumeParser:
                     elif "ai & software engineering" in ch_low:
                         current_exp["subtitle"] = line.strip(" :.")
                     elif len(line) > 5:
-                        current_exp["bullets"].append(line.lstrip(" •-*").strip())
+                        sub_bullets = [b.strip() for b in re.split(r'[\u2022\u2023\u25e6\u2043\u2219•]', line) if b.strip()]
+                        for sb in sub_bullets:
+                            current_exp["bullets"].append(sb)
                 if current_exp["bullets"] or current_exp["role"]:
                     experience_list.append(WorkExperience(**current_exp))
 
