@@ -284,9 +284,23 @@ class JobApplier:
 
         applied_records = []
         needs_input_records = []
+        skipped_records = []
 
         for job in jobs:
             match = matcher.evaluate_match(profile, job)
+
+            # ATS Score Gate: Skip jobs under 75% match threshold
+            if match.match_score < 75.0:
+                skipped_records.append({
+                    "job_id": job.job_id,
+                    "job_title": job.title,
+                    "company": job.company,
+                    "ats_match_score": round(match.match_score, 1),
+                    "status": "skipped",
+                    "reason": f"ATS match score ({round(match.match_score, 1)}%) below 75.0% threshold. Use AI Gap Agent to boost score."
+                })
+                continue
+
             tailored_prof = tailor.tailor_profile(profile, job, match)
             
             record = cls.auto_apply_easy(
@@ -305,10 +319,10 @@ class JobApplier:
             else:
                 needs_input_records.append(record.model_dump())
 
-        # Dispatch aggregate summary notification
+        # Dispatch aggregate summary notification for auto-applied jobs
         if notifier and applied_records:
             notifier.dispatch_all(
-                job_title=f"Batch Auto-Applied ({len(applied_records)} Jobs)",
+                job_title=f"⚡ Batch Auto-Applied ({len(applied_records)} High-Match Jobs)",
                 company="Multiple Employers",
                 match_score=94.5,
                 job_url="http://127.0.0.1:8000/app",
@@ -319,6 +333,8 @@ class JobApplier:
             "total_processed": len(jobs),
             "applied_count": len(applied_records),
             "needs_input_count": len(needs_input_records),
+            "skipped_count": len(skipped_records),
             "applied_records": applied_records,
             "needs_input_records": needs_input_records,
+            "skipped_records": skipped_records,
         }

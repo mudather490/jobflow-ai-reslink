@@ -825,7 +825,7 @@ async def bridge_gaps(req: BridgeGapRequest):
         raise HTTPException(status_code=400, detail="No active job matched yet")
 
     sanitized_answers = {
-        SecurityShield.sanitize_string(k, "Skill"): SecurityShield.sanitize_string(v, "Experience")
+        SecurityShield.sanitize_string(k, "Skill"): SecurityShield.sanitize_text_content(v, "Experience")
         for k, v in req.answers.items()
     }
 

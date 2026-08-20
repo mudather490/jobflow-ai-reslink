@@ -69,6 +69,8 @@ class GapQuestioningAgent:
         
         if existing_proj:
             existing_proj.description += f" {resp_clean}"
+            if resp_clean not in existing_proj.bullets:
+                existing_proj.bullets.append(resp_clean)
             if skill not in existing_proj.technologies:
                 existing_proj.technologies.append(skill)
         else:
@@ -76,6 +78,7 @@ class GapQuestioningAgent:
                 Project(
                     name=project_name,
                     description=resp_clean,
+                    bullets=[resp_clean],
                     technologies=[skill],
                 )
             )

@@ -860,7 +860,39 @@ function renderMatchReport(report) {
   if (intNotes) {
     intNotes.innerText = report.eligibility_notes || 'Open to international remote applicants globally.';
   }
+
+  // Configure ATS Score Gate Auto-Apply Button in Gap Analysis Section
+  const applyBtn = document.getElementById('btn-apply-from-gap');
+  if (applyBtn) {
+    applyBtn.style.display = 'block';
+    if (scoreNum >= 80) {
+      applyBtn.disabled = false;
+      applyBtn.className = 'btn btn-emerald';
+      applyBtn.innerHTML = `⚡ Auto-Apply to ${escapeHtml(report.company)} (Score: ${scoreNum}% ≥ 80%)`;
+      applyBtn.title = "High ATS Match! Click to execute autonomous auto-application and dispatch alert receipts.";
+    } else if (scoreNum >= 75) {
+      applyBtn.disabled = false;
+      applyBtn.className = 'btn btn-primary';
+      applyBtn.innerHTML = `⚡ Auto-Apply to ${escapeHtml(report.company)} (Score: ${scoreNum}%)`;
+      applyBtn.title = "ATS Match meets baseline 75% threshold.";
+    } else {
+      applyBtn.disabled = true;
+      applyBtn.className = 'btn btn-secondary';
+      applyBtn.innerHTML = `⚠️ Score ${scoreNum}% (<75% Threshold) — Bridge Gaps with AI Agent First`;
+      applyBtn.title = "ATS Match score is below the 75% auto-apply threshold. Use the AI Gap Agent to add skills/experience to your profile.";
+    }
+  }
 }
+
+// Global action handler for Applying from Gap Analysis section
+window.applyFromGapAnalysis = function() {
+  if (!selectedJob || !currentMatchReport) return;
+  if (currentMatchReport.match_score < 75.0) {
+    showToast("⚠️ ATS Match Score is below 75%. Use the AI Gap Agent to boost your score first!");
+    return;
+  }
+  window.triggerAutoApplyModal(selectedJob);
+};
 
 // Step 4B: Instant Skill Bridge Action
 window.addSkillFromBridge = async function(skillName) {
@@ -872,14 +904,19 @@ window.addSkillFromBridge = async function(skillName) {
       body: JSON.stringify({ skill: skillName })
     });
     if (res.ok) {
+      const data = await res.json();
+      // Update local profile skills
       if (currentProfile) {
         if (!currentProfile.skills) currentProfile.skills = [];
         if (!currentProfile.skills.includes(skillName)) currentProfile.skills.push(skillName);
       }
       renderActiveFileCard(null, null, currentProfile);
-      showToast(`✨ Added "${skillName}" to Resume! Re-evaluating ATS Score...`);
-      if (selectedJob) {
-        await selectJob(selectedJob);
+      showToast(`✨ Added "${skillName}" to Resume! ATS Score recalculated.`);
+
+      // Use the match report already computed by the backend (no duplicate request)
+      if (data.match) {
+        currentMatchReport = data.match;
+        renderMatchReport(currentMatchReport);
       }
     }
   } catch (err) {
@@ -930,8 +967,16 @@ document.getElementById('btn-submit-gap-answers')?.addEventListener('click', asy
     const updated = await res.json();
     currentProfile = updated.profile;
     currentMatchReport = updated.match_report;
+
+    const newScore = Math.round(currentMatchReport.match_score);
     renderActiveFileCard(document.getElementById('file-display-name').innerText, document.getElementById('file-size-display').innerText, currentProfile);
     renderMatchReport(currentMatchReport);
+
+    if (newScore >= 80) {
+      showToast(`🎉 ATS Match score boosted to ${newScore}%! Qualified for Auto-Apply & Alert Notifications.`);
+    } else {
+      showToast(`✨ ATS Score updated: ${newScore}%.`);
+    }
   } catch (err) {
     console.error("Failed to bridge gaps:", err);
   }

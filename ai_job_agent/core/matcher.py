@@ -199,7 +199,7 @@ class JobMatcher:
         if profile.projects:
             for p in profile.projects:
                 candidate_skills_flat.extend([t.lower() for t in (p.technologies or [])])
-                candidate_text += f" {p.name.lower()} {' '.join(p.bullets).lower()}"
+                candidate_text += f" {p.name.lower()} {(p.description or '').lower()} {' '.join(p.bullets).lower()}"
 
         # Also collect experience details
         if profile.experience:
