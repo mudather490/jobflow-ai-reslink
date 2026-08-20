@@ -813,6 +813,20 @@ async def match_job(req: MatchRequest):
     }
 
 
+@app.get("/api/v1/agent/gap-questions")
+@app.post("/api/v1/agent/gap-questions")
+async def get_gap_questions():
+    global active_profile, active_job, active_match
+    if not active_job or not active_match:
+        raise HTTPException(status_code=400, detail="No active job matched yet")
+    
+    questions = agent.generate_gap_questions(active_profile, active_job, active_match)
+    return {
+        "status": "success",
+        "questions": [q.model_dump() for q in questions]
+    }
+
+
 class BridgeGapRequest(BaseModel):
     answers: Dict[str, str]
 

@@ -932,19 +932,45 @@ document.getElementById('btn-bridge-gaps')?.addEventListener('click', async () =
   }
 
   const container = document.getElementById('questions-form');
+  container.innerHTML = '<div style="color: var(--accent-cyan); font-size: 13px; padding: 12px;">⏳ AI Agent formulating questions...</div>';
+  openModal('modal-gap-agent');
+
+  try {
+    const res = await fetch('/api/v1/agent/gap-questions');
+    if (res.ok) {
+      const data = await res.json();
+      const questions = data.questions || [];
+      if (questions.length > 0) {
+        container.innerHTML = questions.map(q => `
+          <div style="background: rgba(7, 9, 19, 0.6); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-glass);">
+            <label style="font-weight: 700; font-size: 13px; color: var(--accent-cyan); display: block; margin-bottom: 6px;">
+              ${escapeHtml(q.skill_name)} Experience
+            </label>
+            <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
+              ${escapeHtml(q.question_text)}
+            </div>
+            <input type="text" class="input-field gap-answer-input" data-skill="${escapeHtml(q.skill_name)}" placeholder="e.g. Built automated features with ${escapeHtml(q.skill_name)} in a past role or side project (or leave blank)">
+          </div>
+        `).join('');
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("Gap questions fetch fallback:", err);
+  }
+
+  // Fallback if backend fetch fails
   container.innerHTML = currentMatchReport.missing_critical_skills.slice(0, 4).map(skill => `
     <div style="background: rgba(7, 9, 19, 0.6); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-glass);">
       <label style="font-weight: 700; font-size: 13px; color: var(--accent-cyan); display: block; margin-bottom: 6px;">
-        ${skill} Experience
+        ${escapeHtml(skill)} Experience
       </label>
       <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
-        Required by ${currentMatchReport.company}. Describe any freelance work, side projects, or tools used:
+        Required by ${escapeHtml(currentMatchReport.company)}. Describe any freelance work, side projects, or tools used:
       </div>
-      <input type="text" class="input-field gap-answer-input" data-skill="${skill}" placeholder="e.g. Built automated pipelines with ${skill} in a side project (or leave blank)">
+      <input type="text" class="input-field gap-answer-input" data-skill="${escapeHtml(skill)}" placeholder="e.g. Built automated pipelines with ${escapeHtml(skill)} in a project (or leave blank)">
     </div>
   `).join('');
-
-  openModal('modal-gap-agent');
 });
 
 document.getElementById('btn-submit-gap-answers')?.addEventListener('click', async () => {
