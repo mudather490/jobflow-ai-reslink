@@ -748,21 +748,52 @@ function getWorkplaceBadgeClass(wpType) {
   return 'badge-remote';
 }
 
+window.activeJobTab = 'all';
+
+window.switchJobTab = function(tabName) {
+  window.activeJobTab = tabName;
+  const btnAll = document.getElementById('tab-all-jobs');
+  const btnSaved = document.getElementById('tab-saved-jobs');
+  
+  if (tabName === 'saved') {
+    if (btnAll) btnAll.className = 'btn btn-secondary';
+    if (btnSaved) btnSaved.className = 'btn btn-primary';
+    renderJobsList(window.getSavedJobs());
+  } else {
+    if (btnAll) btnAll.className = 'btn btn-primary';
+    if (btnSaved) btnSaved.className = 'btn btn-secondary';
+    renderJobsList(currentJobs);
+  }
+};
+
 function renderJobsList(jobs) {
   const container = document.getElementById('jobs-container');
   const countBadge = document.getElementById('jobs-count-badge');
+  const savedJobs = window.getSavedJobs();
+
+  const tabAllCount = document.getElementById('tab-all-count');
+  const tabSavedCount = document.getElementById('tab-saved-count');
+  if (tabAllCount) tabAllCount.innerText = currentJobs.length;
+  if (tabSavedCount) tabSavedCount.innerText = savedJobs.length;
+
   const easyCount = jobs.filter(j => j.is_easy_apply).length;
   
   if (countBadge) {
-    countBadge.innerText = `${jobs.length} Postings (${easyCount} Easy Apply)`;
+    if (window.activeJobTab === 'saved') {
+      countBadge.innerText = `${jobs.length} Saved Jobs`;
+    } else {
+      countBadge.innerText = `${jobs.length} Postings (${easyCount} Easy Apply)`;
+    }
   }
 
   if (jobs.length === 0) {
-    container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-dim);">No more jobs found for this query/workplace type. Try another keyword, workplace type, or application filter.</div>`;
+    if (window.activeJobTab === 'saved') {
+      container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-dim);">No saved jobs yet. Click "🔖 Save" on any job card to bookmark it here!</div>`;
+    } else {
+      container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-dim);">No jobs found for this search. Try another keyword or workplace filter.</div>`;
+    }
     return;
   }
-
-  const savedJobs = window.getSavedJobs();
 
   container.innerHTML = jobs.map((job, idx) => {
     const isSaved = savedJobs.some(j => j.job_id === job.job_id);
@@ -790,8 +821,11 @@ function renderJobsList(jobs) {
         <div>
           <span>📍 ${escapeHtml(job.location)}</span>
         </div>
-        <div>
-          <span>🔗 <a href="${job.job_url}" target="_blank" style="color: var(--accent-cyan); font-weight: 600;" onclick="event.stopPropagation()">View on LinkedIn ↗</a></span>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button type="button" onclick="event.stopPropagation(); selectJob(window.activeJobTab === 'saved' ? window.getSavedJobs()[${idx}] : currentJobs[${idx}]);" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; color: var(--accent-cyan); font-size: 11px; padding: 4px 8px; cursor: pointer; font-weight: 600;">
+            📊 Evaluate ATS
+          </button>
+          <span>🔗 <a href="${job.job_url}" target="_blank" style="color: var(--accent-cyan); font-weight: 700; text-decoration: underline;" onclick="event.stopPropagation()">View on LinkedIn ↗</a></span>
         </div>
       </div>
     </div>

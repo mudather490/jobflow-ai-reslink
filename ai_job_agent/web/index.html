@@ -226,12 +226,21 @@
           </div>
         </div>
 
-        <!-- 2. Live Job Postings Feed with Refresh & Pagination -->
+        <!-- 2. Live Job Postings Feed & Saved Jobs Hub -->
         <div class="glass-card">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <h2 style="font-size: 18px; font-weight: 700;">🔍 Live LinkedIn Opportunities</h2>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <!-- Tab Switcher: All Jobs vs Saved Jobs -->
+            <div style="display: flex; gap: 6px; background: rgba(7, 9, 19, 0.7); padding: 4px; border-radius: 10px; border: 1px solid var(--border-glass);">
+              <button type="button" id="tab-all-jobs" class="btn btn-primary" onclick="window.switchJobTab('all')" style="padding: 6px 14px; font-size: 13px; font-weight: 700; border-radius: 8px;">
+                🔍 All Postings (<span id="tab-all-count">0</span>)
+              </button>
+              <button type="button" id="tab-saved-jobs" class="btn btn-secondary" onclick="window.switchJobTab('saved')" style="padding: 6px 14px; font-size: 13px; font-weight: 700; border-radius: 8px;">
+                🔖 Saved Jobs (<span id="tab-saved-count">0</span>)
+              </button>
+            </div>
+
             <div style="display: flex; gap: 8px; align-items: center;">
-              <span id="jobs-count-badge" class="nav-badge">6 Postings</span>
+              <span id="jobs-count-badge" class="nav-badge">0 Postings</span>
               <button type="button" class="btn btn-secondary" id="btn-refresh-jobs" style="font-size: 12px; padding: 4px 10px;" title="Fetch fresh batch of jobs">
                 🔄 Fetch Next Batch
               </button>
