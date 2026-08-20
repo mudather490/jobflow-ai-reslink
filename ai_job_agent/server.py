@@ -957,7 +957,18 @@ async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = 
     target_filename = active_resume_filename
     
     if slug:
-        _, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
+        res_prof, u_prof = ResLinkManager.load_profile_by_slug(slug)
+        if res_prof and res_prof.attached_resume_filename:
+            att_path = DATA_DIR / res_prof.attached_resume_filename
+            if att_path.exists() and att_path.suffix.lower() == ".pdf":
+                cand_name = (res_prof.full_name or 'Candidate').replace(' ', '_')
+                cand_name = re.sub(r'[^\w\-]', '', cand_name).strip('_') or 'Candidate'
+                return FileResponse(
+                    str(att_path),
+                    media_type="application/pdf",
+                    filename=f"{cand_name}_Resume.pdf",
+                    headers={"Content-Disposition": f"attachment; filename={cand_name}_Resume.pdf"}
+                )
         if u_prof:
             target_prof = u_prof
             target_filename = f"{u_prof.full_name.replace(' ', '_')}_Resume.pdf"
@@ -980,6 +991,40 @@ async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = 
         filename=f"{cand_name}_Resume.pdf",
         headers={"Content-Disposition": f"attachment; filename={cand_name}_Resume.pdf"}
     )
+
+
+@app.get("/api/v1/reslink/pdf/raw")
+async def get_raw_uploaded_pdf(slug: Optional[str] = None):
+    """
+    Returns the exact original PDF file uploaded in Step 1 of ResLink Studio.
+    """
+    res_prof = None
+    if slug:
+        res_prof, _ = ResLinkManager.load_profile_by_slug(slug)
+    if not res_prof:
+        res_prof = ResLinkManager.load_profile()
+
+    att_filename = getattr(res_prof, "attached_resume_filename", None)
+    if att_filename:
+        file_path = DATA_DIR / att_filename
+        if file_path.exists():
+            return FileResponse(
+                str(file_path),
+                media_type="application/pdf" if file_path.suffix.lower() == ".pdf" else "application/octet-stream",
+                filename=att_filename,
+                headers={"Content-Disposition": f"inline; filename={att_filename}"}
+            )
+
+    # Fallback search DATA_DIR for any PDF file
+    for f in DATA_DIR.glob("*.pdf"):
+        return FileResponse(
+            str(f),
+            media_type="application/pdf",
+            filename=f.name,
+            headers={"Content-Disposition": f"inline; filename={f.name}"}
+        )
+
+    raise HTTPException(status_code=404, detail="No original uploaded PDF found for this candidate.")
 
 
 @app.get("/api/v1/templates/download/docx")

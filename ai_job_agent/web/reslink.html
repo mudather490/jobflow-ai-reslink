@@ -1056,11 +1056,28 @@
     </div>
 
 
+    <!-- View Switcher Toolbar (ATS Resume vs Original Uploaded PDF) -->
+    <div class="view-toggle-toolbar" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; padding: 10px 16px;">
+      <div style="display: flex; gap: 8px;">
+        <button type="button" id="btn-view-ats" class="btn-toggle-view active" onclick="switchResLinkView('ats')" style="padding: 6px 14px; background: #38BDF8; color: #0F172A; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer;">
+          📊 Verified ATS CV View
+        </button>
+        <button type="button" id="btn-view-pdf" class="btn-toggle-view" onclick="switchResLinkView('pdf')" style="padding: 6px 14px; background: rgba(15, 23, 42, 0.8); color: var(--text-secondary); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer;">
+          📄 View Original Uploaded PDF
+        </button>
+      </div>
+      <div style="font-size: 12px; color: var(--accent-emerald); font-weight: 700; display: flex; align-items: center; gap: 6px;">
+        <span>✓</span> <span id="reslink-sync-status">Step 1 Candidate CV Synced</span>
+      </div>
+    </div>
+
     <!-- Center ATS Resume Paper Document -->
     <div class="resume-canvas-wrapper">
       <article class="ats-resume-document template-corporate_elite" id="ats-resume-sheet">
         <!-- Rendered dynamically by renderATSResumeCanvas() with 100% security -->
       </article>
+      <!-- Embedded Original PDF Frame -->
+      <iframe id="original-pdf-frame" style="display: none; width: 100%; height: 980px; border: none; border-radius: 14px; background: #FFFFFF;" src=""></iframe>
     </div>
   </main>
 
@@ -1201,6 +1218,30 @@
 
       // Re-render ATS canvas
       renderATSResumeCanvas();
+    }
+
+    function switchResLinkView(viewMode) {
+      const atsSheet = document.getElementById('ats-resume-sheet');
+      const pdfFrame = document.getElementById('original-pdf-frame');
+      const btnAts = document.getElementById('btn-view-ats');
+      const btnPdf = document.getElementById('btn-view-pdf');
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      const currentSlug = (pathSegments.length > 0 && pathSegments[0] === 'p') ? pathSegments[1] : (reslinkProfile?.slug || 'mudather-mohammed');
+
+      if (viewMode === 'pdf') {
+        if (atsSheet) atsSheet.style.display = 'none';
+        if (pdfFrame) {
+          pdfFrame.src = `/api/v1/reslink/pdf/raw?slug=${encodeURIComponent(currentSlug)}`;
+          pdfFrame.style.display = 'block';
+        }
+        if (btnAts) { btnAts.style.background = 'rgba(15, 23, 42, 0.8)'; btnAts.style.color = 'var(--text-secondary)'; }
+        if (btnPdf) { btnPdf.style.background = '#38BDF8'; btnPdf.style.color = '#0F172A'; }
+      } else {
+        if (pdfFrame) pdfFrame.style.display = 'none';
+        if (atsSheet) atsSheet.style.display = 'block';
+        if (btnAts) { btnAts.style.background = '#38BDF8'; btnAts.style.color = '#0F172A'; }
+        if (btnPdf) { btnPdf.style.background = 'rgba(15, 23, 42, 0.8)'; btnPdf.style.color = 'var(--text-secondary)'; }
+      }
     }
 
     // ── 4. Telemetry Dispatcher ──
