@@ -270,19 +270,28 @@ class JobMatcher:
         # Also collect project titles and technologies
         if profile.projects:
             for p in profile.projects:
-                candidate_skills_flat.extend([t.lower() for t in (p.technologies or [])])
-                candidate_text += f" {p.name.lower()} {(p.description or '').lower()} {' '.join(p.bullets).lower()}"
+                candidate_skills_flat.extend([t.lower() for t in (p.technologies or []) if t])
+                p_name = (p.name or '').lower()
+                p_desc = (p.description or '').lower()
+                p_bullets = ' '.join([b for b in (p.bullets or []) if b]).lower()
+                candidate_text += f" {p_name} {p_desc} {p_bullets}"
 
         # Also collect experience details
         if profile.experience:
             for exp in profile.experience:
-                candidate_text += f" {exp.company.lower()} {exp.role.lower()} {' '.join(exp.bullets).lower()}"
+                exp_comp = (exp.company or '').lower()
+                exp_role = (exp.role or '').lower()
+                exp_bullets = ' '.join([b for b in (exp.bullets or []) if b]).lower()
+                candidate_text += f" {exp_comp} {exp_role} {exp_bullets}"
 
         # Also collect certifications
         if profile.certifications:
             for c in profile.certifications:
-                candidate_skills_flat.append(c.name.lower())
-                candidate_text += f" {c.name.lower()} {c.details.lower()}"
+                c_name = (c.name or '').lower()
+                c_details = (c.details or '').lower()
+                if c_name:
+                    candidate_skills_flat.append(c_name)
+                candidate_text += f" {c_name} {c_details}"
 
         matched: List[str] = []
         missing: List[str] = []
