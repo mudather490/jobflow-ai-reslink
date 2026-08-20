@@ -1372,17 +1372,13 @@
       const fullName = (r.full_name || p.full_name || "Candidate").toUpperCase();
       const headline = r.headline || p.tagline || r.target_role || "";
       
-      const email = r.contact?.email || (p.cta_settings?.direct_email && !p.cta_settings.direct_email.includes("alex.rivera") ? p.cta_settings.direct_email : "");
+      const email = r.contact?.email || p.cta_settings?.direct_email || "";
+      const phone = r.contact?.phone || p.cta_settings?.whatsapp_number || "";
+      const location = r.contact?.location || p.location || "";
       
-      const rawPhone = r.contact?.phone || (p.cta_settings?.whatsapp_number && !p.cta_settings.whatsapp_number.includes("211920123456") && !p.cta_settings.whatsapp_number.includes("920 123 456") && !p.cta_settings.whatsapp_number.includes("920123456") ? p.cta_settings.whatsapp_number : "");
-      const phone = (rawPhone && !rawPhone.includes("211920123456") && !rawPhone.includes("920 123 456") && !rawPhone.includes("920123456")) ? rawPhone : "";
-      
-      const rawLoc = r.contact?.location || (p.location && !p.location.toLowerCase().includes("worldwide remote") ? p.location : "");
-      const location = (rawLoc && !rawLoc.toLowerCase().includes("worldwide remote") && !rawLoc.toLowerCase().includes("remote only")) ? rawLoc : "";
-      
-      const linkedin = r.contact?.linkedin || (p.cta_settings?.linkedin_url && !p.cta_settings.linkedin_url.endsWith("linkedin.com") && !p.cta_settings.linkedin_url.endsWith("linkedin.com/") ? p.cta_settings.linkedin_url : "");
-      const github = r.contact?.github || (p.cta_settings?.github_url && !p.cta_settings.github_url.endsWith("github.com") && !p.cta_settings.github_url.endsWith("github.com/") ? p.cta_settings.github_url : "");
-      const portfolio = r.contact?.portfolio || (p.cta_settings?.portfolio_url && !p.cta_settings.portfolio_url.includes("portfolio.dev") ? p.cta_settings.portfolio_url : "");
+      const linkedin = r.contact?.linkedin || p.cta_settings?.linkedin_url || "";
+      const github = r.contact?.github || p.cta_settings?.github_url || "";
+      const portfolio = r.contact?.portfolio || p.cta_settings?.portfolio_url || "";
 
       const summary = r.summary || p.summary_bio || "";
 
