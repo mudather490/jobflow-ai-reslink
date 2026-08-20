@@ -911,7 +911,7 @@
     }
 
     function openPublicResLinkPage() {
-      const slug = currentResLinkProfile?.slug || 'mudather-mohammed';
+      const slug = currentResLinkProfile?.slug || window.activeSlug || 'mudather-mohammed';
       window.open('/p/' + slug, '_blank');
     }
 

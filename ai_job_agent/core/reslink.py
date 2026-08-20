@@ -127,6 +127,18 @@ class ResLinkManager:
             except Exception as e:
                 print(f"[Warning] Failed to parse ResLink profile from disk: {e}")
 
+        # Check if user profiles exist in data/users
+        users_dir = DATA_DIR / "users"
+        if users_dir.exists():
+            for p_file in users_dir.glob("*_profile.json"):
+                try:
+                    with open(p_file, "r", encoding="utf-8") as f:
+                        u_data = json.load(f)
+                    if "reslink" in u_data and isinstance(u_data["reslink"], dict):
+                        return ResLinkProfile(**u_data["reslink"])
+                except Exception:
+                    continue
+
         slug = "candidate-profile"
         name = "Candidate Profile"
         tagline = "Engineering Specialist"
