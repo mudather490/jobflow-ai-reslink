@@ -27,6 +27,9 @@
           <span>🔗</span> <span>ResLink Studio</span>
         </a>
         <button class="btn btn-secondary" id="btn-settings-modal">⚙️ Channels</button>
+        <button type="button" class="btn btn-secondary" onclick="window.openSavedJobsModal()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; padding: 6px 14px; border-radius: 8px; font-size: 13px;">
+          🔖 Saved Jobs (<span id="saved-jobs-count">0</span>)
+        </button>
         <button class="btn btn-gumroad" id="btn-pricing-modal">⚡ Upgrade Plan</button>
         
         <!-- Google Login Button (Shown only when unauthenticated) -->
@@ -528,6 +531,22 @@
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="closeModal('modal-gap-agent')">Cancel</button>
           <button class="btn btn-primary" id="btn-submit-gap-answers">Apply & Recalculate Score</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Jobs / Bookmarks Modal -->
+    <div class="modal-backdrop" id="modal-saved-jobs">
+      <div class="modal-dialog" style="max-width: 600px;">
+        <div class="modal-header">
+          <h3 style="font-size: 16px; font-weight: 800;">🔖 Saved Jobs & Bookmarks</h3>
+          <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeModal('modal-saved-jobs')">✕</button>
+        </div>
+        <div class="modal-body" id="saved-jobs-container" style="max-height: 420px; overflow-y: auto;">
+          <!-- Dynamically populated saved jobs -->
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('modal-saved-jobs')">Close</button>
         </div>
       </div>
     </div>

@@ -481,14 +481,16 @@ function renderActiveFileCard(filename, filesize, profile) {
 window.removeSkill = async function(skillName, event) {
   if (event) event.stopPropagation();
   try {
+    const userEmail = getCurrentUserEmail();
     const res = await fetch('/api/v1/resume/skills/remove', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ skill: skillName })
+      body: JSON.stringify({ skill: skillName, user_email: userEmail })
     });
     if (res.ok) {
       const data = await res.json();
-      if (currentProfile) currentProfile.skills = data.skills;
+      if (data.profile) currentProfile = data.profile;
+      else if (currentProfile) currentProfile.skills = data.skills;
       renderActiveFileCard(null, null, currentProfile);
       if (data.match) {
         currentMatchReport = data.match;
@@ -507,15 +509,17 @@ async function handleAddSkill() {
   if (!val) return;
 
   try {
+    const userEmail = getCurrentUserEmail();
     const res = await fetch('/api/v1/resume/skills/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ skill: val })
+      body: JSON.stringify({ skill: val, user_email: userEmail })
     });
     if (res.ok) {
       const data = await res.json();
       input.value = '';
-      if (currentProfile) currentProfile.skills = data.skills;
+      if (data.profile) currentProfile = data.profile;
+      else if (currentProfile) currentProfile.skills = data.skills;
       renderActiveFileCard(null, null, currentProfile);
       if (data.match) {
         currentMatchReport = data.match;
@@ -648,6 +652,16 @@ document.getElementById('select-app-type')?.addEventListener('change', async () 
   await executeJobSearch();
 });
 
+document.getElementById('select-workplace-type')?.addEventListener('change', async () => {
+  currentOffset = 0;
+  await executeJobSearch();
+});
+
+document.getElementById('select-time')?.addEventListener('change', async () => {
+  currentOffset = 0;
+  await executeJobSearch();
+});
+
 async function executeJobSearch() {
   const currentTier = (localStorage.getItem('user_subscription_tier') || 'free').toLowerCase();
 
@@ -748,14 +762,23 @@ function renderJobsList(jobs) {
     return;
   }
 
-  container.innerHTML = jobs.map((job, idx) => `
+  const savedJobs = window.getSavedJobs();
+
+  container.innerHTML = jobs.map((job, idx) => {
+    const isSaved = savedJobs.some(j => j.job_id === job.job_id);
+    return `
     <div class="job-card ${idx === 0 ? 'active' : ''}" data-index="${idx}" onclick="onJobCardClick(${idx})">
       <div class="job-header">
         <div>
           <div class="job-title">${escapeHtml(job.title)}</div>
           <div class="job-company">${escapeHtml(job.company)}</div>
         </div>
-        <span class="nav-badge" style="border-color: rgba(56, 189, 248, 0.3); color: var(--accent-cyan);">${escapeHtml(job.posted_date)}</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button type="button" onclick="window.toggleSaveJob('${job.job_id}', event)" style="background: ${isSaved ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255,255,255,0.06)'}; border: 1px solid ${isSaved ? '#F59E0B' : 'rgba(255,255,255,0.15)'}; border-radius: 6px; color: ${isSaved ? '#F59E0B' : 'var(--text-dim)'}; font-size: 11px; padding: 4px 8px; cursor: pointer;" title="${isSaved ? 'Saved to Bookmarks' : 'Save Job'}">
+            ${isSaved ? '🔖 Saved' : '🔖 Save'}
+          </button>
+          <span class="nav-badge" style="border-color: rgba(56, 189, 248, 0.3); color: var(--accent-cyan);">${escapeHtml(job.posted_date)}</span>
+        </div>
       </div>
       <div style="display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 6px 0; align-items: center;">
         <span class="${getWorkplaceBadgeClass(job.workplace_type)}">${escapeHtml(job.workplace_badge || '🏡 Remote Only')}</span>
@@ -772,7 +795,8 @@ function renderJobsList(jobs) {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 window.onJobCardClick = function(idx) {
@@ -785,6 +809,15 @@ window.onJobCardClick = function(idx) {
 // Step 3: Match Job & Calculate ATS Score + Auto-Compile PDF
 async function selectJob(job) {
   selectedJob = job;
+
+  // Optimistic UI Loading State for instant response
+  const headline = document.getElementById('match-headline');
+  const desc = document.getElementById('match-desc');
+  const scoreText = document.getElementById('score-number');
+  if (headline) headline.innerText = `⏳ Evaluating ${job.title} at ${job.company}...`;
+  if (desc) desc.innerText = 'Analyzing job requirements against candidate skills and experience...';
+  if (scoreText) scoreText.innerText = '...%';
+
   try {
     const userEmail = getCurrentUserEmail();
 
@@ -891,22 +924,82 @@ window.applyFromGapAnalysis = function() {
     showToast("⚠️ ATS Match Score is below 75%. Use the AI Gap Agent to boost your score first!");
     return;
   }
-  window.triggerAutoApplyModal(selectedJob);
+  window.openAutoApplyModal(0);
+};
+
+// Saved Jobs / Bookmarks System
+window.getSavedJobs = function() {
+  try {
+    return JSON.parse(localStorage.getItem('jobflow_saved_jobs') || '[]');
+  } catch (e) {
+    return [];
+  }
+};
+
+window.toggleSaveJob = function(jobId, event) {
+  if (event) event.stopPropagation();
+  const job = currentJobs.find(j => j.job_id === jobId) || selectedJob;
+  if (!job) return;
+
+  let saved = window.getSavedJobs();
+  const index = saved.findIndex(j => j.job_id === job.job_id);
+
+  if (index >= 0) {
+    saved.splice(index, 1);
+    showToast(`🗑️ Removed "${job.title}" from Saved Jobs.`);
+  } else {
+    saved.push(job);
+    showToast(`🔖 Saved "${job.title} at ${job.company}" to your Bookmarks!`);
+  }
+
+  localStorage.setItem('jobflow_saved_jobs', JSON.stringify(saved));
+  const badge = document.getElementById('saved-jobs-count');
+  if (badge) badge.innerText = saved.length;
+  if (currentJobs.length > 0) renderJobsList(currentJobs);
+};
+
+window.openSavedJobsModal = function() {
+  const saved = window.getSavedJobs();
+  const badge = document.getElementById('saved-jobs-count');
+  if (badge) badge.innerText = saved.length;
+
+  const container = document.getElementById('saved-jobs-container');
+  if (!container) return;
+
+  if (saved.length === 0) {
+    container.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-dim);">No saved jobs yet. Click "🔖 Save" on any job card to bookmark it for later!</div>';
+  } else {
+    container.innerHTML = saved.map((job, idx) => `
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-glass); border-radius: 10px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: 700; font-size: 14px; color: var(--accent-cyan);">${escapeHtml(job.title)}</div>
+          <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;">${escapeHtml(job.company)} • 📍 ${escapeHtml(job.location)}</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-emerald btn-sm" onclick="closeModal('modal-saved-jobs'); selectJob(window.getSavedJobs()[${idx}]);">⚡ Evaluate ATS</button>
+          <button class="btn btn-secondary btn-sm" onclick="window.toggleSaveJob('${job.job_id}'); window.openSavedJobsModal();">🗑️ Remove</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  openModal('modal-saved-jobs');
 };
 
 // Step 4B: Instant Skill Bridge Action
 window.addSkillFromBridge = async function(skillName) {
   if (!skillName) return;
   try {
+    const userEmail = getCurrentUserEmail();
     const res = await fetch('/api/v1/resume/skills/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ skill: skillName })
+      body: JSON.stringify({ skill: skillName, user_email: userEmail })
     });
     if (res.ok) {
       const data = await res.json();
-      // Update local profile skills
-      if (currentProfile) {
+      if (data.profile) currentProfile = data.profile;
+      else if (currentProfile) {
         if (!currentProfile.skills) currentProfile.skills = [];
         if (!currentProfile.skills.includes(skillName)) currentProfile.skills.push(skillName);
       }
@@ -985,10 +1078,11 @@ document.getElementById('btn-submit-gap-answers')?.addEventListener('click', asy
   closeModal('modal-gap-agent');
 
   try {
+    const userEmail = getCurrentUserEmail();
     const res = await fetch('/api/v1/agent/bridge-gaps', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers })
+      body: JSON.stringify({ answers, user_email: userEmail })
     });
     const updated = await res.json();
     currentProfile = updated.profile;
@@ -1687,11 +1781,11 @@ window.scrollToResLinkStudio = function() {
 };
 
 window.importSelectedJobRequirements = function() {
-  if (state.selectedJob) {
-    document.getElementById('reslink-job-title').value = state.selectedJob.title || 'Senior AI Engineer';
-    document.getElementById('reslink-company-name').value = state.selectedJob.company || 'Target Employer';
-    document.getElementById('reslink-job-requirements').value = (state.selectedJob.requirements || []).join('\n') || state.selectedJob.description || '';
-    showToast(`✓ Imported requirements from ${state.selectedJob.company}`);
+  if (selectedJob) {
+    document.getElementById('reslink-job-title').value = selectedJob.title || 'Senior AI Engineer';
+    document.getElementById('reslink-company-name').value = selectedJob.company || 'Target Employer';
+    document.getElementById('reslink-job-requirements').value = (selectedJob.requirements || []).join('\n') || selectedJob.description || '';
+    showToast(`✓ Imported requirements from ${selectedJob.company}`);
   } else {
     // Fallback to active search keyword
     const kw = document.getElementById('input-keywords')?.value || 'Senior AI Engineer';

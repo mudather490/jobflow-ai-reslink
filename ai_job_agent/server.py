@@ -441,6 +441,7 @@ async def upload_reslink_resume(
 
 class SkillRequest(BaseModel):
     skill: str
+    user_email: Optional[str] = None
 
 
 @app.post("/api/v1/resume/skills/add")
@@ -454,6 +455,18 @@ async def add_resume_skill(req: SkillRequest):
     if formatted_skill.lower() not in [s.lower() for s in active_profile.skills]:
         active_profile.skills.append(formatted_skill)
         active_profile.skills.sort()
+
+    # Synchronize categorized_skills for PDF/DOCX rendering fidelity
+    active_profile.categorized_skills = tailor.categorize_skills(active_profile.skills)
+
+    # Cloud & Local Cache Persistence
+    user_email = req.user_email or (active_profile.contact.email if active_profile.contact else None)
+    if user_email:
+        try:
+            from core.supabase_client import SupabaseManager
+            SupabaseManager.save_user_profile(user_email, active_profile.model_dump(), filename=active_resume_filename)
+        except Exception as e:
+            print(f"[Skill Add Sync] Warning: {e}")
     
     if active_job:
         active_match = matcher.evaluate_match(active_profile, active_job)
@@ -465,7 +478,9 @@ async def add_resume_skill(req: SkillRequest):
     return {
         "status": "success",
         "skills": active_profile.skills,
+        "categorized_skills": active_profile.categorized_skills,
         "skills_count": len(active_profile.skills),
+        "profile": active_profile.model_dump(),
         "match": active_match.model_dump() if active_match else None
     }
 
@@ -476,7 +491,16 @@ async def remove_resume_skill(req: SkillRequest):
     safe_skill = SecurityShield.sanitize_string(req.skill, "Skill")
     
     active_profile.skills = [s for s in active_profile.skills if s.lower() != safe_skill.lower()]
+    active_profile.categorized_skills = tailor.categorize_skills(active_profile.skills)
     
+    user_email = req.user_email or (active_profile.contact.email if active_profile.contact else None)
+    if user_email:
+        try:
+            from core.supabase_client import SupabaseManager
+            SupabaseManager.save_user_profile(user_email, active_profile.model_dump(), filename=active_resume_filename)
+        except Exception as e:
+            print(f"[Skill Remove Sync] Warning: {e}")
+
     if active_job:
         active_match = matcher.evaluate_match(active_profile, active_job)
         tailored = tailor.tailor_profile(active_profile, active_job, active_match)
@@ -487,7 +511,9 @@ async def remove_resume_skill(req: SkillRequest):
     return {
         "status": "success",
         "skills": active_profile.skills,
+        "categorized_skills": active_profile.categorized_skills,
         "skills_count": len(active_profile.skills),
+        "profile": active_profile.model_dump(),
         "match": active_match.model_dump() if active_match else None
     }
 
@@ -760,6 +786,8 @@ async def match_job(req: MatchRequest):
 
     active_job = scraper.get_job_details(req.job_id)
     if not active_job:
+        from core.scraper import synthesize_authentic_job_description
+        synthetic_desc = synthesize_authentic_job_description(safe_title, safe_company, safe_location)
         active_job = JobDetails(
             job_id=req.job_id,
             title=safe_title,
@@ -767,12 +795,7 @@ async def match_job(req: MatchRequest):
             location=safe_location,
             posted_date="Recent",
             job_url=req.job_url,
-            description=(
-                f"We are hiring a {safe_title} at {safe_company}.\n"
-                "Requirements:\n"
-                "- Strong proficiency in Python, FastAPI, Docker, and Kubernetes.\n"
-                "- Experience with Machine Learning, PyTorch, LLMs, and distributed systems."
-            ),
+            description=synthetic_desc,
         )
 
     # 1. Resolve authentic candidate profile with robust fallback hierarchy
@@ -829,6 +852,7 @@ async def get_gap_questions():
 
 class BridgeGapRequest(BaseModel):
     answers: Dict[str, str]
+    user_email: Optional[str] = None
 
 
 @app.post("/api/v1/agent/bridge-gaps")
@@ -846,6 +870,18 @@ async def bridge_gaps(req: BridgeGapRequest):
     active_profile, active_match = agent.run_interactive_resolution(
         active_profile, active_job, active_match, sanitized_answers
     )
+
+    # Synchronize categorized_skills for PDF/DOCX rendering
+    active_profile.categorized_skills = tailor.categorize_skills(active_profile.skills)
+
+    # Cloud & Local Cache Persistence
+    user_email = req.user_email or (active_profile.contact.email if active_profile.contact else None)
+    if user_email:
+        try:
+            from core.supabase_client import SupabaseManager
+            SupabaseManager.save_user_profile(user_email, active_profile.model_dump(), filename=active_resume_filename)
+        except Exception as e:
+            print(f"[Bridge Gap Sync] Warning: {e}")
 
     tailored = tailor.tailor_profile(active_profile, active_job, active_match)
     active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(

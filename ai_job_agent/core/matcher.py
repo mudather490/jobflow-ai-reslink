@@ -33,6 +33,33 @@ class JobMatcher:
         "Python": [
             "python", "python3", "py", "python programming", "asyncio", "pydantic"
         ],
+        "React": [
+            "react", "react.js", "reactjs", "react native", "react hooks", "jsx", "tsx"
+        ],
+        "TypeScript": [
+            "typescript", "ts", "type-script", "typed javascript"
+        ],
+        "JavaScript": [
+            "javascript", "js", "es6", "es6+", "ecmascript"
+        ],
+        "Next.js": [
+            "next.js", "nextjs", "next", "ssr", "server-side rendering"
+        ],
+        "Vue.js": [
+            "vue", "vue.js", "vuejs", "nuxt", "nuxt.js"
+        ],
+        "Angular": [
+            "angular", "angularjs", "angular 2+"
+        ],
+        "HTML5 & CSS3": [
+            "html", "html5", "css", "css3", "sass", "scss", "responsive design", "web design"
+        ],
+        "TailwindCSS": [
+            "tailwind", "tailwindcss", "tailwind css", "styled-components"
+        ],
+        "GraphQL": [
+            "graphql", "apollo", "apollo client", "hasura"
+        ],
         "Machine Learning": [
             "machine learning", "ml", "scikit-learn", "sklearn", "supervised learning",
             "unsupervised learning", "regression", "classification", "clustering",
@@ -82,6 +109,21 @@ class JobMatcher:
             "fastapi", "fast api", "rest api", "rest apis", "restful api", "restful apis",
             "api development", "api design", "flask", "django", "endpoints", "backend development"
         ],
+        "Node.js & Express": [
+            "node.js", "nodejs", "node", "express", "express.js", "nest.js", "nestjs"
+        ],
+        "Go (Golang)": [
+            "go", "golang", "go programming"
+        ],
+        "Rust": [
+            "rust", "rustlang", "cargo"
+        ],
+        "Java & Spring": [
+            "java", "spring", "spring boot", "hibernate"
+        ],
+        "C++": [
+            "c++", "cpp", "c"
+        ],
         "Docker & Containerization": [
             "docker", "containerization", "containers", "container", "dockerfile",
             "docker-compose", "docker compose"
@@ -89,40 +131,70 @@ class JobMatcher:
         "Kubernetes & Orchestration": [
             "kubernetes", "k8s", "helm", "orchestration", "cluster management"
         ],
-        "SQL & Relational Databases": [
+        "AWS (Amazon Web Services)": [
+            "aws", "amazon web services", "s3", "ec2", "ecs", "eks", "lambda", "dynamodb", "sqs", "sns"
+        ],
+        "GCP (Google Cloud)": [
+            "gcp", "google cloud", "google cloud platform", "bigquery", "cloud run"
+        ],
+        "Azure": [
+            "azure", "microsoft azure", "azure devops"
+        ],
+        "Terraform & IaC": [
+            "terraform", "infrastructure as code", "iac", "cloudformation", "ansible"
+        ],
+        "CI/CD & GitHub Actions": [
+            "ci/cd", "continuous integration", "continuous deployment", "github actions",
+            "gitlab ci", "jenkins"
+        ],
+        "Linux & Bash": [
+            "linux", "bash", "shell", "unix", "ubuntu", "command line", "cli"
+        ],
+        "PostgreSQL & SQL": [
             "sql", "postgresql", "postgres", "supabase", "mysql", "sqlite",
             "relational database", "relational databases", "rdbms", "database design", "database querying"
         ],
-        "NoSQL & Cache Databases": [
-            "nosql", "mongodb", "redis", "cassandra", "dynamodb", "elasticsearch", "neo4j"
+        "MongoDB": [
+            "mongodb", "mongo", "mongoose"
         ],
-        "Cloud Infrastructure": [
-            "aws", "amazon web services", "gcp", "google cloud", "google cloud platform",
-            "azure", "microsoft azure", "cloud computing", "cloud infrastructure",
-            "serverless", "lambda", "cloud run", "vercel"
+        "Redis & Caching": [
+            "redis", "memcached", "caching", "cache"
         ],
-        "DevOps & CI/CD": [
-            "ci/cd", "continuous integration", "continuous deployment", "github actions",
-            "gitlab ci", "jenkins", "terraform", "ansible", "devops"
+        "Celery & Task Queues": [
+            "celery", "task queues", "async queues", "rq", "bullmq"
         ],
-        "Linux & Version Control": [
-            "linux", "bash", "shell", "unix", "ubuntu", "git", "github", "gitlab",
-            "version control", "command line", "cli"
+        "Apache Kafka & Queues": [
+            "kafka", "apache kafka", "rabbitmq", "event-driven", "message queues"
+        ],
+        "Snowflake & BigQuery": [
+            "snowflake", "bigquery", "redshift", "data warehouse", "data warehousing"
+        ],
+        "Apache Spark": [
+            "spark", "pyspark", "apache spark", "databricks"
+        ],
+        "Swift & iOS": [
+            "swift", "swiftui", "ios", "xcode", "cocoapods"
+        ],
+        "Kotlin & Android": [
+            "kotlin", "android", "android sdk", "jetpack compose"
+        ],
+        "Flutter & React Native": [
+            "flutter", "dart", "react native"
+        ],
+        "Cybersecurity & OWASP": [
+            "cybersecurity", "security", "owasp", "penetration testing", "pen testing",
+            "vulnerability assessment", "iam", "wireshark", "soc 2"
+        ],
+        "Jest & Testing": [
+            "testing", "unit testing", "jest", "pytest", "cypress", "playwright", "tdd"
+        ],
+        "Git & Version Control": [
+            "git", "github", "gitlab", "bitbucket", "version control"
         ],
         "Data Analysis & Mathematics": [
             "numpy", "pandas", "matplotlib", "seaborn", "data analysis", "data processing",
             "eda", "exploratory data analysis", "linear algebra", "calculus", "applied statistics",
             "probability", "statistics", "data science"
-        ],
-        "Distributed Systems & Async Queues": [
-            "distributed systems", "microservices", "celery", "kafka", "rabbitmq",
-            "event-driven", "message queues", "async processing", "scalability", "caching"
-        ],
-        "TypeScript & JavaScript": [
-            "javascript", "js", "typescript", "ts", "node.js", "nodejs", "react", "next.js", "vue"
-        ],
-        "C++ & Systems Programming": [
-            "c++", "cpp", "c", "rust", "golang", "go", "systems programming"
         ],
         "Agile & Project Management": [
             "agile", "scrum", "jira", "kanban", "project management", "sprint planning"
