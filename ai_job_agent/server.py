@@ -1838,19 +1838,24 @@ async def update_notification_settings(req: NotificationSettingsRequest):
     global notifier, active_profile
     from core.supabase_client import SupabaseManager
     try:
-        target_user = (req.user_email or req.email or "").strip().lower()
+        raw_target = (req.user_email or req.email or "").strip().lower()
+        target_user = SecurityShield.sanitize_string(raw_target, "User Email") if raw_target else ""
+
+        clean_email = SecurityShield.sanitize_string(req.email, "Email") if req.email else None
+        clean_whatsapp = SecurityShield.sanitize_string(req.whatsapp, "WhatsApp") if req.whatsapp else None
+        clean_telegram = SecurityShield.sanitize_string(req.telegram, "Telegram") if req.telegram else None
 
         # Save valid values
-        if req.email:
-            notifier.recipient_email = req.email
+        if clean_email:
+            notifier.recipient_email = clean_email
             if active_profile and active_profile.contact:
-                active_profile.contact.email = req.email
-        if req.whatsapp:
-            notifier.whatsapp_phone = req.whatsapp
+                active_profile.contact.email = clean_email
+        if clean_whatsapp:
+            notifier.whatsapp_phone = clean_whatsapp
             if active_profile and active_profile.contact:
-                active_profile.contact.phone = req.whatsapp
-        if req.telegram:
-            notifier.telegram_chat_id = req.telegram
+                active_profile.contact.phone = clean_whatsapp
+        if clean_telegram:
+            notifier.telegram_chat_id = clean_telegram
 
         if target_user:
             SupabaseManager.save_user_notifications(target_user, {
@@ -1869,6 +1874,8 @@ async def update_notification_settings(req: NotificationSettingsRequest):
                 "plan": "Pro Member ($19/mo)",
             }
         }
+    except HTTPException as exc:
+        raise exc
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -1990,6 +1997,9 @@ async def gumroad_webhook(request: Request):
     
     mgr = GumroadMonetizationManager()
     processed = mgr.process_webhook_sale(payload)
+
+    if processed.get("status") == "error":
+        raise HTTPException(status_code=400, detail=processed.get("message", "Invalid webhook payload."))
 
     # Automatically upgrade customer in Supabase
     sb = SupabaseManager()

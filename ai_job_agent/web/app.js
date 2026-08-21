@@ -56,7 +56,11 @@ function showToast(msg, duration = 3500) {
     document.body.appendChild(toast);
   }
 
-  toast.innerHTML = String(msg);
+  if (typeof msg === 'string' && (msg.includes('<') || msg.includes('>'))) {
+    toast.innerHTML = escapeHtml(msg);
+  } else {
+    toast.innerHTML = String(msg);
+  }
   toast.style.opacity = '1';
   toast.style.transform = 'translateY(0)';
 
@@ -826,7 +830,7 @@ function renderJobsList(jobs) {
           <button type="button" onclick="event.stopPropagation(); selectJob(window.activeJobTab === 'saved' ? window.getSavedJobs()[${idx}] : currentJobs[${idx}]);" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; color: var(--accent-cyan); font-size: 11px; padding: 4px 8px; cursor: pointer; font-weight: 600;">
             📊 Evaluate ATS
           </button>
-          <span>🔗 <a href="${job.job_url}" target="_blank" style="color: var(--accent-cyan); font-weight: 700; text-decoration: underline;" onclick="event.stopPropagation()">View on LinkedIn ↗</a></span>
+          <span>🔗 <a href="${sanitizeUrl(job.job_url)}" target="_blank" style="color: var(--accent-cyan); font-weight: 700; text-decoration: underline;" onclick="event.stopPropagation()">View on LinkedIn ↗</a></span>
         </div>
       </div>
     </div>

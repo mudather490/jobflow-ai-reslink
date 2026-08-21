@@ -63,14 +63,25 @@ class GumroadMonetizationManager:
     def process_webhook_sale(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
         Processes incoming Gumroad sale/subscription webhook.
+        Verifies license key before confirming upgrade to prevent forged webhooks.
         """
-        buyer_email = payload.get("email", "")
+        buyer_email = payload.get("email", "").strip().lower()
         product_name = payload.get("product_name", "")
-        license_key = payload.get("license_key", "")
+        license_key = payload.get("license_key", "").strip()
         recurrence = payload.get("recurrence", "monthly")
         subscription_id = payload.get("subscription_id", "")
 
-        tier = "executive" if "executive" in product_name.lower() else "pro"
+        if not buyer_email:
+            return {"status": "error", "message": "Missing email in webhook payload."}
+
+        # Verify license key if present
+        if license_key:
+            verification = self.verify_license_key(license_key)
+            if not verification.get("success"):
+                return {"status": "error", "message": "Invalid or unverified license key in webhook."}
+            tier = verification.get("tier", "pro")
+        else:
+            tier = "executive" if "executive" in product_name.lower() else "pro"
 
         return {
             "status": "processed",
