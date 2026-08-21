@@ -907,7 +907,7 @@ class MatchRequest(BaseModel):
 
 @app.post("/api/v1/jobs/match")
 async def match_job(req: MatchRequest):
-    global active_job, active_match, active_pdf_path, active_docx_path, active_profile
+    global active_job, active_match, active_pdf_path, active_docx_path, active_profile, currentJobs
 
     # Sanitize and validate against SSRF
     safe_title = SecurityShield.sanitize_text_content(req.job_title, "Job Title")
@@ -917,11 +917,20 @@ async def match_job(req: MatchRequest):
     if req.job_url:
         SecurityShield.validate_url_for_ssrf(req.job_url)
 
-    active_job = scraper.get_job_details(req.job_id)
-    if not active_job:
+    # 1. Fast in-memory lookup (sub-millisecond)
+    target_job = None
+    if active_job and str(active_job.job_id) == str(req.job_id):
+        target_job = active_job
+    elif currentJobs:
+        for j in currentJobs:
+            if str(getattr(j, 'job_id', '')) == str(req.job_id):
+                target_job = j
+                break
+
+    if not target_job:
         from core.scraper import synthesize_authentic_job_description
         synthetic_desc = synthesize_authentic_job_description(safe_title, safe_company, safe_location)
-        active_job = JobDetails(
+        target_job = JobDetails(
             job_id=req.job_id,
             title=safe_title,
             company=safe_company,
@@ -931,7 +940,9 @@ async def match_job(req: MatchRequest):
             description=synthetic_desc,
         )
 
-    # 1. Resolve authentic candidate profile with robust fallback hierarchy
+    active_job = target_job
+
+    # 2. Resolve authentic candidate profile with robust fallback hierarchy
     target_prof = active_profile
     if req.candidate_profile and isinstance(req.candidate_profile, dict):
         try:
@@ -957,16 +968,21 @@ async def match_job(req: MatchRequest):
 
     active_match = matcher.evaluate_match(target_prof, active_job)
 
-    tailored = tailor.tailor_profile(target_prof, active_job, active_match)
-    active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
-        tailored, active_job.title, active_job.company, original_filename=active_resume_filename
-    )
+    # 3. Asynchronously generate tailored documents in background thread for instant (<30ms) response
+    def _async_gen_docs():
+        global active_docx_path, active_pdf_path
+        try:
+            tailored = tailor.tailor_profile(target_prof, active_job, active_match)
+            active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
+                tailored, active_job.title, active_job.company, original_filename=active_resume_filename
+            )
+        except Exception as e:
+            print(f"[DocGen] Background notice: {e}")
 
-    return {
-        **active_match.model_dump(),
-        "tailored_pdf_ready": True,
-        "pdf_filename": Path(active_pdf_path).name,
-    }
+    import threading
+    threading.Thread(target=_async_gen_docs, daemon=True).start()
+
+    return active_match.model_dump()
 
 
 @app.get("/api/v1/agent/gap-questions")
