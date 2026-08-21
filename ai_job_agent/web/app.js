@@ -2694,12 +2694,36 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Automatic Gumroad Redirect Activation (Zero-friction customer onboarding)
-function handleGumroadRedirectActivation() {
+async function handleGumroadRedirectActivation() {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const purchaseSuccess = urlParams.get('purchase') === 'success' || urlParams.get('payment') === 'success';
     const rawKey = urlParams.get('license_key') || urlParams.get('license') || urlParams.get('key');
     const planParam = (urlParams.get('plan') || '').toLowerCase();
+
+    if (rawKey) {
+      // Auto-verify with backend to sync Supabase tier
+      try {
+        const res = await fetch('/api/v1/licenses/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ license_key: rawKey })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const tier = data.tier || 'pro';
+          localStorage.setItem('user_subscription_tier', tier);
+          localStorage.setItem('gumroad_license_key', rawKey);
+          updateTierBadges(tier);
+          refreshNavbarAuthState();
+          showToast(`🎉 Payment Confirmed! Your ${data.plan} is now active with unlimited access!`);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return;
+        }
+      } catch (err) {
+        console.warn("Backend auto-verify notice:", err);
+      }
+    }
 
     if (purchaseSuccess || rawKey || planParam) {
       let activatedTier = 'pro';
