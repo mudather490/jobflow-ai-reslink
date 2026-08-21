@@ -2550,7 +2550,7 @@ async function syncSupabaseUserSession() {
 // ─────────────────────────────────────────────────────────────
 // Authentication & User Profile Modal Handlers
 // ─────────────────────────────────────────────────────────────
-const GOOGLE_CLIENT_ID = "623877995804-94j5uclckk32u7n021f1q54d5k5dcrka.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "717078095584-05fudemno04qgugutasf4ih85c79jjij.apps.googleusercontent.com";
 
 window.handleGoogleSignIn = function() {
   const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
