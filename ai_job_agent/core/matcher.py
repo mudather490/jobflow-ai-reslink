@@ -245,16 +245,7 @@ class JobMatcher:
                             found_reqs.add(canon)
                             break
 
-        # 3. Default fallback for AI/Engineering roles if description was minimal or generic
-        if not found_reqs:
-            title_lower = job_title.lower()
-            if any(k in title_lower for k in ["ai", "machine learning", "ml", "deep learning"]):
-                found_reqs.update(["Python", "Machine Learning", "Deep Learning", "PyTorch", "LLMs & Generative AI", "FastAPI & REST APIs", "SQL & Relational Databases"])
-            elif any(k in title_lower for k in ["software", "engineer", "developer", "backend"]):
-                found_reqs.update(["Python", "FastAPI & REST APIs", "Docker & Containerization", "SQL & Relational Databases", "Linux & Version Control"])
-            else:
-                found_reqs.update(["Python", "SQL & Relational Databases", "Data Analysis & Mathematics", "Linux & Version Control"])
-
+        # Dynamic entity extraction without hardcoded defaults
         return sorted(list(found_reqs))
 
     def calculate_title_relevance(self, candidate_roles: List[str], target_title: str) -> float:
