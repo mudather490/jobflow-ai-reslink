@@ -470,13 +470,33 @@ class ResumeParser:
                             if t_clean not in skills_list:
                                 skills_list.append(t_clean)
 
-        # Additional skill discovery from full text
-        tech_keywords = [
+        # Universal multi-domain skill discovery from full text across all industries
+        universal_keywords = [
+            # Finance & Accounting
+            "GAAP", "IFRS", "Financial Modeling", "QuickBooks", "Tax Compliance", "Auditing",
+            "Financial Reporting", "Accounts Payable", "Accounts Receivable", "General Ledger", "SAP", "Excel VBA",
+            # Sales & CRM
+            "Salesforce", "CRM", "B2B Sales", "Lead Generation", "Account Management", "Cold Calling",
+            "Pipeline Management", "Contract Negotiation", "Client Relations",
+            # Marketing & Creative
+            "SEO", "Content Strategy", "Google Analytics", "Copywriting", "Social Media Marketing",
+            "Digital Marketing", "Figma", "Photoshop", "Brand Management", "Email Marketing",
+            # Healthcare & Nursing
+            "Patient Care", "Clinical Assessment", "HIPAA", "Electronic Health Records", "EHR", "Triage",
+            "Patient Assessment", "Medical Terminology",
+            # Management & HR
+            "Agile", "Scrum", "PMP", "Project Management", "Risk Management", "HRIS", "Talent Acquisition",
+            "Payroll", "Performance Management", "Sprint Planning", "Jira",
+            # Legal & Compliance
+            "Contract Drafting", "Regulatory Compliance", "Legal Research", "Due Diligence", "Intellectual Property",
+            # Software, Data & Cyber Security
             "Python", "PyTorch", "Pandas", "Scikit-learn", "TensorFlow", "FastAPI", "Supabase", "Vercel",
-            "NumPy", "LLM APIs", "AI Agents", "Reddit API", "Linear Regression", "EDA", "Linux", "MySQL"
+            "NumPy", "LLM APIs", "AI Agents", "Linux", "MySQL", "PostgreSQL", "React", "TypeScript",
+            "JavaScript", "Docker", "Kubernetes", "AWS", "GCP", "Azure", "OWASP", "Penetration Testing"
         ]
-        for kw in tech_keywords:
-            if re.search(r'\b' + re.escape(kw) + r'\b', text, re.I) and kw not in skills_list:
+        for kw in universal_keywords:
+            pattern = r'(?<![a-zA-Z0-9_\-\+\#])' + re.escape(kw) + r'(?![a-zA-Z0-9_\-\+\#])'
+            if re.search(pattern, text, re.I) and not any(kw.lower() == s.lower() for s in skills_list):
                 skills_list.append(kw)
 
         # Standardize categorized skills if not already categorized

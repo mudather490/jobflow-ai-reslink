@@ -207,9 +207,38 @@ class JobMatcher:
             "probability", "statistics", "data science"
         ],
         "Agile & Project Management": [
-            "agile", "scrum", "jira", "kanban", "project management", "sprint planning"
+            "agile", "scrum", "jira", "kanban", "project management", "sprint planning", "pmp", "prince2"
+        ],
+        "Accounting & GAAP": [
+            "gaap", "ifrs", "accounting", "general ledger", "accounts payable", "accounts receivable",
+            "journal entries", "reconciliation", "tax compliance", "auditing", "financial audit"
+        ],
+        "Financial Modeling & Analysis": [
+            "financial modeling", "financial analysis", "dcf", "lbo", "budgeting", "forecasting",
+            "variance analysis", "corporate finance", "financial reporting", "excel vba", "quickbooks"
+        ],
+        "Sales & CRM": [
+            "salesforce", "sfdc", "crm", "b2b sales", "lead generation", "account management",
+            "pipeline management", "cold calling", "prospecting", "deal closing", "client acquisition"
+        ],
+        "Digital Marketing & SEO": [
+            "seo", "search engine optimization", "content marketing", "google analytics", "copywriting",
+            "social media marketing", "digital marketing", "email marketing", "ppc", "google ads", "sem"
+        ],
+        "Healthcare & Clinical Care": [
+            "patient care", "clinical assessment", "hipaa", "hipaa compliance", "ehr", "electronic health records",
+            "triage", "patient assessment", "nursing", "vital signs", "medical terminology"
+        ],
+        "Human Resources & Talent": [
+            "hris", "talent acquisition", "recruiting", "payroll", "employee relations",
+            "onboarding", "performance management", "human resources", "hr policies", "workday"
+        ],
+        "Legal & Regulatory Compliance": [
+            "contract drafting", "regulatory compliance", "legal research", "due diligence",
+            "intellectual property", "contract negotiation", "legal compliance", "risk assessment"
         ]
     }
+
 
     def __init__(self, use_llm: bool = True):
         self.use_llm = use_llm

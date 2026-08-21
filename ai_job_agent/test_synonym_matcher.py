@@ -237,5 +237,44 @@ Advanced React Patterns — Frontend Masters: Completed
             self.assertGreater(out_pdf.stat().st_size, 1000)
 
 
+    def test_universal_accounting_finance_parsing(self):
+        resume_text = """
+MICHAEL CARTER
+Senior Financial Analyst & Accountant
+Email: michael.carter@example.com
+Phone: +1 555-432-8765
+Location: Chicago, IL
+
+PROFESSIONAL SUMMARY
+Results-driven Senior Financial Analyst with 7+ years of experience in GAAP accounting, financial reporting, budgeting, forecasting, and corporate tax compliance.
+
+AREAS OF EXPERTISE
+Accounting & Audit: GAAP, IFRS, Tax Compliance, Auditing, General Ledger, Accounts Payable, Accounts Receivable
+Financial Systems: QuickBooks, SAP, Financial Modeling, Excel VBA, Financial Reporting
+
+WORK EXPERIENCE
+Senior Accountant — Horizon Financial Services | 2020 - Present
+• Prepared monthly GAAP financial statements, tax schedules, and variance analysis reports.
+• Automated ledger reconciliations using Excel VBA and QuickBooks.
+
+EDUCATION
+University of Illinois — B.S. in Accounting & Finance | 2014 - 2018
+
+LICENSES & CERTIFICATIONS
+Certified Public Accountant (CPA) — State Board of Accountancy: Completed
+"""
+        profile = ResumeParser.parse_text_to_profile(resume_text)
+
+        self.assertEqual(profile.full_name, "MICHAEL CARTER")
+        self.assertIn("Senior Financial Analyst", profile.headline)
+        self.assertTrue(any("GAAP" in s for s in profile.skills))
+        self.assertTrue(any("QuickBooks" in s or "Financial Modeling" in s for s in profile.skills))
+        self.assertEqual(len(profile.experience), 1)
+        self.assertEqual(profile.experience[0].company, "Horizon Financial Services")
+        self.assertEqual(len(profile.education), 1)
+        self.assertEqual(len(profile.certifications), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
+

@@ -1002,7 +1002,7 @@ function renderMatchReport(report) {
     matchedCloud.innerHTML = report.matched_skills.map(s => `<span class="skill-chip chip-match">✓ ${escapeHtml(s)}</span>`).join('') || '<span style="color:var(--text-dim);font-size:12px;">None detected</span>';
   }
 
-  // Render Missing Skills with one-click "+ Add Skill" Bridge capability
+  // Render Missing Skills as an Interactive Checklist with 1-click "+ Add Skill" Bridge capability
   const missingCloud = document.getElementById('missing-skills-cloud');
   const missingCountBadge = document.getElementById('missing-count-badge');
   if (missingCountBadge) missingCountBadge.innerText = `${report.missing_critical_skills.length} Missing`;
@@ -1010,14 +1010,16 @@ function renderMatchReport(report) {
   if (missingCloud) {
     if (report.missing_critical_skills.length > 0) {
       missingCloud.innerHTML = report.missing_critical_skills.map(s => `
-        <span class="skill-chip chip-gap" style="cursor: pointer; transition: transform 0.2s;" onclick="addSkillFromBridge('${escapeHtml(s).replace(/'/g, "\\'")}')" title="Click to instantly bridge and add ${escapeHtml(s)} to your resume (+15% score)">
-          + ${escapeHtml(s)}
-        </span>
+        <div class="skill-checklist-item" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35); border-radius: 20px; cursor: pointer; transition: all 0.2s;" onclick="addSkillFromBridge('${escapeHtml(s).replace(/'/g, "\\'")}')" title="Click to instantly bridge and add ${escapeHtml(s)} to your resume (+15% score)">
+          <input type="checkbox" style="accent-color: #10B981; cursor: pointer;" onclick="event.stopPropagation(); addSkillFromBridge('${escapeHtml(s).replace(/'/g, "\\'")}')">
+          <span style="font-size: 12px; color: #FB7185; font-weight: 600;">+ ${escapeHtml(s)}</span>
+        </div>
       `).join('');
     } else {
-      missingCloud.innerHTML = '<span class="skill-chip chip-match">✓ 100% Match (No Gaps)</span>';
+      missingCloud.innerHTML = '<span class="skill-chip chip-match">✓ 100% Match (No Gaps Detected)</span>';
     }
   }
+
 
   // Render Candidate's Additional Profile Strengths (Bonus Skills)
   const extraCloud = document.getElementById('extra-skills-cloud');
