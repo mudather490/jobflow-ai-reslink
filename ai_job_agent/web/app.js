@@ -2552,10 +2552,19 @@ async function syncSupabaseUserSession() {
 // ─────────────────────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = "717078095584-05fudemno04qgugutasf4ih85c79jjij.apps.googleusercontent.com";
 
+function getAuthRedirectOrigin() {
+  const host = (window.location.hostname || '').toLowerCase();
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return window.location.origin;
+  }
+  if (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) {
+    return window.location.origin;
+  }
+  return 'https://jobflow-ai-reslink-5tbi.vercel.app';
+}
+
 window.handleGoogleSignIn = async function() {
-  const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
-    ? window.location.origin 
-    : 'https://jobflow-ai-reslink-5tbi.vercel.app';
+  const currentOrigin = getAuthRedirectOrigin();
   const redirectTarget = `${currentOrigin}/app`;
 
   if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {

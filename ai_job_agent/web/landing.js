@@ -134,18 +134,25 @@ document.querySelectorAll('.faq-question').forEach(btn => {
 const SUPABASE_PROJECT_URL = "https://bijwvvnghhbgudyrecpx.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_EcC050mUrxLcfqXNxPX--Q_RI3aQ99N";
 
+function getAuthRedirectOrigin() {
+  const host = (window.location.hostname || '').toLowerCase();
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return window.location.origin;
+  }
+  if (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) {
+    return window.location.origin;
+  }
+  return 'https://jobflow-ai-reslink-5tbi.vercel.app';
+}
+
 function getGoogleAuthUrl() {
-  const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
-    ? window.location.origin 
-    : 'https://jobflow-ai-reslink-5tbi.vercel.app';
+  const currentOrigin = getAuthRedirectOrigin();
   const redirectTarget = encodeURIComponent(currentOrigin + '/app');
   return `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTarget}&prompt=select_account&access_type=offline`;
 }
 
 window.handleSocialAuth = async function(provider = 'google') {
-  const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
-    ? window.location.origin 
-    : 'https://jobflow-ai-reslink-5tbi.vercel.app';
+  const currentOrigin = getAuthRedirectOrigin();
   const redirectTarget = `${currentOrigin}/app`;
 
   // 1. Try Supabase Client SDK if available for native OAuth initiation
