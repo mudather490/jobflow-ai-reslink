@@ -49,6 +49,7 @@ class ApplicationRecord(BaseModel):
     candidate_email: Optional[str] = None
     candidate_phone: Optional[str] = None
     template_used: str = "modern"
+    batch_id: Optional[str] = None
     prefilled_answers: Dict[str, str] = Field(default_factory=dict)
     missing_questions: List[Dict[str, Any]] = Field(default_factory=list)
 
@@ -75,11 +76,15 @@ class JobApplier:
         return []
 
     @classmethod
+    def save_history(cls, history: List[Dict[str, Any]]):
+        with open(cls.HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f, indent=2)
+
+    @classmethod
     def save_record(cls, record: ApplicationRecord):
         history = cls.load_history()
         history.append(record.model_dump())
-        with open(cls.HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(history, f, indent=2)
+        cls.save_history(history)
 
     @classmethod
     def evaluate_job_readiness(
@@ -219,11 +224,11 @@ class JobApplier:
             "State / Province / Region": state_val,
             "Work Authorization Status": auth_val,
             "Visa Sponsorship Required": visa_val,
-            "LinkedIn Profile": profile.contact.linkedin or candidate_info.linkedin_url or "",
-            "GitHub / Portfolio": profile.contact.github or candidate_info.github_url or "",
+            "LinkedIn Profile": profile.contact.linkedin or (candidate_info.linkedin_url if candidate_info else "") or "",
+            "GitHub / Portfolio": profile.contact.github or (candidate_info.github_url if candidate_info else "") or "",
             "Target Role Alignment": f"{job.title} at {job.company}",
             "Key Matching Skills": ", ".join(match_report.matched_skills[:6]),
-            "Elevator Pitch Note": candidate_info.cover_note or (
+            "Elevator Pitch Note": (candidate_info.cover_note if candidate_info and candidate_info.cover_note else None) or (
                 f"Hi Hiring Team at {job.company},\n"
                 f"I am excited to apply for the {job.title} role. With hands-on expertise in "
                 f"{', '.join(match_report.matched_skills[:4])} and a proven track record of impact, "
@@ -331,6 +336,8 @@ class JobApplier:
         from core.tailor import ResumeTailor
         from core.agent import GapQuestioningAgent
 
+        import time
+        batch_id = f"BATCH-{int(time.time())}"
         mb = memory_bank or QuestionnaireMemoryBank()
         matcher = JobMatcher()
         tailor = ResumeTailor(matcher=matcher)
@@ -392,10 +399,21 @@ class JobApplier:
                 channels=channels,
             )
 
+            record.batch_id = batch_id
+
             if record.status == "applied":
-                applied_records.append(record.model_dump())
+                rec_dict = record.model_dump()
+                applied_records.append(rec_dict)
             else:
-                needs_input_records.append(record.model_dump())
+                rec_dict = record.model_dump()
+                needs_input_records.append(rec_dict)
+
+            # Persist updated batch_id into applications history
+            history = cls.load_history()
+            for item in history:
+                if item.get("application_id") == record.application_id:
+                    item["batch_id"] = batch_id
+            cls.save_history(history)
 
         # Dispatch aggregate summary notification for auto-applied jobs
         if notifier and applied_records:
@@ -408,6 +426,7 @@ class JobApplier:
             )
 
         return {
+            "batch_id": batch_id,
             "total_processed": len(jobs),
             "applied_count": len(applied_records),
             "bridged_count": bridged_count,

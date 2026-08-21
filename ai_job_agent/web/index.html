@@ -462,15 +462,18 @@
             <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">
               📊 Company Intelligence & Interview Preparation:
             </div>
-            <div style="display: grid; grid-template-columns: 1.4fr 1fr 1.3fr; gap: 8px;">
-              <button class="btn btn-emerald download-action-btn" id="btn-download-excel" onclick="window.downloadApplicationExcel()" style="font-size: 12px; padding: 10px 8px;">
-                <span>📥</span> <span>Excel (.xlsx)</span>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+              <button class="btn btn-emerald download-action-btn" id="btn-download-excel" onclick="window.downloadApplicationExcel()" style="font-size: 11px; padding: 10px 4px; font-weight: 700;">
+                <span>📥</span> <span>Excel</span>
               </button>
-              <button class="btn btn-secondary download-action-btn" id="btn-download-csv" onclick="window.downloadApplicationCSV()" style="font-size: 12px; padding: 10px 8px;">
+              <button class="btn btn-secondary download-action-btn" id="btn-download-csv" onclick="window.downloadApplicationCSV()" style="font-size: 11px; padding: 10px 4px; font-weight: 700;">
                 <span>📄</span> <span>CSV</span>
               </button>
-              <button class="btn btn-primary download-action-btn" id="btn-download-pdf-tracker" onclick="window.downloadApplicationPDF()" style="font-size: 12px; padding: 10px 8px; background: linear-gradient(135deg, #38BDF8, #818CF8); color: #000; font-weight: 800;">
-                <span>📑</span> <span>PDF Tracker</span>
+              <button class="btn btn-primary download-action-btn" id="btn-download-pdf-tracker" onclick="window.downloadApplicationPDF()" style="font-size: 11px; padding: 10px 4px; background: linear-gradient(135deg, #38BDF8, #818CF8); color: #000; font-weight: 800;">
+                <span>📑</span> <span>PDF</span>
+              </button>
+              <button class="btn btn-secondary download-action-btn" id="btn-download-json" onclick="window.downloadApplicationJSON()" style="font-size: 11px; padding: 10px 4px; font-weight: 700; border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;">
+                <span>💾</span> <span>JSON</span>
               </button>
             </div>
           </div>

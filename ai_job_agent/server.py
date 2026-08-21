@@ -1575,10 +1575,15 @@ async def batch_apply_easy_endpoint(request: Request):
         except Exception:
             pass
     
-    active_channels = []
-    if notifier.recipient_email: active_channels.append("email")
-    if notifier.whatsapp_phone: active_channels.append("whatsapp")
-    if notifier.telegram_chat_id: active_channels.append("telegram")
+    # Parse requested channels from client body or default to active credentials
+    req_channels = body.get("channels")
+    if req_channels and isinstance(req_channels, list):
+        active_channels = [c for c in req_channels if c in ("email", "whatsapp", "telegram")]
+    else:
+        active_channels = []
+        if notifier.recipient_email: active_channels.append("email")
+        if notifier.whatsapp_phone: active_channels.append("whatsapp")
+        if notifier.telegram_chat_id: active_channels.append("telegram")
     
     min_score = float(body.get("min_score", 80.0))
     auto_bridge_gaps = bool(body.get("auto_bridge_gaps", True))
@@ -1595,14 +1600,54 @@ async def batch_apply_easy_endpoint(request: Request):
         auto_bridge_gaps=auto_bridge_gaps,
     )
     
+    global latest_batch_id
+    latest_batch_id = batch_result.get("batch_id")
+    
     return {
         "status": "success",
         "message": f"High-Probability Batch Apply completed: {batch_result['applied_count']} auto-applied (Score ≥ {min_score}%), {batch_result.get('bridged_count', 0)} auto-bridged by Memory Bank, {batch_result['skipped_count']} skipped.",
         "total_easy_apply": len(easy_apply_jobs),
         "min_score_threshold": min_score,
         "auto_bridge_gaps": auto_bridge_gaps,
+        "batch_id": latest_batch_id,
         "results": batch_result
     }
+
+
+latest_batch_id: Optional[str] = None
+
+
+def get_filtered_applications(batch_id: Optional[str] = None, latest_batch: bool = False) -> List[Dict[str, Any]]:
+    """Loads application history, optionally filtering for a specific batch_id or the latest batch."""
+    global latest_batch_id
+    history = JobApplier.load_history()
+    if not history:
+        sample_record = {
+            "application_id": "AUTO-APP-INIT",
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "job_title": "Senior AI / Machine Learning Engineer",
+            "company": "Anthropic AI",
+            "location": "Worldwide Remote",
+            "status": "Applied",
+            "ats_match_score": 96.5,
+            "template_used": "modern",
+            "job_url": "https://www.linkedin.com/jobs",
+            "prefilled_answers": {
+                "Key Matching Skills": "Python, PyTorch, FastAPI, AI Agents, LangGraph"
+            }
+        }
+        return [sample_record]
+
+    target_batch = batch_id
+    if not target_batch and latest_batch:
+        target_batch = latest_batch_id or next((a.get("batch_id") for a in reversed(history) if a.get("batch_id")), None)
+
+    if target_batch:
+        filtered = [a for a in history if a.get("batch_id") == target_batch]
+        if filtered:
+            return filtered
+
+    return history
 
 
 # ─────────────────────────────────────────────────────────────
@@ -1619,25 +1664,8 @@ async def get_application_history():
 
 
 @app.get("/api/v1/applications/export-excel")
-async def export_applications_excel():
-    history = JobApplier.load_history()
-    if not history:
-        sample_record = {
-            "application_id": "AUTO-APP-INIT",
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "job_title": "Senior AI / Machine Learning Engineer",
-            "company": "Anthropic AI",
-            "location": "Worldwide Remote",
-            "status": "Applied",
-            "ats_match_score": 96.5,
-            "template_used": "modern",
-            "job_url": "https://www.linkedin.com/jobs",
-            "prefilled_answers": {
-                "Key Matching Skills": "Python, PyTorch, FastAPI, AI Agents, LangGraph"
-            }
-        }
-        history = [sample_record]
-
+async def export_applications_excel(batch_id: Optional[str] = Query(None), latest_batch: bool = Query(False)):
+    history = get_filtered_applications(batch_id=batch_id, latest_batch=latest_batch)
     excel_file = CompanyIntelligenceExcelExporter.export_to_excel(history)
     safe_path = SecurityShield.validate_safe_path(excel_file, OUTPUT_DIR)
     if not safe_path or not safe_path.exists():
@@ -1652,25 +1680,8 @@ async def export_applications_excel():
 
 
 @app.get("/api/v1/applications/export-csv")
-async def export_applications_csv():
-    history = JobApplier.load_history()
-    if not history:
-        sample_record = {
-            "application_id": "AUTO-APP-INIT",
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "job_title": "Senior AI / Machine Learning Engineer",
-            "company": "Anthropic AI",
-            "location": "Worldwide Remote",
-            "status": "Applied",
-            "ats_match_score": 96.5,
-            "template_used": "modern",
-            "job_url": "https://www.linkedin.com/jobs",
-            "prefilled_answers": {
-                "Key Matching Skills": "Python, PyTorch, FastAPI, AI Agents, LangGraph"
-            }
-        }
-        history = [sample_record]
-
+async def export_applications_csv(batch_id: Optional[str] = Query(None), latest_batch: bool = Query(False)):
+    history = get_filtered_applications(batch_id=batch_id, latest_batch=latest_batch)
     csv_file = CompanyIntelligenceExcelExporter.export_to_csv(history)
     safe_path = SecurityShield.validate_safe_path(csv_file, OUTPUT_DIR)
     if not safe_path or not safe_path.exists():
@@ -1685,25 +1696,8 @@ async def export_applications_csv():
 
 
 @app.get("/api/v1/applications/export-pdf")
-async def export_applications_pdf():
-    history = JobApplier.load_history()
-    if not history:
-        sample_record = {
-            "application_id": "AUTO-APP-INIT",
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "job_title": "Senior AI / Machine Learning Engineer",
-            "company": "Anthropic AI",
-            "location": "Worldwide Remote",
-            "status": "Applied",
-            "ats_match_score": 96.5,
-            "template_used": "modern",
-            "job_url": "https://www.linkedin.com/jobs",
-            "prefilled_answers": {
-                "Key Matching Skills": "Python, PyTorch, FastAPI, AI Agents, LangGraph"
-            }
-        }
-        history = [sample_record]
-
+async def export_applications_pdf(batch_id: Optional[str] = Query(None), latest_batch: bool = Query(False)):
+    history = get_filtered_applications(batch_id=batch_id, latest_batch=latest_batch)
     pdf_file = CompanyIntelligenceExcelExporter.export_to_pdf(history)
     safe_path = SecurityShield.validate_safe_path(pdf_file, OUTPUT_DIR)
     if not safe_path or not safe_path.exists():

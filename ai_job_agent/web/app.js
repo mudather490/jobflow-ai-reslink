@@ -1464,89 +1464,28 @@ document.getElementById('btn-save-and-continue-apply')?.addEventListener('click'
   }
 });
 
-// Step 8: Batch 1-Click Auto-Apply across chosen volume of discovered jobs
-document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async () => {
-  if (!currentJobs || currentJobs.length === 0) {
-    alert("Please scan for jobs first before executing batch auto-apply.");
-    return;
-  }
-
-  const volumeVal = document.getElementById('select-batch-volume')?.value || 'all_easy';
-  let targetJobs = [];
-
-  if (volumeVal === 'all_easy') {
-    targetJobs = currentJobs.filter(j => j.is_easy_apply);
-    if (targetJobs.length === 0) {
-      targetJobs = currentJobs; // fallback if user explicitly wants to apply to discovered list
-    }
-  } else {
-    const maxCount = parseInt(volumeVal, 10) || 10;
-    const easyOnly = currentJobs.filter(j => j.is_easy_apply);
-    targetJobs = (easyOnly.length >= maxCount ? easyOnly : currentJobs).slice(0, maxCount);
-  }
-
-  if (targetJobs.length === 0) {
-    alert("No eligible jobs found for batch application. Try searching for additional jobs.");
-    return;
-  }
-
-  const btn = document.getElementById('btn-batch-auto-apply');
-  const originalText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = `⏳ AI Applying to ${targetJobs.length} Jobs...`;
-
-  const jobIds = targetJobs.map(j => j.job_id);
-  const candidateProfile = getSavedCandidateProfile() || {
-    full_name: currentProfile?.full_name || 'Alex Rivera',
-    email: currentProfile?.contact?.email || 'alex.rivera@example.com',
-    preferred_template: window.selectedTemplateId || 'modern'
-  };
-
-  const selectedChannels = [];
-  if (document.getElementById('chk-email')?.checked) selectedChannels.push('email');
-  if (document.getElementById('chk-whatsapp')?.checked) selectedChannels.push('whatsapp');
-  if (document.getElementById('chk-telegram')?.checked) selectedChannels.push('telegram');
-
-  try {
-    const res = await fetch('/api/v1/application/batch-apply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        job_ids: jobIds,
-        template_id: window.selectedTemplateId || 'modern',
-        candidate_profile: candidateProfile,
-        channels: selectedChannels
-      })
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      const results = data.results || {};
-      alert(`🚀 Autonomous Batch Auto-Apply Complete!\n\n• Successfully Auto-Applied: ${results.applied_count} Jobs\n• Needs New Answers: ${results.needs_input_count} Jobs\n• Delivery Channels: Email & WhatsApp Confirmations Triggered\n\nAll tailored PDF bundles were generated in the ${window.selectedTemplateId.toUpperCase()} template and company records were logged to your Excel, CSV & PDF Trackers!`);
-    } else {
-      alert("Batch apply failed: " + (data.detail || "Unknown error"));
-    }
-  } catch (err) {
-    alert("Batch apply error: " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalText;
-  }
-});
-
-// Step 9: Download Application History & Company Intelligence as Excel / CSV / PDF
+// Step 9: Download Application History & Company Intelligence as Excel / CSV / PDF / JSON
 window.downloadApplicationExcel = function() {
-  const url = `/api/v1/applications/export-excel?t=${Date.now()}`;
+  const batchQuery = window.currentBatchId ? `&batch_id=${encodeURIComponent(window.currentBatchId)}` : '&latest_batch=true';
+  const url = `/api/v1/applications/export-excel?t=${Date.now()}${batchQuery}`;
   window.open(url, '_blank');
 };
 
 window.downloadApplicationCSV = function() {
-  const url = `/api/v1/applications/export-csv?t=${Date.now()}`;
+  const batchQuery = window.currentBatchId ? `&batch_id=${encodeURIComponent(window.currentBatchId)}` : '&latest_batch=true';
+  const url = `/api/v1/applications/export-csv?t=${Date.now()}${batchQuery}`;
   window.open(url, '_blank');
 };
 
 window.downloadApplicationPDF = function() {
-  const url = `/api/v1/applications/export-pdf?t=${Date.now()}`;
+  const batchQuery = window.currentBatchId ? `&batch_id=${encodeURIComponent(window.currentBatchId)}` : '&latest_batch=true';
+  const url = `/api/v1/applications/export-pdf?t=${Date.now()}${batchQuery}`;
+  window.open(url, '_blank');
+};
+
+window.downloadApplicationJSON = function() {
+  const batchQuery = window.currentBatchId ? `&batch_id=${encodeURIComponent(window.currentBatchId)}` : '&latest_batch=true';
+  const url = `/api/v1/applications/export-json?t=${Date.now()}${batchQuery}`;
   window.open(url, '_blank');
 };
 
@@ -1772,6 +1711,12 @@ document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async
     resultsDiv.innerHTML = '<div style="color: var(--accent-cyan); font-size: 13px;">⏳ Autonomous agent evaluating ATS scores & auto-bridging Memory Bank Q&A...</div>';
   }
   
+  // Read selected notification channels
+  const selectedChannels = [];
+  if (document.getElementById('chk-email')?.checked !== false) selectedChannels.push('email');
+  if (document.getElementById('chk-whatsapp')?.checked !== false) selectedChannels.push('whatsapp');
+  if (document.getElementById('chk-telegram')?.checked !== false) selectedChannels.push('telegram');
+
   // Load candidate profile
   let candidateProfile = {};
   try {
@@ -1788,11 +1733,15 @@ document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async
         auto_bridge_gaps: autoBridgeGaps,
         template_id: window.selectedTemplateId || 'modern',
         candidate_profile: candidateProfile,
+        channels: selectedChannels,
       })
     });
     const data = await res.json();
     
     if (data.status === 'success') {
+      if (data.batch_id || (data.results && data.results.batch_id)) {
+        window.currentBatchId = data.batch_id || data.results.batch_id;
+      }
       const results = data.results || {};
       const applied = results.applied_count || 0;
       const bridged = results.bridged_count || 0;

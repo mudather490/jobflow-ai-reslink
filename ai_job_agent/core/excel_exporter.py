@@ -372,3 +372,23 @@ class CompanyIntelligenceExcelExporter:
         story.append(table)
         doc.build(story)
         return out_file
+
+    @classmethod
+    def export_to_json(cls, applications: List[Dict[str, Any]], output_path: Optional[Path] = None) -> Path:
+        """
+        Exports clean, structured JSON file containing application records and interview intelligence.
+        """
+        import json
+        out_file = output_path or (OUTPUT_DIR / "Company_Applications_Tracker.json")
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        payload = {
+            "generated_at": datetime.now().isoformat(),
+            "total_applications": len(applications),
+            "applications": applications
+        }
+        
+        with open(out_file, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+            
+        return out_file
