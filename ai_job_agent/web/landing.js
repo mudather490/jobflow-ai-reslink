@@ -132,7 +132,7 @@ document.querySelectorAll('.faq-question').forEach(btn => {
 // Supabase & Google Identity Services (GIS) OAuth Handlers
 // ─────────────────────────────────────────────────────────────
 const SUPABASE_PROJECT_URL = "https://bijwvvnghhbgudyrecpx.supabase.co";
-const GOOGLE_CLIENT_ID = "717078095584-05fudemno04qgugutasf4ih85c79jjij.apps.googleusercontent.com";
+const SUPABASE_ANON_KEY = "sb_publishable_EcC050mUrxLcfqXNxPX--Q_RI3aQ99N";
 
 function getGoogleAuthUrl() {
   const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
@@ -142,16 +142,37 @@ function getGoogleAuthUrl() {
   return `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTarget}&prompt=select_account&access_type=offline`;
 }
 
-window.handleSocialAuth = function(provider = 'google') {
+window.handleSocialAuth = async function(provider = 'google') {
   const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
     ? window.location.origin 
     : 'https://jobflow-ai-reslink-5tbi.vercel.app';
-  const redirectTarget = encodeURIComponent(currentOrigin + '/app');
-  
+  const redirectTarget = `${currentOrigin}/app`;
+
+  // 1. Try Supabase Client SDK if available for native OAuth initiation
+  if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
+    try {
+      const client = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
+      const { error } = await client.auth.signInWithOAuth({
+        provider: provider === 'google' ? 'google' : 'linkedin_oidc',
+        options: {
+          redirectTo: redirectTarget,
+          queryParams: {
+            prompt: 'select_account',
+            access_type: 'offline'
+          }
+        }
+      });
+      if (!error) return;
+    } catch (e) {
+      console.warn("Supabase SDK OAuth notice, using direct redirect fallback:", e);
+    }
+  }
+
+  // 2. Direct HTTPS authorize fallback
   if (provider === 'google') {
     window.location.href = getGoogleAuthUrl();
   } else {
-    const linkedinAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=linkedin_oidc&redirect_to=${redirectTarget}`;
+    const linkedinAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=linkedin_oidc&redirect_to=${encodeURIComponent(redirectTarget)}`;
     window.location.href = linkedinAuthUrl;
   }
 };

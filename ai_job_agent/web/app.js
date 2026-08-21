@@ -2552,12 +2552,32 @@ async function syncSupabaseUserSession() {
 // ─────────────────────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = "717078095584-05fudemno04qgugutasf4ih85c79jjij.apps.googleusercontent.com";
 
-window.handleGoogleSignIn = function() {
+window.handleGoogleSignIn = async function() {
   const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
     ? window.location.origin 
     : 'https://jobflow-ai-reslink-5tbi.vercel.app';
-  const redirectTarget = encodeURIComponent(`${currentOrigin}/app`);
-  const googleAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTarget}`;
+  const redirectTarget = `${currentOrigin}/app`;
+
+  if (window.supabase && SUPABASE_PROJECT_URL && SUPABASE_ANON_KEY) {
+    try {
+      const client = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY);
+      const { error } = await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTarget,
+          queryParams: {
+            prompt: 'select_account',
+            access_type: 'offline'
+          }
+        }
+      });
+      if (!error) return;
+    } catch (e) {
+      console.warn("Supabase SDK OAuth notice, using direct redirect fallback:", e);
+    }
+  }
+
+  const googleAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTarget)}&prompt=select_account&access_type=offline`;
   window.location.href = googleAuthUrl;
 };
 
