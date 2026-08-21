@@ -287,11 +287,12 @@ class NotificationManager:
                 results["email"] = {"status": "error", "error": str(e)}
 
         # 2. Telegram Alert
+        from config import get_app_base_url
+        app_link = f"{get_app_base_url()}/app"
+
         if "telegram" in active_channels and self.telegram_chat_id:
-            tg_text = (
-                f"⚠️ *New Screening Question Detected*\n\n"
-                f"💼 *Role:* {job_title}\n"
-                f"🏢 *Company:* {company}\n\n"
+            msg_text = (
+                f"⚠️ *JobFlow Alert*: Dynamic Screening Question for *{job_title}* at *{company}*.\n\n"
                 f"📋 *Question(s) to Save:*\n{q_list_text}\n\n"
                 f"👉 _Open JobFlow.ai to answer once. It will save to your Memory Bank and auto-apply!_"
             )
@@ -299,12 +300,12 @@ class NotificationManager:
                 job_title=f"⚠️ Question for {job_title}",
                 company=company,
                 match_score=95.0,
-                job_url=job_url or "http://127.0.0.1:8000/app"
+                job_url=job_url or app_link
             )
 
         # 3. WhatsApp Alert
         if "whatsapp" in active_channels and self.whatsapp_phone:
-            wa_text = f"⚠️ *JobFlow Alert*: New question for {job_title} @ {company}:\n{q_list_text}\nAnswer once at: http://127.0.0.1:8000/app"
+            wa_text = f"⚠️ *JobFlow Alert*: New question for {job_title} @ {company}:\n{q_list_text}\nAnswer once at: {app_link}"
             results["whatsapp"] = {"status": "simulated_success", "channel": "whatsapp", "phone": self.whatsapp_phone}
 
         return results

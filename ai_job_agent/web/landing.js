@@ -135,13 +135,17 @@ const SUPABASE_PROJECT_URL = "https://bijwvvnghhbgudyrecpx.supabase.co";
 const GOOGLE_CLIENT_ID = "717078095584-05fudemno04qgugutasf4ih85c79jjij.apps.googleusercontent.com";
 
 function getGoogleAuthUrl() {
-  const currentOrigin = window.location.origin;
+  const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
+    ? window.location.origin 
+    : 'https://jobflow-ai-reslink-5tbi.vercel.app';
   const redirectTarget = encodeURIComponent(currentOrigin + '/app');
   return `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTarget}&prompt=select_account&access_type=offline`;
 }
 
 window.handleSocialAuth = function(provider = 'google') {
-  const currentOrigin = window.location.origin;
+  const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
+    ? window.location.origin 
+    : 'https://jobflow-ai-reslink-5tbi.vercel.app';
   const redirectTarget = encodeURIComponent(currentOrigin + '/app');
   
   if (provider === 'google') {

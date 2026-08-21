@@ -417,11 +417,12 @@ class JobApplier:
 
         # Dispatch aggregate summary notification for auto-applied jobs
         if notifier and applied_records:
+            from config import get_app_base_url
             notifier.dispatch_all(
                 job_title=f"⚡ Batch Auto-Applied ({len(applied_records)} High-Probability Jobs ≥ {min_score_threshold}%)",
                 company="Multiple Employers",
                 match_score=94.5,
-                job_url="http://127.0.0.1:8000/app",
+                job_url=f"{get_app_base_url()}/app",
                 channels=channels or ["email", "whatsapp", "telegram"]
             )
 

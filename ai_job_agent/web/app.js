@@ -2470,31 +2470,39 @@ async function isolateAndSetUserSession(userPayload) {
 }
 
 function extractUserFromUrlHash() {
+  const fullUrl = window.location.href || '';
   const hash = window.location.hash || '';
-  if (hash && hash.includes('access_token=')) {
+  const search = window.location.search || '';
+
+  let token = null;
+  if (hash.includes('access_token=')) {
     const params = new URLSearchParams(hash.substring(1));
-    const token = params.get('access_token');
-    if (token) {
-      try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-        if (payload && payload.email) {
-          const userEmail = (payload.email || '').trim().toLowerCase();
-          const userName = payload.user_metadata?.full_name || payload.user_metadata?.name || payload.name || userEmail.split('@')[0];
-          
-          isolateAndSetUserSession({
-            email: userEmail,
-            full_name: userName,
-            provider: 'google'
-          });
-          
-          history.replaceState(null, document.title, window.location.pathname + window.location.search);
-          return true;
-        }
-      } catch (err) {
-        console.warn("Hash token decode notice:", err);
+    token = params.get('access_token');
+  } else if (search.includes('access_token=')) {
+    const params = new URLSearchParams(search.substring(1));
+    token = params.get('access_token');
+  }
+
+  if (token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+      if (payload && payload.email) {
+        const userEmail = (payload.email || '').trim().toLowerCase();
+        const userName = payload.user_metadata?.full_name || payload.user_metadata?.name || payload.name || userEmail.split('@')[0];
+        
+        isolateAndSetUserSession({
+          email: userEmail,
+          full_name: userName,
+          provider: 'google'
+        });
+        
+        history.replaceState(null, document.title, window.location.pathname);
+        return true;
       }
+    } catch (err) {
+      console.warn("Hash token decode notice:", err);
     }
   }
   return false;
@@ -2545,7 +2553,10 @@ async function syncSupabaseUserSession() {
 const GOOGLE_CLIENT_ID = "623877995804-94j5uclckk32u7n021f1q54d5k5dcrka.apps.googleusercontent.com";
 
 window.handleGoogleSignIn = function() {
-  const redirectTarget = encodeURIComponent(`${window.location.origin}/app`);
+  const currentOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('file://')) 
+    ? window.location.origin 
+    : 'https://jobflow-ai-reslink-5tbi.vercel.app';
+  const redirectTarget = encodeURIComponent(`${currentOrigin}/app`);
   const googleAuthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTarget}`;
   window.location.href = googleAuthUrl;
 };

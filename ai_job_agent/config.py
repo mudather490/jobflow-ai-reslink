@@ -94,3 +94,16 @@ MIN_MATCH_THRESHOLD = 60.0
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 GUMROAD_PRODUCT_PERMALINK = os.getenv("GUMROAD_PRODUCT_PERMALINK", "jobflow-pro")
+APP_BASE_URL = os.getenv("APP_BASE_URL", "https://jobflow-ai-reslink-5tbi.vercel.app")
+
+def get_app_base_url() -> str:
+    """Returns the production deployment base URL or local environment URL."""
+    env_url = os.getenv("APP_BASE_URL", "").strip()
+    if env_url:
+        return env_url.rstrip("/")
+    if os.getenv("VERCEL_URL"):
+        v_url = os.getenv("VERCEL_URL", "").rstrip("/")
+        if not v_url.startswith("http"):
+            v_url = f"https://{v_url}"
+        return v_url
+    return "https://jobflow-ai-reslink-5tbi.vercel.app"

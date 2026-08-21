@@ -470,25 +470,8 @@ class ResLinkManager:
             f"🌍 Worldwide Remote & Immediate Delivery"
         ]
 
-        # LinkedIn Outreach Note
-        slug = re.sub(r'[^a-zA-Z0-9-]', '', full_name.lower().replace(' ', '-')) or "alex-rivera"
-        outreach_note = (
-            f"{greeting_written}\n\n"
-            f"I came across the {title_clean} role at {company_clean} and wanted to reach out directly. "
-            f"Rather than just sending a flat resume, I recorded a 60-second video pitch and interactive experience tailored to your team's requirements:\n\n"
-            f"👉 http://127.0.0.1:8000/p/{slug}\n\n"
-            f"It highlights my direct experience in {skill_1} and {skill_2}, along with key deliverables from my time at {top_company}. "
-            f"I would love to connect and discuss how I can add immediate value to {company_clean}!\n\n"
-            f"Best regards,\n{full_name}"
-        )
-
-        # Dynamic badges for video overlays
-        competency_badges = [
-            f"⚡ {matched_skills[0]} Specialist" if len(matched_skills) > 0 else "⚡ Technical Specialist",
-            f"🚀 {top_role} @ {top_company}",
-            f"🎯 Matched for {title_clean}",
-            f"🌍 Worldwide Remote & Immediate Impact"
-        ]
+        from config import get_app_base_url
+        base_url = get_app_base_url()
 
         # LinkedIn Outreach Note
         slug = re.sub(r'[^a-zA-Z0-9-]', '', full_name.lower().replace(' ', '-')) or "alex-rivera"
@@ -496,7 +479,7 @@ class ResLinkManager:
             f"Hi Hiring Team,\n\n"
             f"I came across the {title_clean} role at {company_clean} and was very impressed by your team's mission. "
             f"Rather than just sending a flat resume, I put together a 60-second video pitch and interactive project link tailored to your requirements:\n\n"
-            f"👉 http://127.0.0.1:8000/p/{slug}\n\n"
+            f"👉 {base_url}/p/{slug}\n\n"
             f"It covers my direct experience in {', '.join(matched_skills[:2])} and key accomplishments at {top_company}. "
             f"Would love to connect and discuss how I can contribute to {company_clean}!\n\n"
             f"Best regards,\n{full_name}"
