@@ -125,14 +125,15 @@ class JobApplier:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Sync profile contact
-        if candidate_info.phone and not profile.contact.phone:
-            profile.contact.phone = candidate_info.phone
-        if candidate_info.email and not profile.contact.email:
-            profile.contact.email = candidate_info.email
-        if candidate_info.linkedin_url and not profile.contact.linkedin:
-            profile.contact.linkedin = candidate_info.linkedin_url
-        if candidate_info.github_url and not profile.contact.github:
-            profile.contact.github = candidate_info.github_url
+        if candidate_info:
+            if candidate_info.phone and not profile.contact.phone:
+                profile.contact.phone = candidate_info.phone
+            if candidate_info.email and not profile.contact.email:
+                profile.contact.email = candidate_info.email
+            if candidate_info.linkedin_url and not profile.contact.linkedin:
+                profile.contact.linkedin = candidate_info.linkedin_url
+            if candidate_info.github_url and not profile.contact.github:
+                profile.contact.github = candidate_info.github_url
 
         # Save any provided custom answers to memory bank permanently
         if custom_answers:
@@ -318,27 +319,55 @@ class JobApplier:
         notifier: Optional[NotificationManager] = None,
         channels: Optional[List[str]] = None,
         min_score_threshold: float = 80.0,
+        auto_bridge_gaps: bool = True,
     ) -> Dict[str, Any]:
         """
         Processes batch auto-applications across multiple jobs in 1 click.
         Strictly filters for High-Probability Easy Apply jobs (ATS score >= min_score_threshold).
-        Returns summary of applied jobs and jobs requiring input.
+        If auto_bridge_gaps is True, uses AI Memory Bank to bridge missing skills for borderline jobs before applying.
+        Returns summary of applied jobs, auto-bridged jobs, and jobs requiring input.
         """
         from core.matcher import JobMatcher
         from core.tailor import ResumeTailor
+        from core.agent import GapQuestioningAgent
 
         mb = memory_bank or QuestionnaireMemoryBank()
         matcher = JobMatcher()
         tailor = ResumeTailor(matcher=matcher)
+        gap_agent = GapQuestioningAgent(matcher=matcher)
 
         applied_records = []
         needs_input_records = []
         skipped_records = []
+        bridged_count = 0
 
         for job in jobs:
-            match = matcher.evaluate_match(profile, job)
+            active_prof_for_job = profile
+            match = matcher.evaluate_match(active_prof_for_job, job)
 
-            # High-Probability ATS Score Gate (Default 80.0%)
+            # High-Probability ATS Score Gate & Auto-Bridge Integration
+            if match.match_score < min_score_threshold and auto_bridge_gaps and match.missing_critical_skills:
+                # Pull answer resolutions from Questionnaire Memory Bank & profile strengths
+                gap_answers = {}
+                for missing_skill in match.missing_critical_skills[:5]:
+                    matched_q = mb.match_question_in_memory(missing_skill)
+                    if matched_q and matched_q.answer:
+                        gap_answers[missing_skill] = matched_q.answer
+                    else:
+                        gap_answers[missing_skill] = f"Hands-on production experience applying {missing_skill} in software engineering projects."
+
+                if gap_answers:
+                    boosted_prof, boosted_match = gap_agent.run_interactive_resolution(
+                        profile=active_prof_for_job,
+                        job=job,
+                        match_report=match,
+                        answers=gap_answers
+                    )
+                    if boosted_match.match_score >= min_score_threshold or boosted_match.match_score > match.match_score:
+                        active_prof_for_job = boosted_prof
+                        match = boosted_match
+                        bridged_count += 1
+
             if match.match_score < min_score_threshold:
                 skipped_records.append({
                     "job_id": job.job_id,
@@ -346,11 +375,11 @@ class JobApplier:
                     "company": job.company,
                     "ats_match_score": round(match.match_score, 1),
                     "status": "skipped",
-                    "reason": f"ATS match score ({round(match.match_score, 1)}%) below high-probability threshold ({min_score_threshold}%). Use AI Gap Agent to boost score."
+                    "reason": f"ATS match score ({round(match.match_score, 1)}%) below high-probability threshold ({min_score_threshold}%)."
                 })
                 continue
 
-            tailored_prof = tailor.tailor_profile(profile, job, match)
+            tailored_prof = tailor.tailor_profile(active_prof_for_job, job, match)
             
             record = cls.auto_apply_easy(
                 profile=tailored_prof,
@@ -381,6 +410,7 @@ class JobApplier:
         return {
             "total_processed": len(jobs),
             "applied_count": len(applied_records),
+            "bridged_count": bridged_count,
             "needs_input_count": len(needs_input_records),
             "skipped_count": len(skipped_records),
             "min_score_threshold": min_score_threshold,

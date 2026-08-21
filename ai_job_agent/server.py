@@ -1581,6 +1581,7 @@ async def batch_apply_easy_endpoint(request: Request):
     if notifier.telegram_chat_id: active_channels.append("telegram")
     
     min_score = float(body.get("min_score", 80.0))
+    auto_bridge_gaps = bool(body.get("auto_bridge_gaps", True))
     
     batch_result = JobApplier.batch_auto_apply(
         jobs=easy_apply_jobs,
@@ -1591,13 +1592,15 @@ async def batch_apply_easy_endpoint(request: Request):
         notifier=notifier,
         channels=active_channels or ["email"],
         min_score_threshold=min_score,
+        auto_bridge_gaps=auto_bridge_gaps,
     )
     
     return {
         "status": "success",
-        "message": f"High-Probability Batch Apply completed: {batch_result['applied_count']} auto-applied (Score ≥ {min_score}%), {batch_result['skipped_count']} skipped due to gap score.",
+        "message": f"High-Probability Batch Apply completed: {batch_result['applied_count']} auto-applied (Score ≥ {min_score}%), {batch_result.get('bridged_count', 0)} auto-bridged by Memory Bank, {batch_result['skipped_count']} skipped.",
         "total_easy_apply": len(easy_apply_jobs),
         "min_score_threshold": min_score,
+        "auto_bridge_gaps": auto_bridge_gaps,
         "results": batch_result
     }
 

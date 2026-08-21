@@ -816,6 +816,7 @@ function renderJobsList(jobs) {
         <span class="badge-employment">${escapeHtml(job.employment_badge || '💼 Full-Time')}</span>
         <span class="${getBadgeClass(job.remote_scope)}">${escapeHtml(job.international_badge || '🌐 Worldwide')}</span>
         ${job.is_easy_apply ? `<span class="badge-easy-apply">${escapeHtml(job.easy_apply_badge || '⚡ Easy Apply')}</span>` : `<span class="badge-employment" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); color: var(--text-dim);">🌐 Direct Apply</span>`}
+        ${typeof job.ats_match_score === 'number' ? `<span class="nav-badge" style="font-weight: 800; background: rgba(0,0,0,0.3); border-color: ${job.ats_match_score >= 80 ? 'rgba(16, 185, 129, 0.4)' : 'rgba(245, 158, 11, 0.4)'}; color: ${job.ats_match_score >= 80 ? '#34D399' : '#FBBF24'};">🎯 ${Math.round(job.ats_match_score)}% Match</span>` : ''}
       </div>
       <div class="job-meta" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
         <div>
@@ -1696,7 +1697,11 @@ document.getElementById('btn-test-notifications')?.addEventListener('click', asy
 // Batch Auto-Apply Engine: Apply to ALL Easy Apply Jobs
 // ─────────────────────────────────────────────────────────────
 document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async () => {
-  const batchSize = parseInt(document.getElementById('batch-size-selector')?.value || '50');
+  const volVal = document.getElementById('select-batch-volume')?.value || document.getElementById('batch-size-selector')?.value || 'all_easy';
+  const batchSize = volVal === 'all_easy' ? 100 : (parseInt(volVal) || 50);
+  const minScore = parseFloat(document.getElementById('batch-min-score-selector')?.value || '80');
+  const autoBridgeGaps = document.getElementById('chk-auto-bridge-gaps')?.checked !== false;
+
   const btn = document.getElementById('btn-batch-auto-apply');
   const resultsDiv = document.getElementById('batch-apply-results');
   const downloadsDiv = document.getElementById('post-apply-downloads');
@@ -1713,9 +1718,11 @@ document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async
   }
   
   btn.disabled = true;
-  btn.innerText = `⚡ Batch Applying to ${Math.min(easyApplyJobs.length, batchSize)} Easy Apply Jobs...`;
-  resultsDiv.style.display = 'block';
-  resultsDiv.innerHTML = '<div style="color: var(--accent-cyan); font-size: 13px;">⏳ Autonomous agent processing batch applications...</div>';
+  btn.innerText = `⚡ Batch Applying to ${Math.min(easyApplyJobs.length, batchSize)} Easy Apply Jobs (Min Score ≥ ${minScore}%)...`;
+  if (resultsDiv) {
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = '<div style="color: var(--accent-cyan); font-size: 13px;">⏳ Autonomous agent evaluating ATS scores & auto-bridging Memory Bank Q&A...</div>';
+  }
   
   // Load candidate profile
   let candidateProfile = {};
@@ -1729,6 +1736,8 @@ document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         batch_size: batchSize,
+        min_score: minScore,
+        auto_bridge_gaps: autoBridgeGaps,
         template_id: window.selectedTemplateId || 'modern',
         candidate_profile: candidateProfile,
       })
@@ -1738,34 +1747,37 @@ document.getElementById('btn-batch-auto-apply')?.addEventListener('click', async
     if (data.status === 'success') {
       const results = data.results || {};
       const applied = results.applied_count || 0;
+      const bridged = results.bridged_count || 0;
       const pending = results.needs_input_count || 0;
       const skipped = results.skipped_count || 0;
-      const minScore = data.min_score_threshold || 80;
+      const effectiveMinScore = data.min_score_threshold || 80;
       
-      resultsDiv.innerHTML = `
-        <div style="padding: 14px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px;">
-          <div style="color: #10B981; font-weight: 800; font-size: 14px; margin-bottom: 8px;">✓ High-Probability Batch Auto-Apply Complete</div>
-          <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
-            <div>⚡ Auto-Applied (Score ≥ ${minScore}%): <b style="color: #10B981;">${applied}</b> jobs</div>
-            <div>⏳ Pending Answers: <b style="color: #F59E0B;">${pending}</b> jobs</div>
-            <div>⚠️ Skipped (Score < ${minScore}%): <b style="color: var(--accent-rose);">${skipped}</b> jobs (Use AI Gap Agent to boost)</div>
-            <div>📋 Total Easy Apply Scanned: <b>${data.total_easy_apply || 0}</b></div>
+      if (resultsDiv) {
+        resultsDiv.innerHTML = `
+          <div style="padding: 14px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; margin-top: 10px;">
+            <div style="color: #10B981; font-weight: 800; font-size: 14px; margin-bottom: 8px;">✓ High-Probability Batch Auto-Apply Complete</div>
+            <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
+              <div>⚡ Auto-Applied (Score ≥ ${effectiveMinScore}%): <b style="color: #10B981;">${applied}</b> jobs</div>
+              <div>🧠 Auto-Bridged by AI Memory Bank: <b style="color: #38BDF8;">${bridged}</b> jobs</div>
+              <div>⏳ Pending Screening Answers: <b style="color: #F59E0B;">${pending}</b> jobs</div>
+              <div>⚠️ Skipped (Score &lt; ${effectiveMinScore}%): <b style="color: var(--accent-rose);">${skipped}</b> jobs</div>
+              <div>📋 Total Easy Apply Scanned: <b>${data.total_easy_apply || 0}</b></div>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
       
-      // Show tracker download buttons
       if (downloadsDiv) {
         downloadsDiv.style.display = 'flex';
       }
       
-      showToast(`✅ Batch Applied to ${applied} Easy Apply jobs! Notifications dispatched.`);
+      showToast(`✅ Batch Applied to ${applied} Easy Apply jobs (${bridged} AI Memory Bank Bridged)!`);
       btn.innerText = `✓ Batch Applied to ${applied} Jobs`;
       btn.style.borderColor = '#10B981';
     } else {
-      resultsDiv.innerHTML = `<div style="color: var(--accent-rose); font-size: 13px;">${escapeHtml(data.message || 'Batch apply failed.')}</div>`;
+      if (resultsDiv) resultsDiv.innerHTML = `<div style="color: var(--accent-rose); font-size: 13px;">${escapeHtml(data.message || 'Batch apply failed.')}</div>`;
       btn.disabled = false;
-      btn.innerText = '⚡ Batch Auto-Apply to All Easy Apply Jobs';
+      btn.innerText = '⚡ Execute Autonomous Batch Auto-Apply';
     }
   } catch (err) {
     resultsDiv.innerHTML = `<div style="color: var(--accent-rose); font-size: 13px;">Error: ${escapeHtml(err.message)}</div>`;

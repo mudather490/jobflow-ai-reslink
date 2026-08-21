@@ -409,10 +409,20 @@
             </label>
           </div>
 
-          <!-- Batch Apply Volume Selector & Action Button -->
+          <!-- Batch Apply Controls: Volume, Match Threshold & AI Memory Bank Bridge -->
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <div style="display: flex; gap: 8px; align-items: center;">
-              <span style="font-size: 12px; color: var(--text-dim); white-space: nowrap;">Auto-Apply Batch:</span>
+              <span style="font-size: 12px; color: var(--text-dim); white-space: nowrap;">Min Match Score:</span>
+              <select id="batch-min-score-selector" class="select-field" style="padding: 6px 10px; font-size: 12px; height: 34px; flex: 1;">
+                <option value="80" selected>🎯 Score ≥ 80% (Recommended High-Match)</option>
+                <option value="75">🎯 Score ≥ 75% Match</option>
+                <option value="90">🎯 Score ≥ 90% (Top Elite Matches)</option>
+                <option value="0">🌐 All Easy Apply Jobs (0% Threshold)</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-size: 12px; color: var(--text-dim); white-space: nowrap;">Batch Volume:</span>
               <select id="select-batch-volume" class="select-field" style="padding: 6px 10px; font-size: 12px; height: 34px; flex: 1;">
                 <option value="all_easy" selected>All Discovered Easy Apply Jobs</option>
                 <option value="10">Apply to 10 Jobs</option>
@@ -421,6 +431,11 @@
                 <option value="100">Apply to 100 Jobs</option>
               </select>
             </div>
+
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--accent-cyan); cursor: pointer; margin-top: 2px; margin-bottom: 4px;">
+              <input type="checkbox" id="chk-auto-bridge-gaps" checked style="accent-color: var(--accent-cyan); width: 16px; height: 16px;">
+              <span>🧠 Auto-Bridge Skill Gaps with AI Memory Bank for jobs &lt; Threshold</span>
+            </label>
 
             <button class="btn btn-primary" style="width: 100%; font-weight: 800; background: linear-gradient(135deg, #10B981, #059669); padding: 13px;" id="btn-batch-auto-apply">
               ⚡ Execute Autonomous Batch Auto-Apply
