@@ -245,7 +245,28 @@ class JobMatcher:
                             found_reqs.add(canon)
                             break
 
-        # Dynamic entity extraction without hardcoded defaults
+        # 3. Dynamic Title-based Domain Fallback if description is sparse
+        if len(found_reqs) < 3:
+            t_lower = job_title.lower()
+            if any(k in t_lower for k in ["machine learning", "ml", "ai", "deep learning", "llm", "data scientist", "nlp"]):
+                for skill in ["Machine Learning", "Python", "Deep Learning", "PyTorch", "Data Analysis & Mathematics", "FastAPI & REST APIs"]:
+                    found_reqs.add(skill)
+            elif any(k in t_lower for k in ["frontend", "react", "vue", "angular", "ui", "next.js", "frontend engineer"]):
+                for skill in ["React", "TypeScript", "JavaScript", "HTML5 & CSS3", "TailwindCSS"]:
+                    found_reqs.add(skill)
+            elif any(k in t_lower for k in ["devops", "sre", "cloud", "infrastructure", "kubernetes", "terraform"]):
+                for skill in ["Docker & Containerization", "Kubernetes & Orchestration", "AWS (Amazon Web Services)", "Linux & Bash", "CI/CD & GitHub Actions"]:
+                    found_reqs.add(skill)
+            elif any(k in t_lower for k in ["data engineer", "etl", "big data", "spark"]):
+                for skill in ["PostgreSQL & SQL", "Python", "Snowflake & BigQuery", "Docker & Containerization"]:
+                    found_reqs.add(skill)
+            elif any(k in t_lower for k in ["mobile", "ios", "android", "flutter", "react native", "swift"]):
+                for skill in ["Flutter & React Native", "TypeScript", "REST APIs", "Git & Version Control"]:
+                    found_reqs.add(skill)
+            else:
+                for skill in ["Python", "FastAPI & REST APIs", "PostgreSQL & SQL", "Docker & Containerization", "Git & Version Control"]:
+                    found_reqs.add(skill)
+
         return sorted(list(found_reqs))
 
     def calculate_title_relevance(self, candidate_roles: List[str], target_title: str) -> float:
