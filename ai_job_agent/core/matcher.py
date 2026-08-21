@@ -9,9 +9,19 @@ from config import GEMINI_API_KEY, OPENAI_API_KEY
 class MatchReport(BaseModel):
     job_title: str
     company: str
-    match_score: float = Field(description="Match percentage between 0.0 and 100.0")
+    match_score: float = Field(description="Overall ATS match score between 0.0 and 100.0")
+    overall_ats_score: float = Field(default=0.0, description="Weighted ATS score (60% Skill Match, 25% Title Relevance, 15% Experience Alignment)")
+    matched_skills_count: int = Field(default=0)
+    required_skills_count: int = Field(default=0)
+    skill_match_percentage: float = Field(default=0.0)
+    qualification_tier: str = Field(default="Skill Gaps Detected")
+    qualification_badge_color: str = Field(default="rose")
+    linkedin_qualification_text: str = Field(default="")
+    title_relevance_score: float = Field(default=0.0)
+    experience_alignment_score: float = Field(default=0.0)
     matched_skills: List[str] = Field(default_factory=list)
     missing_critical_skills: List[str] = Field(default_factory=list)
+    candidate_extra_skills: List[str] = Field(default_factory=list)
     partial_skills: List[str] = Field(default_factory=list)
     experience_assessment: str = ""
     summary_analysis: str = ""
@@ -23,7 +33,7 @@ class MatchReport(BaseModel):
 
 class JobMatcher:
     """
-    Universal Intelligent ATS Job Matcher.
+    Universal Intelligent ATS Job Matcher & LinkedIn Premium Skill Engine.
     Uses a Bi-Directional Semantic Concept Equivalence Graph to accurately map
     job requirements against candidate skills, projects, experience, and certifications.
     """
@@ -247,10 +257,63 @@ class JobMatcher:
 
         return sorted(list(found_reqs))
 
+    def calculate_title_relevance(self, candidate_roles: List[str], target_title: str) -> float:
+        """
+        Calculates title relevance score (0 - 100) between candidate past/target roles and job title.
+        """
+        if not target_title:
+            return 75.0
+        
+        target_tokens = set(re.findall(r'\b[a-zA-Z]{3,}\b', target_title.lower()))
+        noise = {"senior", "lead", "staff", "principal", "junior", "mid", "associate", "role", "position", "specialist", "engineer", "developer"}
+        meaningful_target = target_tokens - noise
+        if not meaningful_target:
+            meaningful_target = target_tokens
+
+        best_score = 50.0
+        for role in candidate_roles:
+            if not role:
+                continue
+            role_lower = role.lower()
+            role_tokens = set(re.findall(r'\b[a-zA-Z]{3,}\b', role_lower))
+            overlap = meaningful_target.intersection(role_tokens)
+            if overlap:
+                ratio = len(overlap) / max(len(meaningful_target), 1)
+                best_score = max(best_score, min(100.0, 60.0 + (ratio * 40.0)))
+            if target_title.lower() in role_lower or role_lower in target_title.lower():
+                best_score = max(best_score, 95.0)
+
+        return round(best_score, 1)
+
+    def calculate_experience_alignment(self, profile: UserProfile, job_text: str, job_title: str) -> float:
+        """
+        Calculates seniority & experience portfolio alignment score (0 - 100).
+        """
+        exp_count = len(profile.experience or [])
+        proj_count = len(profile.projects or [])
+        cert_count = len(profile.certifications or [])
+
+        base = min(60.0, (exp_count * 20.0) + (proj_count * 10.0) + (cert_count * 5.0))
+        combined = f"{job_title} {job_text}".lower()
+        requires_senior = any(w in combined for w in ["senior", "lead", "principal", "staff", "5+", "7+"])
+        candidate_is_senior = exp_count >= 2 or any(
+            any(w in (e.role or '').lower() for w in ["senior", "lead", "principal", "staff", "head"])
+            for e in (profile.experience or [])
+        )
+
+        if requires_senior and candidate_is_senior:
+            alignment = base + 35.0
+        elif not requires_senior:
+            alignment = base + 30.0
+        else:
+            alignment = base + 15.0
+
+        return min(100.0, round(max(50.0, alignment), 1))
+
     def evaluate_match(self, profile: Optional[UserProfile], job: JobDetails) -> MatchReport:
         """
         Runs comprehensive ATS match evaluation between candidate and target role
-        using bidirectional semantic equivalence mapping.
+        using bidirectional semantic equivalence mapping and LinkedIn Premium Skill Matcher.
         """
         if not profile:
             from core.resume_parser import ResumeParser
@@ -323,24 +386,50 @@ class JobMatcher:
             else:
                 missing.append(req)
 
-        # Calculate ATS Match Score
+        # Calculate LinkedIn Premium Skill Match Ratios & Scores
         total_reqs = len(job_reqs)
-        if total_reqs == 0:
-            final_score = 90.0
+        matched_count = len(matched)
+        skill_match_pct = round((matched_count / max(1, total_reqs)) * 100.0, 1) if total_reqs > 0 else 100.0
+
+        # Candidate Extra Skills (Bonus Strengths)
+        matched_canon_set = set(matched)
+        extra_skills = []
+        for s in (profile.skills or []):
+            if s not in matched_canon_set and not any(s.lower() == m.lower() for m in matched):
+                extra_skills.append(s)
+
+        # Title Relevance & Experience Alignment
+        cand_roles = [e.role for e in (profile.experience or []) if e.role]
+        if profile.target_role:
+            cand_roles.append(profile.target_role)
+        if profile.headline:
+            cand_roles.append(profile.headline)
+
+        title_rel_score = self.calculate_title_relevance(cand_roles, job.title)
+        exp_align_score = self.calculate_experience_alignment(profile, job.description, job.title)
+
+        # Exact Weighted Formula: 60% Skill Match + 25% Title Relevance + 15% Experience Alignment
+        weighted_ats_score = round(
+            (skill_match_pct * 0.60) + (title_rel_score * 0.25) + (exp_align_score * 0.15),
+            1
+        )
+        if matched_count == total_reqs and total_reqs > 0:
+            weighted_ats_score = max(92.0, weighted_ats_score)
+
+        final_score = weighted_ats_score
+
+        # Determine LinkedIn Qualification Tier & Badges
+        if skill_match_pct >= 80.0 or final_score >= 80.0:
+            tier = "Top Applicant (Highly Qualified)"
+            badge_color = "emerald"
+        elif skill_match_pct >= 60.0 or final_score >= 65.0:
+            tier = "Good Fit (Moderate Match)"
+            badge_color = "amber"
         else:
-            match_ratio = len(matched) / total_reqs
-            # Base match points (up to 85%)
-            score_base = match_ratio * 85.0
-            
-            # Experience & project portfolio bonuses (up to 15%)
-            proj_bonus = min(8.0, len(profile.projects) * 4.0)
-            exp_bonus = min(7.0, len(profile.experience) * 3.5)
-            
-            final_score = min(100.0, round(score_base + proj_bonus + exp_bonus, 1))
-            
-            # If all requirements matched, guarantee high tier (92% - 100%)
-            if len(missing) == 0:
-                final_score = max(92.0, final_score)
+            tier = "Skill Gaps Detected"
+            badge_color = "rose"
+
+        linkedin_callout = f"You have {matched_count} of {total_reqs} required skills matching this role ({skill_match_pct}% Skill Match)"
 
         # Construct Actionable Recommendations
         recommendations = []
@@ -367,11 +456,21 @@ class JobMatcher:
             job_title=job.title,
             company=job.company,
             match_score=final_score,
+            overall_ats_score=final_score,
+            matched_skills_count=matched_count,
+            required_skills_count=total_reqs,
+            skill_match_percentage=skill_match_pct,
+            qualification_tier=tier,
+            qualification_badge_color=badge_color,
+            linkedin_qualification_text=linkedin_callout,
+            title_relevance_score=title_rel_score,
+            experience_alignment_score=exp_align_score,
             matched_skills=matched,
             missing_critical_skills=missing,
+            candidate_extra_skills=extra_skills,
             partial_skills=[],
             experience_assessment=exp_assessment,
-            summary_analysis=f"Real-Time ATS Match Score: {final_score}%.",
+            summary_analysis=f"LinkedIn Skill Match: {skill_match_pct}% ({matched_count}/{total_reqs}) • Overall ATS: {final_score}%.",
             actionable_recommendations=recommendations,
             international_badge=job.international_badge,
             international_friendly_score=job.international_friendly_score,

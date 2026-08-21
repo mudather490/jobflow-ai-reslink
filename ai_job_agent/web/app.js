@@ -877,45 +877,93 @@ async function selectJob(job) {
 }
 
 function renderMatchReport(report) {
-  const scoreNum = Math.round(report.match_score);
+  const scoreNum = Math.round(report.match_score || report.overall_ats_score || 0);
   const gauge = document.getElementById('score-gauge');
   const scoreText = document.getElementById('score-number');
   
-  gauge.style.setProperty('--score', scoreNum);
-  scoreText.innerText = `${scoreNum}%`;
+  if (gauge) gauge.style.setProperty('--score', scoreNum);
+  if (scoreText) scoreText.innerText = `${scoreNum}%`;
 
-  document.getElementById('match-headline').innerText = `${report.job_title} at ${report.company}`;
-  document.getElementById('match-desc').innerText = report.experience_assessment;
+  const headlineEl = document.getElementById('match-headline');
+  const descEl = document.getElementById('match-desc');
+  if (headlineEl) headlineEl.innerText = `${report.job_title} at ${report.company}`;
+  if (descEl) descEl.innerText = report.experience_assessment;
+
+  // ── LinkedIn Premium Skill Match Callout Render ──
+  const matchedCount = report.matched_skills_count ?? report.matched_skills.length;
+  const totalCount = report.required_skills_count ?? (report.matched_skills.length + report.missing_critical_skills.length);
+  const skillPct = report.skill_match_percentage ?? (totalCount > 0 ? Math.round((matchedCount / totalCount) * 100) : 100);
+  const tier = report.qualification_tier || (skillPct >= 80 ? 'Top Applicant (Highly Qualified)' : (skillPct >= 60 ? 'Good Fit (Moderate Match)' : 'Skill Gaps Detected'));
+
+  const calloutText = document.getElementById('linkedin-callout-text');
+  const tierBadge = document.getElementById('linkedin-tier-badge');
+  const progressFill = document.getElementById('linkedin-progress-fill');
+
+  if (calloutText) {
+    calloutText.innerHTML = `You have <strong style="color: #34D399;">${matchedCount} of ${totalCount}</strong> skills matching this role (<strong style="color: #38BDF8;">${skillPct}% Skill Match</strong>)`;
+  }
+
+  if (progressFill) {
+    progressFill.style.width = `${Math.min(100, Math.max(0, skillPct))}%`;
+  }
+
+  if (tierBadge) {
+    tierBadge.innerText = tier;
+    if (skillPct >= 80 || tier.includes('Top Applicant')) {
+      tierBadge.style.background = 'rgba(16, 185, 129, 0.18)';
+      tierBadge.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+      tierBadge.style.color = '#34D399';
+    } else if (skillPct >= 60 || tier.includes('Good Fit')) {
+      tierBadge.style.background = 'rgba(245, 158, 11, 0.18)';
+      tierBadge.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+      tierBadge.style.color = '#FBBF24';
+    } else {
+      tierBadge.style.background = 'rgba(239, 68, 68, 0.18)';
+      tierBadge.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+      tierBadge.style.color = '#FB7185';
+    }
+  }
+
+  // Render Sub-scores
+  const subSkills = document.getElementById('sub-skills-score');
+  const subTitle = document.getElementById('sub-title-score');
+  const subExp = document.getElementById('sub-exp-score');
+  if (subSkills) subSkills.innerText = `${Math.round(skillPct)}% (${Math.round(skillPct * 0.6)}/60)`;
+  if (subTitle && report.title_relevance_score !== undefined) subTitle.innerText = `${Math.round(report.title_relevance_score)}% (${Math.round(report.title_relevance_score * 0.25)}/25)`;
+  if (subExp && report.experience_alignment_score !== undefined) subExp.innerText = `${Math.round(report.experience_alignment_score)}% (${Math.round(report.experience_alignment_score * 0.15)}/15)`;
 
   // Render Matched Skills
   const matchedCloud = document.getElementById('matched-skills-cloud');
   const matchedCountBadge = document.getElementById('matched-count-badge');
   if (matchedCountBadge) matchedCountBadge.innerText = `${report.matched_skills.length} Matched`;
-  matchedCloud.innerHTML = report.matched_skills.map(s => `<span class="skill-chip chip-match">✓ ${escapeHtml(s)}</span>`).join('') || '<span style="color:var(--text-dim);font-size:12px;">None detected</span>';
+  if (matchedCloud) {
+    matchedCloud.innerHTML = report.matched_skills.map(s => `<span class="skill-chip chip-match">✓ ${escapeHtml(s)}</span>`).join('') || '<span style="color:var(--text-dim);font-size:12px;">None detected</span>';
+  }
 
   // Render Missing Skills with one-click "+ Add Skill" Bridge capability
   const missingCloud = document.getElementById('missing-skills-cloud');
   const missingCountBadge = document.getElementById('missing-count-badge');
   if (missingCountBadge) missingCountBadge.innerText = `${report.missing_critical_skills.length} Missing`;
   
-  if (report.missing_critical_skills.length > 0) {
-    missingCloud.innerHTML = report.missing_critical_skills.map(s => `
-      <span class="skill-chip chip-gap" style="cursor: pointer; transition: transform 0.2s;" onclick="addSkillFromBridge('${escapeHtml(s).replace(/'/g, "\\'")}')" title="Click to instantly bridge and add ${escapeHtml(s)} to your resume (+15% score)">
-        + ${escapeHtml(s)}
-      </span>
-    `).join('');
-  } else {
-    missingCloud.innerHTML = '<span class="skill-chip chip-match">✓ 100% Match (No Gaps)</span>';
+  if (missingCloud) {
+    if (report.missing_critical_skills.length > 0) {
+      missingCloud.innerHTML = report.missing_critical_skills.map(s => `
+        <span class="skill-chip chip-gap" style="cursor: pointer; transition: transform 0.2s;" onclick="addSkillFromBridge('${escapeHtml(s).replace(/'/g, "\\'")}')" title="Click to instantly bridge and add ${escapeHtml(s)} to your resume (+15% score)">
+          + ${escapeHtml(s)}
+        </span>
+      `).join('');
+    } else {
+      missingCloud.innerHTML = '<span class="skill-chip chip-match">✓ 100% Match (No Gaps)</span>';
+    }
   }
 
   // Render Candidate's Additional Profile Strengths (Bonus Skills)
   const extraCloud = document.getElementById('extra-skills-cloud');
   const extraCountBadge = document.getElementById('extra-count-badge');
-  if (extraCloud && currentProfile && currentProfile.skills) {
-    const matchedSet = new Set(report.matched_skills.map(s => s.toLowerCase()));
-    const extraSkills = currentProfile.skills.filter(s => !matchedSet.has(s.toLowerCase()));
-    if (extraCountBadge) extraCountBadge.innerText = `${extraSkills.length} Strengths`;
-    extraCloud.innerHTML = extraSkills.slice(0, 12).map(s => `<span class="skill-chip chip-extra">★ ${s}</span>`).join('') || '<span style="color:var(--text-dim);font-size:12px;">All profile skills utilized</span>';
+  const extraList = report.candidate_extra_skills || (currentProfile && currentProfile.skills ? currentProfile.skills.filter(s => !new Set(report.matched_skills.map(m => m.toLowerCase())).has(s.toLowerCase())) : []);
+  if (extraCountBadge) extraCountBadge.innerText = `${extraList.length} Strengths`;
+  if (extraCloud) {
+    extraCloud.innerHTML = extraList.slice(0, 12).map(s => `<span class="skill-chip chip-extra">★ ${escapeHtml(s)}</span>`).join('') || '<span style="color:var(--text-dim);font-size:12px;">All profile skills utilized</span>';
   }
 
   // Render International Assessment
