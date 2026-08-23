@@ -8,6 +8,13 @@ from pydantic import BaseModel, Field
 from config import DEFAULT_USER_AGENTS, get_linkedin_time_filter, get_linkedin_workplace_filter
 from core.security_shield import SecurityShield
 
+try:
+    from jobspy import scrape_jobs
+    HAS_JOBSPY = True
+except ImportError:
+    HAS_JOBSPY = False
+
+
 
 class JobSummary(BaseModel):
     job_id: str
@@ -459,10 +466,63 @@ class LinkedInScraper:
                     time.sleep(random.uniform(0.3, 0.5))
 
                 except Exception as e:
-                    print(f"[Warning] Scraper encountered error: {e}")
+                    print(f"[Warning] Scraper loop notice: {e}")
                     break
 
+        # Fallback to python-jobspy if available and fewer than requested jobs found
+        if len(jobs) < limit and HAS_JOBSPY:
+
+            try:
+                spy_results = scrape_jobs(
+                    site_name=["linkedin"],
+                    search_term=search_keywords,
+                    location=effective_location if effective_location != "Worldwide" else "Remote",
+                    results_wanted=limit - len(jobs),
+                    country_indeed="USA"
+                )
+                if spy_results is not None and not spy_results.empty:
+                    for _, row in spy_results.iterrows():
+                        j_url = str(row.get("job_url", ""))
+                        j_id_match = re.search(r"(\d{8,12})", j_url)
+                        j_id = j_id_match.group(1) if j_id_match else f"spy_{random.randint(100000, 999999)}"
+                        if j_id in seen_ids:
+                            continue
+                        seen_ids.add(j_id)
+
+                        j_title = str(row.get("title", "N/A"))
+                        j_company = str(row.get("company", "N/A"))
+                        j_loc = str(row.get("location", effective_location))
+                        j_desc = str(row.get("description", ""))
+
+                        eligibility = classify_international_eligibility(j_title, j_desc, j_loc)
+                        wp_type, wp_badge = classify_workplace_type(j_title, j_desc, j_loc)
+                        emp_type, emp_badge, is_easy = classify_employment_type(j_title, j_desc, wp_type)
+
+                        jobs.append(
+                            JobSummary(
+                                job_id=j_id,
+                                title=j_title,
+                                company=j_company,
+                                location=j_loc,
+                                posted_date="Recent",
+                                job_url=j_url or f"https://www.linkedin.com/jobs/view/{j_id}",
+                                workplace_type=wp_type,
+                                workplace_badge=wp_badge,
+                                employment_type=emp_type,
+                                employment_badge=emp_badge,
+                                is_easy_apply=is_easy,
+                                easy_apply_badge="⚡ Easy Apply" if is_easy else "🌐 Direct Apply",
+                                remote_scope=eligibility["remote_scope"],
+                                international_badge=eligibility["international_badge"],
+                                international_friendly_score=eligibility["international_friendly_score"],
+                                eligibility_notes=eligibility["eligibility_notes"],
+                            )
+                        )
+            except Exception as e:
+                print(f"[JobSpy Scraper] Warning: {e}")
+
         return jobs
+
 
     def get_job_details(self, job_id_or_url: str) -> Optional[JobDetails]:
         """
