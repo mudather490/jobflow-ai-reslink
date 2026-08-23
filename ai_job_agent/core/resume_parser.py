@@ -222,21 +222,48 @@ class ResumeParser:
             return "\n".join(extracted_lines)
 
         elif ext == ".pdf":
-            reader = PdfReader(file_path)
             pages_text = []
-            for page in reader.pages:
-                text = page.extract_text()
-                if text:
-                    text = re.sub(r'[\u2014\u2013\ufffd\x96\x97]', '—', text)
-                    text = re.sub(r'[\u2022\u25cf\u25cb\u25aa\u25a0]', '•', text)
-                    pages_text.append(text)
-            return "\n".join(pages_text)
+            try:
+                reader = PdfReader(file_path)
+                for page in reader.pages:
+                    text = page.extract_text()
+                    if text:
+                        text = re.sub(r'[\u2014\u2013\ufffd\x96\x97]', '—', text)
+                        text = re.sub(r'[\u2022\u25cf\u25cb\u25aa\u25a0]', '•', text)
+                        pages_text.append(text)
+            except Exception as e:
+                print(f"[pypdf fallback notice]: {e}")
+
+            full_extracted = "\n".join(pages_text).strip()
+
+            # Fallback 1: pdfplumber if pypdf yielded sparse text
+            if len(full_extracted) < 50:
+                try:
+                    import pdfplumber
+                    with pdfplumber.open(file_path) as pdf:
+                        plumb_pages = [p.extract_text() or "" for p in pdf.pages]
+                        full_extracted = "\n".join(plumb_pages).strip()
+                except ImportError:
+                    pass
+
+            # Fallback 2: PyMuPDF (fitz) if still sparse
+            if len(full_extracted) < 50:
+                try:
+                    import fitz
+                    doc = fitz.open(file_path)
+                    fitz_pages = [page.get_text() for page in doc]
+                    full_extracted = "\n".join(fitz_pages).strip()
+                except ImportError:
+                    pass
+
+            return full_extracted
 
         elif ext in [".txt", ".md"]:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 return f.read()
         else:
             raise ValueError(f"Unsupported file extension: {ext}. Supported: .docx, .pdf, .txt")
+
 
     @staticmethod
     def normalize_text_spacing(text: str) -> str:
@@ -453,9 +480,10 @@ class ResumeParser:
                     clean_tokens = []
                     for t in tokens:
                         t_clean = re.sub(r'^\W+|\W+$', '', t).strip()
-                        # Reject long sentences or project contamination
-                        if t_clean and 1 < len(t_clean) < 65 and len(t_clean.split()) <= 5:
-                            if not t_clean.lower().startswith(("in progress", "completed")):
+                        words = t_clean.split()
+                        # Reject long sentences, action verb bullets, or project contamination
+                        if t_clean and 1 < len(t_clean) < 45 and len(words) <= 4:
+                            if words[0].lower() not in ["implemented", "developed", "architected", "managed", "built", "designed", "created", "led", "spearheaded", "in progress", "completed"]:
                                 if t_clean not in clean_tokens:
                                     clean_tokens.append(t_clean)
                                 if t_clean not in skills_list:
@@ -466,9 +494,12 @@ class ResumeParser:
                     tokens = [t.strip() for t in re.split(r'[,|;]|\b(?:and)\b|\s{2,}', schunk) if t.strip()]
                     for t in tokens:
                         t_clean = re.sub(r'^\W+|\W+$', '', t).strip()
-                        if t_clean and 1 < len(t_clean) < 65 and len(t_clean.split()) <= 5:
-                            if t_clean not in skills_list:
-                                skills_list.append(t_clean)
+                        words = t_clean.split()
+                        if t_clean and 1 < len(t_clean) < 45 and len(words) <= 4:
+                            if words[0].lower() not in ["implemented", "developed", "architected", "managed", "built", "designed", "created", "led", "spearheaded", "in progress", "completed"]:
+                                if t_clean not in skills_list:
+                                    skills_list.append(t_clean)
+
 
         # Universal multi-domain skill discovery from full text across all industries
         universal_keywords = [

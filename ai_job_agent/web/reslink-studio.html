@@ -1909,6 +1909,70 @@
       }
     }
 
+    window.handleStudioResumeUpload = async function(inputOrFile) {
+      let file = null;
+      if (inputOrFile instanceof File) {
+        file = inputOrFile;
+      } else if (inputOrFile && inputOrFile.files && inputOrFile.files[0]) {
+        file = inputOrFile.files[0];
+      }
+      if (!file) return;
+
+      const statusEl = document.getElementById('studio-cv-status-display');
+      const filenameEl = document.getElementById('studio-cv-filename-display');
+      const badgeEl = document.getElementById('studio-cv-attached-badge');
+
+      if (statusEl) statusEl.innerText = "⏳ Ingesting & Parsing authentic CV...";
+      if (filenameEl) filenameEl.innerText = file.name;
+      if (badgeEl) {
+        badgeEl.innerText = "⏳ PARSING";
+        badgeEl.style.background = "rgba(56, 189, 248, 0.2)";
+        badgeEl.style.color = "#38BDF8";
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      const slug = currentResLinkProfile?.slug || 'mudather-mohammed';
+      formData.append('slug', slug);
+
+      try {
+        const res = await fetch('/api/v1/reslink/resume/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || data.error || 'Upload failed');
+
+        if (statusEl) statusEl.innerText = `✓ Synced with ResLink vault (${data.filesize || 'Verified'})`;
+        if (badgeEl) {
+          badgeEl.innerText = "✓ ATTACHED";
+          badgeEl.style.background = "rgba(16, 185, 129, 0.2)";
+          badgeEl.style.color = "#10B981";
+        }
+
+        if (data.profile) {
+          if (document.getElementById('studio-cand-name-preview')) {
+            document.getElementById('studio-cand-name-preview').innerText = data.profile.full_name || 'Candidate';
+          }
+          if (document.getElementById('studio-cand-skills-preview')) {
+            document.getElementById('studio-cand-skills-preview').innerHTML = (data.profile.skills || []).map(s => `<span class="skill-chip chip-match" style="font-size: 11px; padding: 2px 8px;">✓ ${escapeHtml(s)}</span>`).join('');
+          }
+        }
+
+        showToast("📄 Authentic Resume Synced with ResLink Studio!");
+      } catch (err) {
+        console.error("Studio CV upload error:", err);
+        if (statusEl) statusEl.innerText = `✗ ${err.message}`;
+        if (badgeEl) {
+          badgeEl.innerText = "✗ UPLOAD ERROR";
+          badgeEl.style.background = "rgba(239, 68, 68, 0.2)";
+          badgeEl.style.color = "#FB7185";
+        }
+        showToast(`❌ CV Upload Error: ${err.message}`);
+      }
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
       loadStudioProfile();
       loadCompanyResLinks();
@@ -1957,3 +2021,4 @@
   </script>
 </body>
 </html>
+
