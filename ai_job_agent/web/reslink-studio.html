@@ -916,11 +916,14 @@
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    window.goToStep = goToStep;
 
     function openPublicResLinkPage() {
       const slug = currentResLinkProfile?.slug || window.activeSlug || 'mudather-mohammed';
       window.open('/p/' + slug, '_blank');
     }
+    window.openPublicResLinkPage = openPublicResLinkPage;
+
 
     function showToast(msg) {
       const t = document.getElementById('studio-toast');
@@ -1287,12 +1290,13 @@
         }
       }
     }
+    window.generateStudioPitch = generateStudioPitch;
 
     async function matchScriptFromStudio() {
       const jobTitle = document.getElementById('studio-job-title')?.value?.trim() || 'Junior AI Engineer';
       const company = document.getElementById('studio-company-name')?.value?.trim() || 'Target Employer';
       const seniorContact = document.getElementById('studio-senior-contact')?.value?.trim() || 'Hiring Lead';
-      const duration = document.getElementById('studio-studio-pitch-duration')?.value || '60s';
+      const duration = document.getElementById('studio-pitch-duration')?.value || '60s';
       const reqs = document.getElementById('studio-job-requirements')?.value?.trim() || `Target role requirements for ${jobTitle} at ${company}.`;
 
       const btn = document.getElementById('btn-studio-match-now');
@@ -1354,6 +1358,8 @@
         }
       }
     }
+    window.matchScriptFromStudio = matchScriptFromStudio;
+
 
     function playStudioAudioRehearsal() {
       const text = document.getElementById('studio-script-editor').value;
@@ -1893,6 +1899,7 @@
         showToast(`Error: ${err.message}`);
       }
     }
+    window.deleteCompanyResLink = deleteCompanyResLink;
 
     async function clearAllCompanyResLinks() {
       if (!confirm("Are you sure you want to delete ALL company-tailored ResLinks? Any recruiter opening those links will see a 404 Deactivated page.")) return;
@@ -1908,6 +1915,8 @@
         showToast(`Error: ${err.message}`);
       }
     }
+    window.clearAllCompanyResLinks = clearAllCompanyResLinks;
+
 
 
 
