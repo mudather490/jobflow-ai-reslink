@@ -1080,3 +1080,34 @@ body {
   flex-wrap: wrap;
 }
 
+/* Responsive Media Queries for Landing Page */
+@media (max-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden !important;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  .auth-modal-box {
+    max-width: 95vw !important;
+    padding: 20px 16px !important;
+  }
+
+  .calculator-card {
+    padding: 20px 16px !important;
+  }
+}
+
+
