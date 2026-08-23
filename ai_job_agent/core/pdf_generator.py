@@ -330,6 +330,111 @@ class ResumeDocumentGenerator:
             doc.save(temp_out)
             return temp_out
 
+    @classmethod
+    def generate_docx_bytes(cls, profile: UserProfile, template_id: str = "modern") -> Any:
+        """
+        Generates the professional Word .docx document directly in RAM (io.BytesIO)
+        without relying on local disk file reads or writes. 100% Vercel Serverless Immune!
+        """
+        import io
+        from docx import Document
+        from docx.shared import Inches, Pt, RGBColor
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+        doc = Document()
+        
+        # Set 0.75-inch margins (standard ATS formatting)
+        for section in doc.sections:
+            section.top_margin = Inches(0.75)
+            section.bottom_margin = Inches(0.75)
+            section.left_margin = Inches(0.75)
+            section.right_margin = Inches(0.75)
+
+        tmpl = get_template(template_id)
+        prim_rgb = RGBColor.from_string(tmpl.primary_color.lstrip('#'))
+
+        # Header: Candidate Name
+        p_name = doc.add_paragraph()
+        p_name.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_name = p_name.add_run(profile.full_name or "MUDATHER MOHAMMED")
+        r_name.bold = True
+        r_name.font.size = Pt(18)
+        r_name.font.color.rgb = prim_rgb
+
+        # Contact Line
+        if profile.contact:
+            p_contact = doc.add_paragraph()
+            p_contact.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            c_parts = []
+            if profile.contact.location: c_parts.append(profile.contact.location)
+            if profile.contact.email: c_parts.append(profile.contact.email)
+            if profile.contact.phone: c_parts.append(profile.contact.phone)
+            if profile.contact.linkedin: c_parts.append(profile.contact.linkedin)
+            if profile.contact.github: c_parts.append(profile.contact.github)
+            r_contact = p_contact.add_run(" • ".join(c_parts))
+            r_contact.font.size = Pt(9.5)
+            r_contact.font.color.rgb = RGBColor(100, 100, 100)
+
+        # Helper for Headings
+        def add_sec_heading(title: str):
+            p = doc.add_paragraph()
+            p.paragraph_format.space_before = Pt(10)
+            p.paragraph_format.space_after = Pt(3)
+            r = p.add_run(title.upper())
+            r.bold = True
+            r.font.size = Pt(11)
+            r.font.color.rgb = prim_rgb
+
+        # Summary
+        if profile.summary:
+            p_sum = doc.add_paragraph(profile.summary)
+            p_sum.paragraph_format.space_after = Pt(4)
+
+        # Technical Skills
+        if profile.skills:
+            add_sec_heading("Technical Skills & Core Competencies")
+            p_sk = doc.add_paragraph(style="List Bullet")
+            r_sk = p_sk.add_run("Skills: ")
+            r_sk.bold = True
+            r_sk.font.color.rgb = prim_rgb
+            p_sk.add_run(", ".join(profile.skills))
+
+        # Professional Experience
+        if profile.experience:
+            add_sec_heading("Professional Experience")
+            for exp in profile.experience:
+                p_exp = doc.add_paragraph()
+                r_r = p_exp.add_run(f"{exp.role} — {exp.company}")
+                r_r.bold = True
+                if exp.duration:
+                    r_d = p_exp.add_run(f"\t{exp.duration}")
+                    r_d.italic = True
+                    p_exp.paragraph_format.tab_stops.add_tab_stop(Inches(6.5))
+
+                if exp.bullets:
+                    for b in exp.bullets:
+                        doc.add_paragraph(f"• {b}", style="List Bullet")
+
+        # Projects
+        if profile.projects:
+            add_sec_heading("Production Projects")
+            for proj in profile.projects:
+                p_p = doc.add_paragraph()
+                r_p = p_p.add_run(proj.name)
+                r_p.bold = True
+                if proj.technologies:
+                    p_p.add_run(f" ({', '.join(proj.technologies)})")
+                if proj.bullets:
+                    for b in proj.bullets:
+                        doc.add_paragraph(f"• {b}", style="List Bullet")
+
+        # Save directly to RAM BytesIO stream
+        stream = io.BytesIO()
+        doc.save(stream)
+        stream.seek(0)
+        return stream
+
+
 
     @classmethod
     def generate_pdf(cls, profile: UserProfile, output_path: str, template_id: str = "modern") -> str:

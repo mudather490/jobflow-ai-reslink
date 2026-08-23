@@ -15,7 +15,8 @@ if sys.platform == "win32":
 
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request, Response, Query
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
+
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -1178,66 +1179,50 @@ async def download_pdf(template_id: Optional[str] = None, slug: Optional[str] = 
     )
 
 
+@app.get("/api/templates/download")
+@app.get("/api/v1/templates/download")
 @app.get("/api/v1/templates/download/docx")
 @app.get("/api/v1/resume/download/docx")
 @app.get("/api/v1/resume/download-docx")
-async def download_docx(template_id: Optional[str] = None, slug: Optional[str] = None, mode: Optional[str] = None):
-    global active_docx_path, active_profile, active_job, active_match, active_resume_filename, active_template
+async def download_docx(template: Optional[str] = None, template_id: Optional[str] = None, slug: Optional[str] = None, mode: Optional[str] = None):
+    """
+    Streams dynamically generated .docx resume templates directly from RAM (io.BytesIO)
+    without relying on local disk file reads or writes. 100% Vercel Serverless Immune!
+    """
+    global active_profile, active_template
     
-    target_tmpl = template_id or active_template or "modern"
+    target_tmpl = template or template_id or active_template or "modern"
     safe_template_id = SecurityShield.sanitize_string(target_tmpl, "Template ID") or "modern"
     
-    # Check if user requested a clean starter CV template to fill out
-    if mode == "template" or not active_profile:
-        import tempfile
-        starter_filename = f"JobFlow_Starter_Template_{safe_template_id.replace('_', ' ').title().replace(' ', '_')}.docx"
-        try:
-            starter_path = str(OUTPUT_DIR / starter_filename)
-            ResumeDocumentGenerator.generate_starter_template(safe_template_id, starter_path, format="docx")
-        except Exception:
-            starter_path = str(Path(tempfile.gettempdir()) / starter_filename)
-            ResumeDocumentGenerator.generate_starter_template(safe_template_id, starter_path, format="docx")
-
-        return FileResponse(
-            starter_path,
-            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            filename=starter_filename,
-            headers={"Content-Disposition": f"attachment; filename={starter_filename}"}
-        )
-
     target_prof = active_profile
-    target_filename = active_resume_filename
-    
-    if slug:
-        _, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
-        if u_prof:
-            target_prof = u_prof
-            target_filename = f"{u_prof.full_name.replace(' ', '_')}_Resume.docx"
+    if mode == "template" or not target_prof:
+        target_prof = ResumeDocumentGenerator.get_starter_profile(safe_template_id)
+        file_name = f"JobFlow_Starter_Template_{safe_template_id.replace('_', ' ').title().replace(' ', '_')}.docx"
+    else:
+        if slug:
+            _, u_prof = ResLinkManager.load_profile_by_slug(slug, fallback_profile=active_profile)
+            if u_prof:
+                target_prof = u_prof
 
-    try:
-        out_docx_path, _ = ResumeDocumentGenerator.export_tailored_documents(
-            target_prof, "", "", original_filename=target_filename, template_id=safe_template_id
-        )
-    except Exception as ge:
-        print(f"[DOCX Gen Notice]: {ge}")
-        import tempfile
-        out_docx_path = str(Path(tempfile.gettempdir()) / f"Resume_{safe_template_id}.docx")
-        ResumeDocumentGenerator.generate_starter_template(safe_template_id, out_docx_path, format="docx")
+        cand_name = (getattr(target_prof, 'full_name', None) or 'Candidate').replace(' ', '_')
+        cand_name = re.sub(r'[^\w\-]', '', cand_name).strip('_') or 'Candidate'
+        file_name = f"{cand_name}_Resume_{safe_template_id}.docx"
 
-    if not out_docx_path or not Path(out_docx_path).exists():
-        import tempfile
-        out_docx_path = str(Path(tempfile.gettempdir()) / f"Resume_{safe_template_id}.docx")
-        ResumeDocumentGenerator.generate_starter_template(safe_template_id, out_docx_path, format="docx")
-    
-    cand_name = (getattr(target_prof, 'full_name', None) or 'Candidate').replace(' ', '_')
-    cand_name = re.sub(r'[^\w\-]', '', cand_name).strip('_') or 'Candidate'
+    file_stream = ResumeDocumentGenerator.generate_docx_bytes(target_prof, template_id=safe_template_id)
 
-    return FileResponse(
-        str(out_docx_path),
+    headers = {
+        "Content-Disposition": f'attachment; filename="{file_name}"',
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Access-Control-Expose-Headers": "Content-Disposition"
+    }
+
+
+    return StreamingResponse(
+        file_stream,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        filename=f"{cand_name}_Resume_{safe_template_id}.docx",
-        headers={"Content-Disposition": f"attachment; filename={cand_name}_Resume_{safe_template_id}.docx"}
+        headers=headers
     )
+
 
 
 
