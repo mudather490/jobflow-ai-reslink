@@ -1024,11 +1024,23 @@ function renderMatchReport(report) {
   // Render Candidate's Additional Profile Strengths (Bonus Skills)
   const extraCloud = document.getElementById('extra-skills-cloud');
   const extraCountBadge = document.getElementById('extra-count-badge');
-  const extraList = report.candidate_extra_skills || (currentProfile && currentProfile.skills ? currentProfile.skills.filter(s => !new Set(report.matched_skills.map(m => m.toLowerCase())).has(s.toLowerCase())) : []);
+  const rawExtraList = report.candidate_extra_skills || (currentProfile && currentProfile.skills ? currentProfile.skills.filter(s => !new Set(report.matched_skills.map(m => m.toLowerCase())).has(s.toLowerCase())) : []);
+  
+  // Strict sanitization: filter out URLs, email addresses, and long text > 45 chars
+  const extraList = rawExtraList.filter(s => {
+    if (!s || typeof s !== 'string') return false;
+    const clean = s.trim();
+    if (/https?:\/\/|www\.|@/i.test(clean)) return false;
+    if (clean.length > 45 || clean.split(/\s+/).length > 4) return false;
+    if (/^(implemented|developed|architected|managed|built|designed|spearheaded|led|created|engineered)/i.test(clean)) return false;
+    return true;
+  });
+
   if (extraCountBadge) extraCountBadge.innerText = `${extraList.length} Strengths`;
   if (extraCloud) {
     extraCloud.innerHTML = extraList.slice(0, 12).map(s => `<span class="skill-chip chip-extra">★ ${escapeHtml(s)}</span>`).join('') || '<span style="color:var(--text-dim);font-size:12px;">All profile skills utilized</span>';
   }
+
 
   // Render International Assessment
   const intBadge = document.getElementById('match-international-badge');

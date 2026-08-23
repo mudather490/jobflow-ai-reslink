@@ -464,31 +464,43 @@ class JobMatcher:
             else:
                 missing.append(req)
 
-        # Calculate LinkedIn Premium Skill Match Ratios & Scores
+        # 1. Mandatory Deal-Breaker Detection & Strict Weighting (40% Weight)
+        deal_breaker_keywords = [
+            "docker", "containerization", "kubernetes", "k8s", "rag", "vector search",
+            "aws", "cloud", "azure", "gcp", "pytorch", "tensorflow", "gaap", "ifrs",
+            "hipaa", "seo", "crm", "salesforce", "p&l", "financial modeling", "board certified",
+            "quickbooks", "react", "typescript", "python", "sql", "java", "c++"
+        ]
+
+        mandatory_reqs = [r for r in job_reqs if any(k in r.lower() for k in deal_breaker_keywords)]
+        if not mandatory_reqs and job_reqs:
+            mandatory_reqs = job_reqs[:max(1, (len(job_reqs) + 1) // 2)]
+
+        matched_mandatory = [m for m in matched if m in mandatory_reqs]
+        deal_breaker_score = (len(matched_mandatory) / max(1, len(mandatory_reqs))) * 100.0 if mandatory_reqs else 100.0
+
+        # 2. General Skill Match (30% Weight)
         total_reqs = len(job_reqs)
         matched_count = len(matched)
         skill_match_pct = round((matched_count / max(1, total_reqs)) * 100.0, 1) if total_reqs > 0 else 100.0
 
-        # Candidate Extra Skills (Bonus Strengths)
-        matched_canon_set = set(matched)
-        extra_skills = []
-        for s in (profile.skills or []):
-            if s not in matched_canon_set and not any(s.lower() == m.lower() for m in matched):
-                extra_skills.append(s)
+        # 3. Experience & Seniority Level Alignment (20% Weight)
+        exp_align_score = self.calculate_experience_alignment(profile, job.description, job.title)
 
-        # Title Relevance & Experience Alignment
+        # 4. Domain Context & Title Relevance (10% Weight)
         cand_roles = [e.role for e in (profile.experience or []) if e.role]
         if profile.target_role:
             cand_roles.append(profile.target_role)
         if profile.headline:
             cand_roles.append(profile.headline)
-
         title_rel_score = self.calculate_title_relevance(cand_roles, job.title)
-        exp_align_score = self.calculate_experience_alignment(profile, job.description, job.title)
 
-        # Exact Weighted Formula: 60% Skill Match + 25% Title Relevance + 15% Experience Alignment
+        # Weighted Final Score Formula: 40% Deal-Breakers + 30% Skill Match + 20% Exp Alignment + 10% Title Rel
         weighted_ats_score = round(
-            (skill_match_pct * 0.60) + (title_rel_score * 0.25) + (exp_align_score * 0.15),
+            (deal_breaker_score * 0.40) +
+            (skill_match_pct * 0.30) +
+            (exp_align_score * 0.20) +
+            (title_rel_score * 0.10),
             1
         )
         if matched_count == total_reqs and total_reqs > 0:
@@ -496,18 +508,35 @@ class JobMatcher:
 
         final_score = weighted_ats_score
 
-        # Determine LinkedIn Qualification Tier & Badges
-        if skill_match_pct >= 80.0 or final_score >= 80.0:
-            tier = "Top Applicant (Highly Qualified)"
+        # Candidate Extra Skills (Bonus Strengths) - Clean Atomic Filter (No URLs or long sentences)
+        matched_canon_set = set(matched)
+        extra_skills = []
+        for s in (profile.skills or []):
+            if not s or not isinstance(s, str):
+                continue
+            s_clean = s.strip()
+            if re.search(r'https?://|www\.|@', s_clean, re.IGNORECASE):
+                continue
+            if len(s_clean) > 45 or len(s_clean.split()) > 4:
+                continue
+            if re.match(r'^(implemented|developed|architected|managed|built|designed|spearheaded|led|created|engineered)', s_clean, re.IGNORECASE):
+                continue
+            if s_clean not in matched_canon_set and not any(s_clean.lower() == m.lower() for m in matched):
+                extra_skills.append(s_clean)
+
+        # Determine LinkedIn & ATS Qualification Tier & Badges
+        if final_score >= 75.0:
+            tier = "Ready to Apply (High Alignment)"
             badge_color = "emerald"
-        elif skill_match_pct >= 60.0 or final_score >= 65.0:
+        elif final_score >= 60.0:
             tier = "Good Fit (Moderate Match)"
             badge_color = "amber"
         else:
-            tier = "Skill Gaps Detected"
+            tier = "Skill Gaps Detected — Revision Needed"
             badge_color = "rose"
 
-        linkedin_callout = f"You have {matched_count} of {total_reqs} required skills matching this role ({skill_match_pct}% Skill Match)"
+        linkedin_callout = f"You have {matched_count} of {total_reqs} skills matching this role ({skill_match_pct}% Skill Match)"
+
 
         # Construct Actionable Recommendations
         recommendations = []
