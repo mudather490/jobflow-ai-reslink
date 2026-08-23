@@ -1,9 +1,45 @@
+import os
+import json
 import re
+import requests
 from typing import List, Dict, Any, Optional, Set
 from pydantic import BaseModel, Field
 from core.resume_parser import UserProfile
 from core.scraper import JobDetails
 from config import GEMINI_API_KEY, OPENAI_API_KEY
+
+
+class JobMatchEvaluation(BaseModel):
+    match_score: int = Field(
+        ..., 
+        ge=0, 
+        le=100, 
+        description="Overall match score from 0 to 100 based on technical and experience alignment."
+    )
+    can_apply: bool = Field(
+        ..., 
+        description="True if match_score is >= 75, otherwise False."
+    )
+    matched_skills: List[str] = Field(
+        ..., 
+        description="Skills and competencies explicitly present in both the resume and the job posting."
+    )
+    missing_skills: List[str] = Field(
+        ..., 
+        description="Crucial skills or requirements mentioned in the job posting that are missing from the resume."
+    )
+    strengths: List[str] = Field(
+        ..., 
+        description="Key competitive advantages the candidate has for this specific position."
+    )
+    resume_revision_tips: List[str] = Field(
+        ..., 
+        description="Specific, actionable advice on how to rewrite or update bullet points and projects to bridge the gap."
+    )
+    learning_recommendations: List[str] = Field(
+        ..., 
+        description="Technologies, tools, or concepts the user should learn before reapplying if score < 75."
+    )
 
 
 class MatchReport(BaseModel):
@@ -29,6 +65,7 @@ class MatchReport(BaseModel):
     international_badge: str = "🌐 Worldwide Remote"
     international_friendly_score: int = 95
     eligibility_notes: str = "Hires international remote candidates globally."
+
 
 
 class JobMatcher:
@@ -493,6 +530,43 @@ class JobMatcher:
                 f"Demonstrated background in: {', '.join(matched[:4]) if matched else 'core engineering fundamentals'}."
             )
 
+        # Check if OpenRouter / Gemma 4 LLM evaluation is available
+        llm_eval = self.evaluate_match_with_gemma_llm(profile, job)
+        if llm_eval:
+            matched_count = len(llm_eval.matched_skills)
+            total_reqs = matched_count + len(llm_eval.missing_skills)
+            skill_pct = round((matched_count / max(1, total_reqs)) * 100.0, 1)
+
+            tier = "Top Applicant (Highly Qualified)" if llm_eval.match_score >= 80 else ("Good Fit (Moderate Match)" if llm_eval.match_score >= 65 else "Skill Gaps Detected")
+            badge_color = "emerald" if llm_eval.match_score >= 80 else ("amber" if llm_eval.match_score >= 65 else "rose")
+
+            rec_list = llm_eval.resume_revision_tips + llm_eval.learning_recommendations
+
+            return MatchReport(
+                job_title=job.title,
+                company=job.company,
+                match_score=float(llm_eval.match_score),
+                overall_ats_score=float(llm_eval.match_score),
+                matched_skills_count=matched_count,
+                required_skills_count=total_reqs,
+                skill_match_percentage=skill_pct,
+                qualification_tier=tier,
+                qualification_badge_color=badge_color,
+                linkedin_qualification_text=f"Gemma 4 AI Evaluated: {matched_count} of {total_reqs} skills matched ({skill_pct}%)",
+                title_relevance_score=95.0,
+                experience_alignment_score=90.0,
+                matched_skills=llm_eval.matched_skills,
+                missing_critical_skills=llm_eval.missing_skills,
+                candidate_extra_skills=llm_eval.strengths,
+                partial_skills=[],
+                experience_assessment=f"Gemma 4 Evaluated: {llm_eval.match_score}% match score. {'Ready to Apply!' if llm_eval.can_apply else 'Skill gaps detected.'}",
+                summary_analysis=f"Evaluated via google/gemma-4-26b-a4b-it:free on OpenRouter • Score: {llm_eval.match_score}%",
+                actionable_recommendations=rec_list,
+                international_badge=job.international_badge,
+                international_friendly_score=job.international_friendly_score,
+                eligibility_notes=job.eligibility_notes,
+            )
+
         return MatchReport(
             job_title=job.title,
             company=job.company,
@@ -517,3 +591,64 @@ class JobMatcher:
             international_friendly_score=job.international_friendly_score,
             eligibility_notes=job.eligibility_notes,
         )
+
+    def evaluate_match_with_gemma_llm(self, profile: UserProfile, job: JobDetails) -> Optional[JobMatchEvaluation]:
+        """
+        Dynamic LLM Evaluator using google/gemma-4-26b-a4b-it:free on OpenRouter
+        with Pydantic structured output validation.
+        """
+        api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
+        if not api_key:
+            return None
+
+        model_name = os.getenv("OPENROUTER_MODEL", "google/gemma-4-26b-a4b-it:free")
+        
+        system_prompt = """
+        You are an expert technical recruiter and ATS evaluation engine.
+        Compare the candidate's resume against the target job description.
+
+        Evaluation Rules:
+        1. Score objectively from 0 to 100 based on core requirements, tools, domain knowledge, and experience level.
+        2. Set 'can_apply' to True ONLY if match_score >= 75.
+        3. If score < 75, provide clear, high-impact resume revision tips and concrete learning steps to bridge the gap.
+        4. Return clean structured JSON adhering strictly to the JobMatchEvaluation schema.
+        """
+
+        user_prompt = f"""
+        ### Candidate Resume:
+        {profile.get_full_text()}
+
+        ### Target Job Description:
+        Title: {job.title} at {job.company} ({job.location})
+        {job.description}
+        """
+
+        try:
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://jobflow-ai-reslink-5tbi.vercel.app",
+                "X-Title": "JobFlow.ai ATS Engine"
+            }
+
+            payload = {
+                "model": model_name,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                "response_format": {"type": "json_object"},
+                "temperature": 0.1
+            }
+
+            resp = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=12)
+            if resp.status_code == 200:
+                content = resp.json()["choices"][0]["message"]["content"]
+                clean_json = re.sub(r"```json\s*|\s*```", "", content).strip()
+                data = json.loads(clean_json)
+                return JobMatchEvaluation(**data)
+        except Exception as e:
+            print(f"[Gemma LLM Scorer] Warning: {e}")
+
+        return None
+
