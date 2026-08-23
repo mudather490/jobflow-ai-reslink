@@ -320,9 +320,16 @@ class ResumeDocumentGenerator:
             add_heading("ADDITIONAL BACKGROUND :", upper=True)
             doc.add_paragraph(profile.additional_background)
 
-        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        doc.save(output_path)
-        return output_path
+        try:
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            doc.save(output_path)
+            return output_path
+        except (OSError, PermissionError) as pe:
+            import tempfile
+            temp_out = str(Path(tempfile.gettempdir()) / Path(output_path).name)
+            doc.save(temp_out)
+            return temp_out
+
 
     @classmethod
     def generate_pdf(cls, profile: UserProfile, output_path: str, template_id: str = "modern") -> str:
@@ -664,8 +671,17 @@ class ResumeDocumentGenerator:
             elements.append(Paragraph(profile.additional_background, summary_style))
             elements.append(Spacer(1, 3))
 
-        doc.build(elements, canvasmaker=NumberedCanvas)
-        return output_path
+        try:
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            doc.build(elements, canvasmaker=NumberedCanvas)
+            return output_path
+        except (OSError, PermissionError) as pe:
+            import tempfile
+            temp_out = str(Path(tempfile.gettempdir()) / Path(output_path).name)
+            doc_temp = SimpleDocTemplate(temp_out, pagesize=letter, leftMargin=30, rightMargin=30, topMargin=25, bottomMargin=25)
+            doc_temp.build(elements, canvasmaker=NumberedCanvas)
+            return temp_out
+
 
     @classmethod
     def export_tailored_documents(
