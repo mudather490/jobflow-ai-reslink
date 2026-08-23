@@ -1330,10 +1330,47 @@ html, body {
     font-size: 13px;
   }
 
-  .upload-zone {
-    padding: 16px 12px;
+/* ResLink Studio Responsive Layout Overhaul */
+.studio-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 80px 16px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.studio-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1024px) {
+  .studio-form-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
+
+@media (max-width: 640px) {
+  .studio-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.activity-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+}
+
 
 
 
