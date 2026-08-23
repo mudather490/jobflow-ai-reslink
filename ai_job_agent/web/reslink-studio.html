@@ -1941,8 +1941,18 @@
           body: formData
         });
 
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+          const rawError = await res.text();
+          const cleanError = rawError.slice(0, 100).replace(/<[^>]*>/g, '').trim() || "Server returned an invalid non-JSON response";
+          throw new Error(cleanError);
+        }
+
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || data.error || 'Upload failed');
+        if (!res.ok || data.status === "error" || data.success === false) {
+          throw new Error(data.message || data.error || data.detail || 'Upload failed');
+        }
+
 
         if (statusEl) statusEl.innerText = `✓ Synced with ResLink vault (${data.filesize || 'Verified'})`;
         if (badgeEl) {

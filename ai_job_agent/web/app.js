@@ -593,18 +593,21 @@ async function handleFileUpload(file) {
       method: 'POST',
       body: formData,
     });
+
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      const rawText = await res.text();
+      const cleanError = rawText.slice(0, 100).replace(/<[^>]*>/g, '').trim() || "Server returned an invalid non-JSON response";
+      throw new Error(cleanError);
+    }
     
-    if (!res.ok) {
-      let errMsg = "Upload failed";
-      try {
-        const errJson = await res.json();
-        errMsg = errJson.detail || errJson.message || errJson.error || errMsg;
-      } catch (e) {}
-      throw new Error(errMsg);
+    const data = await res.json();
+    if (!res.ok || data.status === "error" || data.success === false) {
+      throw new Error(data.message || data.error || data.detail || "Upload failed");
     }
 
-    const data = await res.json();
     currentProfile = data.profile;
+
     renderActiveFileCard(data.filename, data.filesize, currentProfile);
 
     if (data.match_report) {

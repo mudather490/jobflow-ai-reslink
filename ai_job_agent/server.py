@@ -336,78 +336,84 @@ async def upload_resume(file: UploadFile = File(...), user_email: Optional[str] 
     global active_profile, active_resume_filename, active_resume_size, active_job, active_match, active_pdf_path, active_docx_path
     from core.supabase_client import SupabaseManager
 
-    content = await file.read()
-    if not content:
-        raise HTTPException(status_code=400, detail="Empty file uploaded.")
-
-    SecurityShield.validate_resume_upload(file.filename, content, max_size_mb=15)
-
-    # Security check 2: Path traversal guard & safe unique file path
-    safe_name = SecurityShield.sanitize_filepath(file.filename, DATA_DIR).name
-    save_path = DATA_DIR / safe_name
-
     try:
-        with open(save_path, "wb") as buffer:
-            buffer.write(content)
-    except PermissionError:
-        import time
-        safe_name = f"{Path(safe_name).stem}_{int(time.time())}{Path(safe_name).suffix}"
+        content = await file.read()
+        if not content:
+            return JSONResponse(status_code=400, content={"status": "error", "error": "Empty file uploaded.", "message": "Empty file uploaded."})
+
+        SecurityShield.validate_resume_upload(file.filename, content, max_size_mb=15)
+
+        # Security check 2: Path traversal guard & safe unique file path
+        safe_name = SecurityShield.sanitize_filepath(file.filename, DATA_DIR).name
         save_path = DATA_DIR / safe_name
-        with open(save_path, "wb") as buffer:
-            buffer.write(content)
 
-    size_kb = round(save_path.stat().st_size / 1024, 1)
-    active_resume_filename = save_path.name
-    active_resume_size = f"{size_kb} KB"
+        try:
+            with open(save_path, "wb") as buffer:
+                buffer.write(content)
+        except (PermissionError, OSError):
+            import tempfile
+            save_path = Path(tempfile.gettempdir()) / safe_name
+            with open(save_path, "wb") as buffer:
+                buffer.write(content)
 
-    try:
-        active_profile = ResumeParser.parse_file(str(save_path))
-    except Exception as parse_err:
-        print(f"[Resume Parsing Notice]: {parse_err}. Attempting raw text fallback...")
+        size_kb = round(save_path.stat().st_size / 1024, 1)
+        active_resume_filename = save_path.name
+        active_resume_size = f"{size_kb} KB"
+
         try:
-            raw_txt = content.decode("utf-8", errors="ignore")
-            active_profile = ResumeParser.parse_text_to_profile(raw_txt)
-        except Exception:
-            from core.resume_parser import UserProfile, ContactInfo
-            active_profile = UserProfile(
-                full_name=Path(file.filename).stem.replace("_", " ").title(),
-                headline="Candidate Profile",
-                contact=ContactInfo(email=user_email or "candidate@example.com"),
-                summary="Uploaded Candidate Resume Document",
-                skills=["Python", "SQL", "Project Management"]
-            )
-        
-    # Persist to Supabase and user cache
-    target_email = user_email or (active_profile.contact.email if active_profile.contact else None)
-    if target_email:
+            active_profile = ResumeParser.parse_file(str(save_path))
+        except Exception as parse_err:
+            print(f"[Resume Parsing Notice]: {parse_err}. Attempting raw text fallback...")
+            try:
+                raw_txt = content.decode("utf-8", errors="ignore")
+                active_profile = ResumeParser.parse_text_to_profile(raw_txt)
+            except Exception:
+                from core.resume_parser import UserProfile, ContactInfo
+                active_profile = UserProfile(
+                    full_name=Path(file.filename).stem.replace("_", " ").title(),
+                    headline="Candidate Profile",
+                    contact=ContactInfo(email=user_email or "candidate@example.com"),
+                    summary="Uploaded Candidate Resume Document",
+                    skills=["Python", "SQL", "Project Management"]
+                )
+            
+        # Persist to Supabase and user cache
+        target_email = user_email or (active_profile.contact.email if active_profile.contact else None)
+        if target_email:
+            try:
+                SupabaseManager.save_user_profile(target_email, active_profile.model_dump(), filename=active_resume_filename)
+            except Exception as se:
+                print(f"[Warning] Failed to save profile to Supabase: {se}")
+
         try:
-            SupabaseManager.save_user_profile(target_email, active_profile.model_dump(), filename=active_resume_filename)
+            ResLinkManager.sync_with_user_profile(active_profile)
         except Exception as se:
-            print(f"[Warning] Failed to save profile to Supabase: {se}")
+            print(f"[Warning] Failed to sync ResLink on upload: {se}")
 
-    try:
-        ResLinkManager.sync_with_user_profile(active_profile)
-    except Exception as se:
-        print(f"[Warning] Failed to sync ResLink on upload: {se}")
+        # Generate initial documents in authentic user profile format
+        try:
+            active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
+                active_profile, "", "", original_filename=active_resume_filename, template_id=active_template
+            )
+        except Exception as ge:
+            print(f"[Warning] Failed to generate export documents on upload: {ge}")
 
-    # Generate initial documents in authentic user profile format
-    try:
-        active_docx_path, active_pdf_path = ResumeDocumentGenerator.export_tailored_documents(
-            active_profile, "", "", original_filename=active_resume_filename, template_id=active_template
-        )
-    except Exception as ge:
-        print(f"[Warning] Failed to generate export documents on upload: {ge}")
+        if active_job:
+            active_match = matcher.evaluate_match(active_profile, active_job)
 
-    if active_job:
-        active_match = matcher.evaluate_match(active_profile, active_job)
+        return {
+            "status": "success",
+            "filename": active_resume_filename,
+            "filesize": active_resume_size,
+            "profile": active_profile.model_dump(),
+            "match_report": active_match.model_dump() if active_match else None,
+        }
+    except HTTPException as he:
+        return JSONResponse(status_code=he.status_code, content={"status": "error", "error": he.detail, "message": he.detail})
+    except Exception as top_err:
+        print(f"[Upload Resume Fatal Error]: {top_err}")
+        return JSONResponse(status_code=500, content={"status": "error", "error": str(top_err), "message": f"Resume upload failed: {str(top_err)}"})
 
-    return {
-        "status": "success",
-        "filename": active_resume_filename,
-        "filesize": active_resume_size,
-        "profile": active_profile.model_dump(),
-        "match_report": active_match.model_dump() if active_match else None,
-    }
 
 
 @app.post("/api/v1/reslink/resume/upload")
@@ -424,95 +430,103 @@ async def upload_reslink_resume(
     """
     from core.supabase_client import SupabaseManager
 
-    content = await file.read()
-    if not content:
-        raise HTTPException(status_code=400, detail="Empty file uploaded.")
-
-    SecurityShield.validate_resume_upload(file.filename, content, max_size_mb=15)
-
-    clean_slug = (slug or "candidate").strip()
-    clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', clean_slug.lower()).strip('-')
-
-    ext = Path(file.filename).suffix.lower()
-    if ext not in [".docx", ".pdf", ".txt", ".md"]:
-        raise HTTPException(status_code=400, detail="Unsupported file format. Please upload .docx, .pdf, or .txt")
-
-    import time
-    timestamp_str = int(time.time())
-    safe_orig_name = SecurityShield.sanitize_filepath(file.filename, DATA_DIR).name
-    filename_val = f"reslink_resume_{clean_slug}_{timestamp_str}_{safe_orig_name}"
-    save_path = DATA_DIR / filename_val
-
     try:
-        with open(save_path, "wb") as buffer:
-            buffer.write(content)
-    except PermissionError:
-        filename_val = f"reslink_resume_{clean_slug}_{int(time.time() * 1000)}_{safe_orig_name}"
+        content = await file.read()
+        if not content:
+            return JSONResponse(status_code=400, content={"status": "error", "error": "Empty file uploaded.", "message": "Empty file uploaded."})
+
+        SecurityShield.validate_resume_upload(file.filename, content, max_size_mb=15)
+
+        clean_slug = (slug or "candidate").strip()
+        clean_slug = re.sub(r'[^a-zA-Z0-9-]', '', clean_slug.lower()).strip('-')
+
+        ext = Path(file.filename).suffix.lower()
+        if ext not in [".docx", ".pdf", ".txt", ".md"]:
+            return JSONResponse(status_code=400, content={"status": "error", "error": "Unsupported file format. Please upload .docx, .pdf, or .txt", "message": "Unsupported file format."})
+
+        import time
+        timestamp_str = int(time.time())
+        safe_orig_name = SecurityShield.sanitize_filepath(file.filename, DATA_DIR).name
+        filename_val = f"reslink_resume_{clean_slug}_{timestamp_str}_{safe_orig_name}"
         save_path = DATA_DIR / filename_val
-        with open(save_path, "wb") as buffer:
-            buffer.write(content)
 
-    size_kb = round(save_path.stat().st_size / 1024, 1)
-    filesize_val = f"{size_kb} KB"
-
-    try:
-        parsed_profile = ResumeParser.parse_file(str(save_path))
-    except Exception as pe:
-        print(f"[ResLink Parser Notice]: {pe}")
         try:
-            raw_txt = content.decode("utf-8", errors="ignore")
-            parsed_profile = ResumeParser.parse_text_to_profile(raw_txt)
-        except Exception:
-            from core.resume_parser import UserProfile, ContactInfo
-            parsed_profile = UserProfile(
-                full_name=Path(file.filename).stem.replace("_", " ").title(),
-                headline="ResLink Candidate Profile",
-                contact=ContactInfo(email=user_email or "candidate@example.com"),
-                summary="Uploaded Candidate Resume Document",
-                skills=["Python", "SQL", "Leadership"]
+            with open(save_path, "wb") as buffer:
+                buffer.write(content)
+        except (PermissionError, OSError):
+            import tempfile
+            filename_val = f"reslink_resume_{clean_slug}_{int(time.time() * 1000)}_{safe_orig_name}"
+            save_path = Path(tempfile.gettempdir()) / filename_val
+            with open(save_path, "wb") as buffer:
+                buffer.write(content)
+
+        size_kb = round(save_path.stat().st_size / 1024, 1)
+        filesize_val = f"{size_kb} KB"
+
+        try:
+            parsed_profile = ResumeParser.parse_file(str(save_path))
+        except Exception as pe:
+            print(f"[ResLink Parser Notice]: {pe}")
+            try:
+                raw_txt = content.decode("utf-8", errors="ignore")
+                parsed_profile = ResumeParser.parse_text_to_profile(raw_txt)
+            except Exception:
+                from core.resume_parser import UserProfile, ContactInfo
+                parsed_profile = UserProfile(
+                    full_name=Path(file.filename).stem.replace("_", " ").title(),
+                    headline="ResLink Candidate Profile",
+                    contact=ContactInfo(email=user_email or "candidate@example.com"),
+                    summary="Uploaded Candidate Resume Document",
+                    skills=["Python", "SQL", "Leadership"]
+                )
+
+        reslink_profile = None
+        try:
+            reslink_profile = ResLinkManager.sync_with_user_profile(
+                parsed_profile,
+                filename=save_path.name,
+                filepath=str(save_path),
+                filesize=filesize_val,
+                save_user_cache=True,
+                save_global=True
             )
+            reslink_profile.attached_resume_filepath = str(save_path)
+            ResLinkManager.save_profile(reslink_profile)
+        except Exception as rse:
+            print(f"[ResLink Sync Notice]: {rse}")
+            reslink_profile = ResLinkManager.get_profile(clean_slug)
 
-    reslink_profile = None
-    try:
-        reslink_profile = ResLinkManager.sync_with_user_profile(
-            parsed_profile,
-            filename=save_path.name,
-            filepath=str(save_path),
-            filesize=filesize_val,
-            save_user_cache=True,
-            save_global=True
-        )
-        reslink_profile.attached_resume_filepath = str(save_path)
-        ResLinkManager.save_profile(reslink_profile)
-    except Exception as rse:
-        print(f"[ResLink Sync Notice]: {rse}")
-        reslink_profile = ResLinkManager.get_profile(clean_slug)
-
-    # Generate initial PDF preview for this candidate's chosen template
-    try:
-        chosen_tmpl = (reslink_profile.selected_cv_template if reslink_profile else "corporate_elite") or "corporate_elite"
-        clean_name = re.sub(r'[^\w\-]', '', parsed_profile.full_name.replace(' ', '_')).strip('_') or 'Candidate'
-        pdf_out_path = OUTPUT_DIR / f"{clean_name}_ResLink_Resume_{chosen_tmpl}.pdf"
-        ResumeDocumentGenerator.generate_pdf(parsed_profile, str(pdf_out_path), template_id=chosen_tmpl)
-    except Exception as gpe:
-        print(f"[ResLink PDF Gen Notice]: {gpe}")
-
-    # Save to Supabase if email available
-    target_email = user_email or (parsed_profile.contact.email if parsed_profile.contact else None)
-    if target_email:
+        # Generate initial PDF preview for this candidate's chosen template
         try:
-            SupabaseManager.save_user_profile(target_email, parsed_profile.model_dump(), filename=save_path.name)
-        except Exception:
-            pass
+            chosen_tmpl = (reslink_profile.selected_cv_template if reslink_profile else "corporate_elite") or "corporate_elite"
+            clean_name = re.sub(r'[^\w\-]', '', parsed_profile.full_name.replace(' ', '_')).strip('_') or 'Candidate'
+            pdf_out_path = OUTPUT_DIR / f"{clean_name}_ResLink_Resume_{chosen_tmpl}.pdf"
+            ResumeDocumentGenerator.generate_pdf(parsed_profile, str(pdf_out_path), template_id=chosen_tmpl)
+        except Exception as gpe:
+            print(f"[ResLink PDF Gen Notice]: {gpe}")
 
-    return {
-        "status": "success",
-        "message": f"Authentic CV '{save_path.name}' attached to ResLink Studio!",
-        "filename": save_path.name,
-        "filesize": filesize_val,
-        "profile": parsed_profile.model_dump(),
-        "reslink_profile": reslink_profile.model_dump() if reslink_profile else {},
-    }
+        # Save to Supabase if email available
+        target_email = user_email or (parsed_profile.contact.email if parsed_profile.contact else None)
+        if target_email:
+            try:
+                SupabaseManager.save_user_profile(target_email, parsed_profile.model_dump(), filename=save_path.name)
+            except Exception:
+                pass
+
+        return {
+            "status": "success",
+            "message": f"Authentic CV '{save_path.name}' attached to ResLink Studio!",
+            "filename": save_path.name,
+            "filesize": filesize_val,
+            "profile": parsed_profile.model_dump(),
+            "reslink_profile": reslink_profile.model_dump() if reslink_profile else {},
+        }
+    except HTTPException as he:
+        return JSONResponse(status_code=he.status_code, content={"status": "error", "error": he.detail, "message": he.detail})
+    except Exception as top_err:
+        print(f"[Upload ResLink Resume Fatal Error]: {top_err}")
+        return JSONResponse(status_code=500, content={"status": "error", "error": str(top_err), "message": f"ResLink CV upload failed: {str(top_err)}"})
+
 
 
 @app.get("/api/v1/reslink/pdf/raw")
