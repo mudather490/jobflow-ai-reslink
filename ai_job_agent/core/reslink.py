@@ -681,7 +681,10 @@ class ResLinkManager:
     def delete_company_reslink(cls, company_id: str) -> bool:
         companies = cls.load_company_reslinks()
         filtered = [c for c in companies if c["id"] != company_id]
-        if len(filtered) != len(companies):
-            cls.save_company_reslinks(filtered)
-            return True
-        return False
+        cls.save_company_reslinks(filtered)
+        return True
+
+    @classmethod
+    def clear_all_company_reslinks(cls) -> bool:
+        return cls.save_company_reslinks([])
+

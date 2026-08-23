@@ -238,11 +238,46 @@ async def serve_app():
 
 @app.get("/p/{slug}", response_class=HTMLResponse)
 @app.get("/reslink/{slug}", response_class=HTMLResponse)
-async def serve_reslink_page(slug: str = "alex-rivera"):
+async def serve_reslink_page(slug: str = "alex-rivera", company: Optional[str] = Query(None)):
     reslink_html = WEB_DIR / "reslink.html"
     if not reslink_html.exists():
         raise HTTPException(status_code=404, detail="ResLink page not found")
-    
+
+    # If recruiter accesses a company-tailored link, verify it hasn't been deleted by the candidate
+    if company:
+        companies = ResLinkManager.load_company_reslinks()
+        matching = [c for c in companies if (c.get("custom_param") or c.get("company_name", "")).lower() == company.lower()]
+        if not matching:
+            return HTMLResponse(
+                content="""
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>ResLink Link Deactivated (404)</title>
+                    <style>
+                        body { background: #060913; color: #FFF; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; text-align: center; }
+                        .deactivated-card { background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 16px; padding: 40px 24px; max-width: 480px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+                        .icon { font-size: 48px; margin-bottom: 16px; }
+                        h1 { font-size: 22px; font-weight: 800; color: #FB7185; margin: 0 0 10px 0; }
+                        p { font-size: 14px; color: #94A3B8; line-height: 1.6; margin: 0 0 24px 0; }
+                        .btn { display: inline-block; padding: 10px 20px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 10px; color: #38BDF8; text-decoration: none; font-weight: 700; font-size: 13px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="deactivated-card">
+                        <div class="icon">🚫</div>
+                        <h1>ResLink Link Deactivated</h1>
+                        <p>This company-tailored ResLink link has been deleted or deactivated by the candidate. It is no longer accessible.</p>
+                        <a href="/app" class="btn">⚡ Return to JobFlow AI</a>
+                    </div>
+                </body>
+                </html>
+                """,
+                status_code=404
+            )
+
     cand_name = "Candidate Profile"
     cand_headline = "Engineering Specialist"
     if slug:
@@ -262,6 +297,7 @@ async def serve_reslink_page(slug: str = "alex-rivera"):
     html_content = html_content.replace("{{CANDIDATE_NAME}}", cand_name)
     html_content = html_content.replace("{{CANDIDATE_HEADLINE}}", cand_headline)
     return HTMLResponse(content=html_content)
+
 
 
 @app.get("/reslink", response_class=HTMLResponse)
@@ -2234,11 +2270,18 @@ async def create_or_update_company_reslink_endpoint(request: Request):
 
 
 @app.delete("/api/v1/reslink/companies/{company_id}")
+@app.post("/api/v1/reslink/companies/{company_id}/delete")
 async def delete_company_reslink_endpoint(company_id: str):
-    success = ResLinkManager.delete_company_reslink(company_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Company ResLink not found")
-    return {"status": "success", "message": f"Company ResLink {company_id} deleted."}
+    ResLinkManager.delete_company_reslink(company_id)
+    return {"status": "success", "message": f"Company ResLink '{company_id}' permanently deleted."}
+
+
+@app.delete("/api/v1/reslink/companies")
+@app.post("/api/v1/reslink/companies/clear-all")
+async def clear_all_company_reslinks_endpoint():
+    ResLinkManager.clear_all_company_reslinks()
+    return {"status": "success", "message": "All company-tailored ResLink links cleared."}
+
 
 
 @app.patch("/api/v1/reslink/companies/{company_id}/status")
